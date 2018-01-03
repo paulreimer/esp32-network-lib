@@ -8,13 +8,15 @@ COMPONENT_ADD_INCLUDEDIRS := \
 COMPONENT_PRIV_INCLUDEDIRS := \
 	. \
 	curl/lib \
-	curl/include
+	curl/include \
+	zlib
 
 COMPONENT_SRCDIRS := \
 	. \
 	curl/lib \
 	curl/lib/vauth \
-	curl/lib/vtls
+	curl/lib/vtls \
+	zlib
 
 CFLAGS += \
 	-DHAVE_CONFIG_H=1 \
