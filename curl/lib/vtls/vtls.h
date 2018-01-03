@@ -97,15 +97,7 @@ bool Curl_none_false_start(void);
 CURLcode Curl_none_md5sum(unsigned char *input, size_t inputlen,
                           unsigned char *md5sum, size_t md5len);
 
-#include "openssl.h"        /* OpenSSL versions */
-#include "gtls.h"           /* GnuTLS versions */
-#include "nssg.h"           /* NSS versions */
 #include "gskit.h"          /* Global Secure ToolKit versions */
-#include "polarssl.h"       /* PolarSSL versions */
-#include "axtls.h"          /* axTLS versions */
-#include "cyassl.h"         /* CyaSSL versions */
-#include "schannel.h"       /* Schannel SSPI version */
-#include "darwinssl.h"      /* SecureTransport (Darwin) version */
 #include "mbedtls.h"        /* mbedTLS versions */
 
 #ifndef MAX_PINNED_PUBKEY_SIZE
