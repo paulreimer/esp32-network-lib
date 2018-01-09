@@ -4,6 +4,7 @@
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	cpp17_headers/include \
+	delegate \
 	yajl/include \
 	curl/include
 
