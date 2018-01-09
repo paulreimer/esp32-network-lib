@@ -3,12 +3,14 @@
 #
 
 COMPONENT_ADD_INCLUDEDIRS := \
+	yajl/include \
 	curl/include
 
 COMPONENT_PRIV_INCLUDEDIRS := \
 	. \
 	curl/lib \
 	curl/include \
+	yajl \
 	zlib
 
 COMPONENT_SRCDIRS := \
@@ -16,6 +18,7 @@ COMPONENT_SRCDIRS := \
 	curl/lib \
 	curl/lib/vauth \
 	curl/lib/vtls \
+	yajl/src \
 	zlib
 
 CFLAGS += \
