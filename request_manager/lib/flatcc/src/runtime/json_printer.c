@@ -132,7 +132,7 @@ static inline const void *get_field_ptr(flatcc_json_printer_table_descriptor_t *
     if (ctx->indent && ctx->level == 0) {                                   \
         *ctx->p++ = '\n';                                                   \
     }                                                                       \
-    flatcc_json_printer_flush_partial(ctx);                                 \
+    ctx->flush(ctx, 1);                                                     \
 } while (0)
 
 int flatcc_json_printer_fmt_float(char *buf, float n)
@@ -163,25 +163,34 @@ int flatcc_json_printer_fmt_bool(char *buf, int n)
     return 5;
 }
 
-static void print_string_part(flatcc_json_printer_t *ctx, const char *name, size_t len)
+static void print_ex(flatcc_json_printer_t *ctx, const char *s, size_t n)
 {
     size_t k;
 
-    if (ctx->p + len >= ctx->pflush) {
-        if (ctx->p >= ctx->pflush) {
-            ctx->flush(ctx, 0);
-        }
-        do {
-            k = ctx->pflush - ctx->p;
-            memcpy(ctx->p, name, k);
-            ctx->p += k;
-            name += k;
-            len -= k;
-            ctx->flush(ctx, 0);
-        } while (ctx->p + len >= ctx->pflush);
+    if (ctx->p >= ctx->pflush) {
+        ctx->flush(ctx, 0);
     }
-    memcpy(ctx->p, name, len);
-    ctx->p += len;
+    k = ctx->pflush - ctx->p;
+    while (n > k) {
+        memcpy(ctx->p, s, k);
+        ctx->p += k;
+        s += k;
+        n -= k;
+        ctx->flush(ctx, 0);
+        k = ctx->pflush - ctx->p;
+    }
+    memcpy(ctx->p, s, n);
+    ctx->p += n;
+}
+
+static inline void print(flatcc_json_printer_t *ctx, const char *s, size_t n)
+{
+    if (ctx->p + n >= ctx->pflush) {
+        print_ex(ctx, s, n);
+    } else {
+        memcpy(ctx->p, s, n);
+        ctx->p += n;
+    }
 }
 
 /*
@@ -195,9 +204,9 @@ static void print_string_part(flatcc_json_printer_t *ctx, const char *name, size
  * also supports UTF-16/32 little/big endian but flatbuffers only
  * support UTF-8 and we expect this in JSON input/output too).
  */
-static void print_string(flatcc_json_printer_t *ctx, const char *name, size_t len)
+static void print_string(flatcc_json_printer_t *ctx, const char *s, size_t n)
 {
-    const char *p = name;
+    const char *p = s;
     /* Unsigned is important. */
     unsigned char c, x;
     size_t k;
@@ -210,13 +219,13 @@ static void print_string(flatcc_json_printer_t *ctx, const char *name, size_t le
         while (c >= 0x20 && c != '\"' && c != '\\') {
             c = *++p;
         }
-        k = p - name;
-        print_string_part(ctx, name, k);
-        len -= k;
-        if (len == 0) {
+        k = p - s;
+        print(ctx, s, k);
+        n -= k;
+        if (n == 0) {
             break;
         }
-        name += k;
+        s += k;
         print_char('\\');
         switch (c) {
         case '"': print_char('\"'); break;
@@ -239,8 +248,8 @@ static void print_string(flatcc_json_printer_t *ctx, const char *name, size_t le
             break;
         }
         ++p;
-        --len;
-        ++name;
+        --n;
+        ++s;
     }
     print_char('\"');
 }
@@ -279,34 +288,34 @@ static void print_uint8_vector_base64_object(flatcc_json_printer_t *ctx, const v
     print_char('\"');
 }
 
-static void print_indent_ex(flatcc_json_printer_t *ctx, size_t k)
+static void print_indent_ex(flatcc_json_printer_t *ctx, size_t n)
 {
-    size_t m;
+    size_t k;
 
     if (ctx->p >= ctx->pflush) {
         ctx->flush(ctx, 0);
     }
-    m = ctx->pflush - ctx->p;
-    while (k > m) {
-        memset(ctx->p, ' ', m);
-        ctx->p += m;
-        k -= m;
+    k = ctx->pflush - ctx->p;
+    while (n > k) {
+        memset(ctx->p, ' ', k);
+        ctx->p += k;
+        n -= k;
         ctx->flush(ctx, 0);
-        m = ctx->flush_size;
+        k = ctx->pflush - ctx->p;
     }
-    memset(ctx->p, ' ', k);
-    ctx->p += k;
+    memset(ctx->p, ' ', n);
+    ctx->p += n;
 }
 
 static inline void print_indent(flatcc_json_printer_t *ctx)
 {
-    size_t k = ctx->level * ctx->indent;
+    size_t n = ctx->level * ctx->indent;
 
-    if (ctx->p + k > ctx->pflush) {
-        print_indent_ex(ctx, k);
+    if (ctx->p + n > ctx->pflush) {
+        print_indent_ex(ctx, n);
     } else {
-        memset(ctx->p, ' ', k);
-        ctx->p += k;
+        memset(ctx->p, ' ', n);
+        ctx->p += n;
     }
 }
 
@@ -321,7 +330,7 @@ void flatcc_json_printer_string(flatcc_json_printer_t *ctx, const char *s, int n
 
 void flatcc_json_printer_write(flatcc_json_printer_t *ctx, const char *s, int n)
 {
-    print_string_part(ctx, s, n);
+    print(ctx, s, n);
 }
 
 void flatcc_json_printer_nl(flatcc_json_printer_t *ctx)
@@ -362,7 +371,7 @@ static inline void print_symbol(flatcc_json_printer_t *ctx, const char *name, si
         memcpy(ctx->p, name, len);
         ctx->p += len;
     } else {
-        print_string_part(ctx, name, len);
+        print(ctx, name, len);
     }
     *ctx->p = '\"';
     ctx->p += !ctx->unquote;
@@ -414,7 +423,7 @@ void flatcc_json_printer_enum_flag(flatcc_json_printer_t *ctx, int count, const 
 {
     *ctx->p = ' ';
     ctx->p += count > 0;
-    print_string_part(ctx, symbol, len);
+    print(ctx, symbol, len);
 }
 
 static inline void print_string_object(flatcc_json_printer_t *ctx, const void *p)
@@ -558,7 +567,7 @@ void flatcc_json_printer_uint8_vector_base64_field(flatcc_json_printer_t *ctx,
 {
     const void *p = get_field_ptr(td, id);
     int mode;
-    
+
     mode = urlsafe ? base64_mode_url : base64_mode_rfc4648;
     mode |= base64_enc_modifier_padding;
 
@@ -827,7 +836,7 @@ void flatcc_json_printer_union_vector_field(flatcc_json_printer_t *ctx,
     uoffset_t count;
     char type_name[FLATCC_JSON_PRINT_NAME_LEN_MAX + 5];
     flatcc_json_printer_union_descriptor_t ud;
-    
+
     ud.ttl = td->ttl;
     if (len > FLATCC_JSON_PRINT_NAME_LEN_MAX) {
         RAISE_ERROR(bad_input);
@@ -855,7 +864,7 @@ void flatcc_json_printer_union_vector_field(flatcc_json_printer_t *ctx,
             type = __flatbuffers_utype_read_from_pe(types);
             if (type != 0) {
                 ud.type = type;
-                ud.member = p; 
+                ud.member = p;
                 pf(ctx, &ud);
             } else {
                 print_null();
@@ -869,7 +878,7 @@ void flatcc_json_printer_union_vector_field(flatcc_json_printer_t *ctx,
             print_char(',');
             if (type != 0) {
                 ud.type = type;
-                ud.member = p; 
+                ud.member = p;
                 pf(ctx, &ud);
             } else {
                 print_null();
@@ -920,9 +929,9 @@ void flatcc_json_printer_union_field(flatcc_json_printer_t *ctx,
         memcpy(ctx->p, name, len);
         ctx->p += len;
     } else {
-        print_string_part(ctx, name, len);
+        print(ctx, name, len);
     }
-    print_string_part(ctx, "_type", 5);
+    print(ctx, "_type", 5);
     *ctx->p = '\"';
     ctx->p += !ctx->unquote;
     print_char(':');
@@ -937,7 +946,7 @@ void flatcc_json_printer_union_field(flatcc_json_printer_t *ctx,
         print_name(ctx, name, len);
         ud.ttl = td->ttl;
         ud.type = type;
-        ud.member = p; 
+        ud.member = p;
         pf(ctx, &ud);
     }
 }
@@ -1034,7 +1043,7 @@ int flatcc_json_printer_struct_as_root(flatcc_json_printer_t *ctx,
     pf(ctx, read_uoffset_ptr(buf));
     print_end('}');
     print_last_nl();
-    return flatcc_json_printer_get_error(ctx) ? -1 : (int)ctx->total;
+    return flatcc_json_printer_get_error(ctx) ? -1 : (int)(ctx->total + (ctx->p - ctx->buf));
 }
 
 int flatcc_json_printer_table_as_root(flatcc_json_printer_t *ctx,
@@ -1045,7 +1054,7 @@ int flatcc_json_printer_table_as_root(flatcc_json_printer_t *ctx,
     }
     print_table_object(ctx, read_uoffset_ptr(buf), FLATCC_JSON_PRINT_MAX_LEVELS, pf);
     print_last_nl();
-    return flatcc_json_printer_get_error(ctx) ? -1 : (int)ctx->total;
+    return flatcc_json_printer_get_error(ctx) ? -1 : (int)(ctx->total + (ctx->p - ctx->buf));
 }
 
 void flatcc_json_printer_struct_as_nested_root(flatcc_json_printer_t *ctx,
@@ -1115,6 +1124,7 @@ static void __flatcc_json_printer_flush(flatcc_json_printer_t *ctx, int all)
         ctx->p = ctx->buf;
         ctx->total += len;
     }
+    *ctx->p = '\0';
 }
 
 int flatcc_json_printer_init(flatcc_json_printer_t *ctx, void *fp)
@@ -1142,9 +1152,12 @@ static void __flatcc_json_printer_flush_buffer(flatcc_json_printer_t *ctx, int a
 {
     (void)all;
 
-    ctx->total += ctx->p - ctx->buf;
-    ctx->p = ctx->buf;
-    RAISE_ERROR(overflow);
+    if (ctx->p >= ctx->pflush) {
+        RAISE_ERROR(overflow);
+        ctx->total += ctx->p - ctx->buf;
+        ctx->p = ctx->buf;
+    }
+    *ctx->p = '\0';
 }
 
 int flatcc_json_printer_init_buffer(flatcc_json_printer_t *ctx, char *buffer, size_t buffer_size)
@@ -1166,12 +1179,18 @@ int flatcc_json_printer_init_buffer(flatcc_json_printer_t *ctx, char *buffer, si
 static void __flatcc_json_printer_flush_dynamic_buffer(flatcc_json_printer_t *ctx, int all)
 {
     size_t len = ctx->p - ctx->buf;
-    char *p = FLATCC_JSON_PRINTER_REALLOC(ctx->buf, ctx->size * 2);
+    char *p;
 
     (void)all;
-    ctx->total += len;
+
+    *ctx->p = '\0';
+    if (ctx->p < ctx->pflush) {
+        return;
+    }
+    p = FLATCC_JSON_PRINTER_REALLOC(ctx->buf, ctx->size * 2);
     if (!p) {
         RAISE_ERROR(overflow);
+        ctx->total += len;
         ctx->p = ctx->buf;
     } else {
         ctx->size *= 2;
@@ -1180,6 +1199,7 @@ static void __flatcc_json_printer_flush_dynamic_buffer(flatcc_json_printer_t *ct
         ctx->p = p + len;
         ctx->pflush = p + ctx->flush_size;
     }
+    *ctx->p = '\0';
 }
 
 int flatcc_json_printer_init_dynamic_buffer(flatcc_json_printer_t *ctx, size_t buffer_size)
@@ -1207,10 +1227,10 @@ int flatcc_json_printer_init_dynamic_buffer(flatcc_json_printer_t *ctx, size_t b
 
 void *flatcc_json_printer_get_buffer(flatcc_json_printer_t *ctx, size_t *buffer_size)
 {
+    ctx->flush(ctx, 0);
     if (buffer_size) {
         *buffer_size = ctx->p - ctx->buf;
     }
-    *ctx->p = '\0';
     return ctx->buf;
 }
 
@@ -1218,8 +1238,6 @@ void *flatcc_json_printer_finalize_dynamic_buffer(flatcc_json_printer_t *ctx, si
 {
     void *buffer;
 
-    flatcc_json_printer_nl(ctx);
-    flatcc_json_printer_flush(ctx);
     buffer = flatcc_json_printer_get_buffer(ctx, buffer_size);
     memset(ctx, 0, sizeof(*ctx));
     return buffer;
