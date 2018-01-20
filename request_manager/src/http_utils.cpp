@@ -56,8 +56,7 @@ int parse_http_status_line(std::experimental::string_view chunk)
         code = (code * 10) + num;
       }
       else {
-        // Reset the code to 0 to indicate failure
-        code = 0;
+        // Stop parsing (whether or not anything was actually parsed)
         break;
       }
     }
