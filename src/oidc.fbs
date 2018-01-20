@@ -1,0 +1,27 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License.
+ * To view a copy of this license, visit
+ * https://creativecommons.org/licenses/by-nc-sa/4.0/
+ * or send a letter to
+ * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+ */
+namespace OIDC;
+
+table Token {
+  access_token:string;
+  token_type:string;
+  grant_type:string;
+  refresh_token:string;
+  expires_in:string;
+  id_token:string;
+}
+
+table Error {
+  code:int;
+  message:string;
+  status:string;
+}
+
+root_type Token;
