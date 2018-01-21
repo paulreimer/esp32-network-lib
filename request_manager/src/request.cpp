@@ -9,20 +9,20 @@
  */
 #include "request.h"
 
-#include <cstdio>
-
-#include "esp_log.h"
-
-constexpr char TAG[] = "Request";
+using string_view = std::experimental::string_view;
 
 Request::Request(
-  std::experimental::string_view _uri,
-  std::experimental::string_view _post_body,
-  std::experimental::string_view _content_type
+  string_view _method,
+  string_view _uri,
+  Request::HeaderMapView&& _headers,
+  string_view _body
 )
-: uri(_uri)
-, post_body(_post_body)
-, content_type(_content_type)
-, handle(curl_easy_init(), curl_easy_cleanup)
+: method(_method)
+, uri(_uri)
+, body(_body)
 {
+  for (const auto& hdr : _headers)
+  {
+    headers[std::string{hdr.first}] = std::string{hdr.second};
+  }
 }

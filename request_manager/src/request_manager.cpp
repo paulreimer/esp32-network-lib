@@ -24,13 +24,13 @@ constexpr char TAG[] = "RequestManager";
 size_t header_callback(char* buf, size_t size, size_t nitems, void* userdata)
 {
   auto header = std::experimental::string_view(buf, size*nitems);
-  return static_cast<Response*>(userdata)->header_callback(header);
+  return static_cast<RequestHandler*>(userdata)->header_callback(header);
 }
 
 size_t writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
 {
   auto chunk = std::experimental::string_view(buf, size*nmemb);
-  return static_cast<Response*>(userdata)->write_callback(chunk);
+  return static_cast<RequestHandler*>(userdata)->write_callback(chunk);
 }
 
 CURLcode sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
@@ -63,30 +63,52 @@ RequestManager::~RequestManager()
 }
 
 bool
-RequestManager::fetch(Request&& _req, Response&& _res)
+RequestManager::fetch(
+  Request&& _req,
+  RequestHandler::OnDataCallback&& _on_data_callback,
+  RequestHandler::OnDataErrback&& _on_data_errback,
+  RequestHandler::OnFinishCallback&& _on_finish_callback
+)
 {
-  const auto& inserted = requests.emplace(std::move(_req), std::move(_res));
+  //const auto& inserted = requests.emplace(std::move(_req), std::move(_res));
+  const auto& inserted = requests.emplace(
+    std::move(HandleImplPtr{
+      curl_easy_init(),
+      curl_easy_cleanup
+    }),
+    std::move(RequestHandler{
+      std::move(_req),
+      std::move(_on_data_callback),
+      std::move(_on_data_errback),
+      std::move(_on_finish_callback)
+    })
+  );
 
   if (inserted.second == true)
   {
-    auto& req = inserted.first->first;
-    auto& res = inserted.first->second;
+    auto& handler = inserted.first->second;
+    auto& req = handler.req;
+    auto& res = handler.res;
 
     res.errbuf.resize(CURL_ERROR_SIZE, 0);
+    // Reset the c-string contents to zero-length, null-terminated
+    res.errbuf[0] = 0;
 
-    auto* curl = req.handle.get();
+    auto* curl = inserted.first->first.get();
+
     curl_easy_setopt(curl, CURLOPT_URL, req.uri.c_str());
 
+    // Do not print out any updates to stdout
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-    //curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+    // Do not install signal handlers
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
     // Set hint for preferred buffersize
     curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1000L);
 
     // Set user data pointer attached to this request
-    curl_easy_setopt(curl, CURLOPT_PRIVATE, &res);
+    curl_easy_setopt(curl, CURLOPT_PRIVATE, &handler);
 
     // Provide a buffer for curl to store error strings in
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, res.errbuf.data());
@@ -103,12 +125,12 @@ RequestManager::fetch(Request&& _req, Response&& _res)
     // Parse headers with a separate callback
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     // Set user data pointer attached to the header function for this request
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &res);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &handler);
 
     // Body data incremental callback
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunction);
     // Set user data pointer attached to the write function for this request
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &res);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &handler);
 
     // Verify SSL certificates with CA cert(s)
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
@@ -123,15 +145,39 @@ RequestManager::fetch(Request&& _req, Response&& _res)
     curl_easy_setopt(curl, CURLOPT_CAINFO, NULL);
     curl_easy_setopt(curl, CURLOPT_CAPATH, NULL);
 
-    // Set the POST body data, if the request specifies a body
-    if (not req.post_body.empty())
+    if (handler.slist)
+    {
+      // Reset existing headers
+      curl_slist_free_all(handler.slist);
+      handler.slist = nullptr;
+    }
+
+    if (not req.headers.empty())
+    {
+      for (auto& hdr : req.headers)
+      {
+        std::string hdr_str(hdr.first + std::string(": ") + hdr.second);
+        handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
+      }
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
+    }
+
+    if (req.method == "GET")
+    {
+    }
+    else if (req.method == "POST")
     {
       // Use POST
       curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    }
+
+    // Set the POST body data, if the request specifies a body
+    if (not req.body.empty())
+    {
       // Specify the length of the post body
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, req.post_body.size());
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, req.body.size());
       // Specify a pointer to the data of the post body, do not delete it
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.post_body.data());
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.data());
     }
 
     curl_multi_add_handle(multi_handle.get(), curl);
@@ -182,42 +228,59 @@ RequestManager::wait_all()
       auto& done_handle = msg->easy_handle;
 
       // Search for the matching handle
-      auto done_req_res_pair = std::find_if(requests.begin(), requests.end(),
+      auto done_req_handler = std::find_if(requests.begin(), requests.end(),
         [done_handle]
         (const auto& req_res_pair) -> bool
         {
-          return (req_res_pair.first.handle.get() == done_handle);
+          return (req_res_pair.first.get() == done_handle);
         }
       );
 
       // If a matching request handle was found
-      if (done_req_res_pair != requests.end())
+      if (done_req_handler != requests.end())
       {
         any_done = true;
         printf("Transfer completed with status %d\n", msg->data.result);
 
-        auto& res = done_req_res_pair->second;
+        auto& handler = done_req_handler->second;
 
-        auto post_action_callback = Response::AbortProcessing;
+        auto post_action_callback = RequestHandler::AbortProcessing;
 
         // Execute the callback if it is set
-        if (res.on_finish_callback)
+        if (handler.on_finish_callback)
         {
-          post_action_callback = res.on_finish_callback(res);
+          post_action_callback = handler.on_finish_callback(
+            handler.req,
+            handler.res
+          );
         }
 
         // Remove the request handle from the multi handle
         curl_multi_remove_handle(multi_handle.get(), done_handle);
 
+        // Reset request/response state
+        if (handler.slist)
+        {
+          // Free the list of headers used in the request
+          curl_slist_free_all(handler.slist);
+          handler.slist = nullptr;
+        }
+
+        // Clear the list of headers used in the response
+        handler.res.headers.clear();
+
+        // Reset the c-string contents to zero-length, null-terminated
+        handler.res.errbuf[0] = 0;
+
         // Dispose/re-use handle according to on_finish_callback result
-        if (post_action_callback == Response::AbortProcessing)
+        if (post_action_callback == RequestHandler::DisposeRequest)
         {
           ESP_LOGI(TAG, "Removing completed request handle");
           // Cleanup, free request handle and Request/Response objects
-          requests.erase(done_req_res_pair);
+          requests.erase(done_req_handler);
           ESP_LOGI(TAG, "Deleted successfully");
         }
-        else if (post_action_callback == Response::ContinueProcessing)
+        else if (post_action_callback == RequestHandler::ReuseRequest)
         {
           ESP_LOGW(TAG, "Re-using previous request handle");
           // Re-use the old handle and re-add it to the multi handle

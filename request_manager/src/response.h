@@ -9,58 +9,32 @@
  */
 #pragma once
 
-#include "delegate.hpp"
-
-#include <experimental/string_view>
-
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 class RequestManager;
+class RequestHandler;
 
 class Response
 {
   friend class RequestManager;
+  friend class RequestHandler;
 public:
-  typedef bool PostCallbackAction;
-  constexpr static PostCallbackAction ContinueProcessing = true;
-  constexpr static PostCallbackAction AbortProcessing = false;
+  using string = std::string;
 
-  using string_view = std::experimental::string_view;
+  using HeaderMap = std::unordered_map<string, string>;
 
-  typedef delegate<PostCallbackAction(Response&, string_view)> OnDataCallback;
-  typedef delegate<PostCallbackAction(Response&, string_view)> OnDataErrback;
-  typedef delegate<PostCallbackAction(Response&)> OnFinishCallback;
-
-  Response(
-    OnDataCallback _on_data_callback,
-    OnDataErrback _on_data_errback,
-    OnFinishCallback _on_finish_callback
-  );
+  Response() = default;
   ~Response() = default;
-
-  template<PostCallbackAction NextActionT = Response::ContinueProcessing>
-  static PostCallbackAction print_error_helper(Response& res, string_view error_string);
-
-  static PostCallbackAction remove_request_if_failed(Response& res);
-
-protected:
-//TODO: make this protected
-public:
-  size_t header_callback(string_view chunk);
-  size_t write_callback(string_view chunk);
-
-  std::vector<char> errbuf;
 
 protected:
 //TODO: make this protected
 public:
   int code = -1;
 
-private:
-  OnDataCallback on_data_callback;
-  OnDataErrback on_data_errback;
-  OnFinishCallback on_finish_callback;
+protected:
+  std::vector<char> errbuf;
 
-  std::unordered_map<std::string, std::string> headers;
+  HeaderMap headers;
 };

@@ -11,7 +11,9 @@
 
 #include "request.h"
 #include "response.h"
+#include "request_handler.h"
 
+#include "curl/curl.h"
 #include "curl/multi.h"
 #include "delegate.hpp"
 
@@ -27,11 +29,19 @@
 class RequestManager
 {
 public:
+  using HandleImpl = CURL;
+  using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
+
   RequestManager();
   ~RequestManager();
 
   // move-only
-  bool fetch(Request&& _req, Response&& _res);
+  bool fetch(
+    Request&& _req,
+    RequestHandler::OnDataCallback&& on_data_callback,
+    RequestHandler::OnDataErrback&& on_data_errback,
+    RequestHandler::OnFinishCallback&& _on_finish_callback
+  );
 
   bool wait_all();
 
@@ -41,11 +51,7 @@ public:
   CURLcode sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx);
 
 protected:
-  typedef std::unordered_map<
-    Request,
-    Response,
-    Request::Hash,
-    Request::EqualityTest> RequestMap;
+  typedef std::unordered_map<HandleImplPtr, RequestHandler> RequestMap;
   RequestMap requests;
 
 private:

@@ -11,10 +11,8 @@
 
 #include <experimental/string_view>
 
-#include <memory>
 #include <string>
-
-#include "curl/curl.h"
+#include <unordered_map>
 
 class RequestManager;
 
@@ -22,41 +20,24 @@ class Request
 {
   friend class RequestManager;
 public:
+  using string = std::string;
+  using string_view = std::experimental::string_view;
+
+  using HeaderMapView = std::unordered_map<string_view, string_view>;
+  using HeaderMap = std::unordered_map<string, string>;
+
   Request(
-    std::experimental::string_view _uri,
-    std::experimental::string_view _post_body = "",
-    std::experimental::string_view _content_type = ""
+    string_view _method,
+    string_view _uri,
+    HeaderMapView&& _headers = {},
+    string_view _body = ""
   );
   ~Request() = default;
 
-  // Move-only class with default move behaviour
-  Request(Request&&) = default;
-  Request& operator= (Request &&) = default;
-  Request(const Request&) = delete;
-  Request& operator= (const Request&) = delete;
-
 protected:
-  class Hash {
-  public:
-    unsigned long operator()(const Request& key) const
-    {
-      unsigned long hash;
-      hash = reinterpret_cast<unsigned long>(key.handle.get());
-      return hash;
-    }
-  };
-
-  class EqualityTest {
-  public:
-    bool operator()(const Request& lhs, const Request& rhs) const
-    {
-      return (lhs.handle.get() == rhs.handle.get());
-    }
-  };
-
-  std::string uri;
-  std::string post_body;
-  std::string content_type;
-
-  std::unique_ptr<CURL, void(*)(CURL*)> handle;
+  static constexpr auto kDefaultMethod = "GET";
+  string method = kDefaultMethod;
+  string uri;
+  string body;
+  HeaderMap headers;
 };

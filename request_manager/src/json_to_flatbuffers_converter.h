@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "request_handler.h"
 #include "json_emitter.h"
 
 #include "delegate.hpp"
@@ -46,7 +47,7 @@ public:
   {
     auto ok = json_emitter.parse(chunk,
       [&NS_parse_json, &NS_X_verify_as_root, &callback, &errback]
-      (std::experimental::string_view json_str) -> Response::PostCallbackAction
+      (std::experimental::string_view json_str) -> RequestHandler::PostCallbackAction
       {
         flatcc_json_parser_t parser;
 
@@ -84,11 +85,11 @@ public:
           errback(std::experimental::string_view(error_str, strlen(error_str)));
         }
 
-        return Response::ContinueProcessing;
+        return RequestHandler::ContinueProcessing;
       },
 
       [&NS_parse_json, &NS_X_verify_as_root, &callback, &errback]
-      (std::experimental::string_view json_str) -> Response::PostCallbackAction
+      (std::experimental::string_view json_str) -> RequestHandler::PostCallbackAction
       {
         ESP_LOGE(
           "JsonToFlatbuffersConverter",
@@ -96,15 +97,15 @@ public:
           json_str.size(),
           json_str.data()
         );
-        return Response::ContinueProcessing;
+        return RequestHandler::ContinueProcessing;
       }
     );
 
     return ok;
   }
 
-  template<Response::PostCallbackAction NextActionT = Response::ContinueProcessing>
-  static Response::PostCallbackAction print_error_helper(
+  template<RequestHandler::PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
+  static RequestHandler::PostCallbackAction print_error_helper(
     std::experimental::string_view error_string
   )
   {
