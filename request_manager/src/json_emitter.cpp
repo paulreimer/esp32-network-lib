@@ -13,6 +13,7 @@
 
 using string_view = std::experimental::string_view;
 using string = std::string;
+using namespace stx;
 
 yajl_callbacks json_parse_callbacks = {
   // null
@@ -170,10 +171,10 @@ JsonEmitter::on_json_parse_null()
 
   if (
     not current_path.empty() and
-    stx::holds_alternative<int>(current_path.back())
+    holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = stx::get<int>(current_path.back());
+    auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
 
@@ -193,10 +194,10 @@ JsonEmitter::on_json_parse_boolean(int boolean)
 
   if (
     not current_path.empty() and
-    stx::holds_alternative<int>(current_path.back())
+    holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = stx::get<int>(current_path.back());
+    auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
 
@@ -216,10 +217,10 @@ JsonEmitter::on_json_parse_number(const char* s, size_t l)
 
   if (
     not current_path.empty() and
-    stx::holds_alternative<int>(current_path.back())
+    holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = stx::get<int>(current_path.back());
+    auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
 
@@ -239,10 +240,10 @@ JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringL
 
   if (
     not current_path.empty() and
-    stx::holds_alternative<int>(current_path.back())
+    holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = stx::get<int>(current_path.back());
+    auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
 
@@ -287,10 +288,10 @@ JsonEmitter::on_json_parse_start_map()
 
   if (
     not current_path.empty() and
-    stx::holds_alternative<int>(current_path.back())
+    holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = stx::get<int>(current_path.back());
+    auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
 
@@ -338,10 +339,10 @@ JsonEmitter::on_json_parse_start_array()
 
   if (
     not current_path.empty() and
-    stx::holds_alternative<int>(current_path.back())
+    holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = stx::get<int>(current_path.back());
+    auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
 
