@@ -25,10 +25,13 @@ public:
 
   using HeaderMapView = std::unordered_map<string_view, string_view>;
   using HeaderMap = std::unordered_map<string, string>;
+  using QueryMapView = std::unordered_map<string_view, string_view>;
+  using QueryMap = std::unordered_map<string, string>;
 
   Request(
     string_view _method,
     string_view _uri,
+    QueryMapView&& _query = {},
     HeaderMapView&& _headers = {},
     string_view _body = ""
   );
@@ -39,5 +42,14 @@ protected:
   string method = kDefaultMethod;
   string uri;
   string body;
+
+  string _url;
+
+//TODO: make this protected?
+public:
+  QueryMap query;
   HeaderMap headers;
+  bool pending = false;
+  bool ready = true;
+  bool abort = false;
 };

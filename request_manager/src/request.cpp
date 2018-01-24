@@ -10,10 +10,12 @@
 #include "request.h"
 
 using string_view = std::experimental::string_view;
+using string = std::string;
 
 Request::Request(
   string_view _method,
   string_view _uri,
+  Request::QueryMapView&& _query,
   Request::HeaderMapView&& _headers,
   string_view _body
 )
@@ -21,8 +23,13 @@ Request::Request(
 , uri(_uri)
 , body(_body)
 {
+  for (const auto& arg : _query)
+  {
+    query[string{arg.first}] = string{arg.second};
+  }
+
   for (const auto& hdr : _headers)
   {
-    headers[std::string{hdr.first}] = std::string{hdr.second};
+    headers[string{hdr.first}] = string{hdr.second};
   }
 }

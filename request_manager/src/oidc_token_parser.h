@@ -16,13 +16,15 @@
 #include <experimental/string_view>
 
 class OIDCTokenParser
-: private JsonToFlatbuffersConverter
+: public JsonToFlatbuffersConverter
 {
 public:
   typedef delegate<bool(OIDCToken)> OIDCTokenCallback;
 
+  using string_view = std::experimental::string_view;
+
   bool parse(
-    std::experimental::string_view chunk,
+    string_view chunk,
     OIDCTokenCallback&& callback,
     JsonToFlatbuffersConverter::Errback&& errback
   );

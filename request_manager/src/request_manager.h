@@ -32,6 +32,8 @@ public:
   using HandleImpl = CURL;
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
+  using string_view = std::experimental::string_view;
+
   RequestManager();
   ~RequestManager();
 
@@ -43,10 +45,15 @@ public:
     RequestHandler::OnFinishCallback&& _on_finish_callback
   );
 
+  bool send(
+    HandleImpl* handle,
+    RequestHandler& handler
+  );
+
   bool wait_all();
 
-  bool add_cacert_pem(std::experimental::string_view cacert_pem);
-  bool add_cacert_der(std::experimental::string_view cacert_der);
+  bool add_cacert_pem(string_view cacert_pem);
+  bool add_cacert_der(string_view cacert_der);
 
   CURLcode sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx);
 

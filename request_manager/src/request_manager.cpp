@@ -17,19 +17,22 @@
 
 #include "esp_log.h"
 
+using string_view = std::experimental::string_view;
+using string = std::string;
+
 mbedtls_x509_crt cacert;
 
 constexpr char TAG[] = "RequestManager";
 
 size_t header_callback(char* buf, size_t size, size_t nitems, void* userdata)
 {
-  auto header = std::experimental::string_view(buf, size*nitems);
+  auto header = string_view(buf, size*nitems);
   return static_cast<RequestHandler*>(userdata)->header_callback(header);
 }
 
 size_t writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
 {
-  auto chunk = std::experimental::string_view(buf, size*nmemb);
+  auto chunk = string_view(buf, size*nmemb);
   return static_cast<RequestHandler*>(userdata)->write_callback(chunk);
 }
 
@@ -295,7 +298,7 @@ RequestManager::wait_all()
 }
 
 bool
-RequestManager::add_cacert_pem(std::experimental::string_view cacert_pem)
+RequestManager::add_cacert_pem(string_view cacert_pem)
 {
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
@@ -330,7 +333,7 @@ RequestManager::add_cacert_pem(std::experimental::string_view cacert_pem)
 }
 
 bool
-RequestManager::add_cacert_der(std::experimental::string_view cacert_der)
+RequestManager::add_cacert_der(string_view cacert_der)
 {
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request

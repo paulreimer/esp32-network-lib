@@ -15,15 +15,19 @@ struct RequestHandler
 
   using string_view = std::experimental::string_view;
 
-  typedef bool PostRequestAction;
-  constexpr static PostRequestAction ReuseRequest = true;
-  constexpr static PostRequestAction DisposeRequest = false;
+  enum PostRequestAction
+  {
+    DisposeRequest,
+    ReuseRequest,
+    QueueRequest,
+  };
   typedef delegate<PostRequestAction(Request&, Response&)> OnFinishCallback;
 
-  typedef bool PostCallbackAction;
-  constexpr static PostCallbackAction ContinueProcessing = true;
-  constexpr static PostCallbackAction AbortProcessing = false;
-
+  enum PostCallbackAction
+  {
+    AbortProcessing,
+    ContinueProcessing,
+  };
   typedef delegate<PostCallbackAction(Request&, Response&, string_view)> OnDataCallback;
   typedef delegate<PostCallbackAction(Request&, Response&, string_view)> OnDataErrback;
 
@@ -53,7 +57,7 @@ struct RequestHandler
     string_view error_string
   );
 
-  static PostCallbackAction remove_request_if_failed(
+  static PostRequestAction remove_request_if_failed(
     Request& req,
     Response& res
   );

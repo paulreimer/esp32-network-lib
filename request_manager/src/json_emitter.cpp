@@ -11,6 +11,9 @@
 
 #include <cstdio>
 
+using string_view = std::experimental::string_view;
+using string = std::string;
+
 yajl_callbacks json_parse_callbacks = {
   // null
   [] (void* ctx) -> int
@@ -57,8 +60,14 @@ yajl_callbacks json_parse_callbacks = {
 
 JsonEmitter::JsonEmitter(const JsonPath& _match_path)
 : match_path(_match_path)
-, json_parser(yajl_alloc(&json_parse_callbacks, nullptr, this), yajl_free)
-, json_gen(yajl_gen_alloc(nullptr), yajl_gen_free)
+, json_parser{yajl_alloc(&json_parse_callbacks, nullptr, this), yajl_free}
+, json_gen{yajl_gen_alloc(nullptr), yajl_gen_free}
+{
+  init();
+}
+
+bool
+JsonEmitter::init()
 {
   auto* g = json_gen.get();
   yajl_gen_config(g, yajl_gen_beautify, 0);
@@ -66,11 +75,39 @@ JsonEmitter::JsonEmitter(const JsonPath& _match_path)
 
   auto* hand = json_parser.get();
   yajl_config(hand, yajl_allow_comments, 1);
+
+  return true;
+}
+
+bool
+JsonEmitter::reset()
+{
+  json_gen = JsonGenPtr{
+    yajl_gen_alloc(nullptr),
+    yajl_gen_free
+  };
+  json_parser = JsonParserPtr{
+    yajl_alloc(&json_parse_callbacks, nullptr, this),
+    yajl_free
+  };
+
+  init();
+
+  return true;
+}
+
+bool
+JsonEmitter::clear()
+{
+  json_gen.release();
+  json_parser.release();
+
+  return true;
 }
 
 bool
 JsonEmitter::parse(
-  std::experimental::string_view chunk,
+  string_view chunk,
   Callback&& _callback,
   Errback&& _errback
 )
@@ -100,7 +137,7 @@ JsonEmitter::emit()
 
   yajl_gen_get_buf(g, &buf, &len);
 
-  auto json_str = std::experimental::string_view(
+  auto json_str = string_view(
     reinterpret_cast<const char*>(buf),
     len
   );
@@ -132,7 +169,7 @@ JsonEmitter::on_json_parse_null()
   }
 
   if (
-    not current_path.empty() &&
+    not current_path.empty() and
     stx::holds_alternative<int>(current_path.back())
   )
   {
@@ -155,7 +192,7 @@ JsonEmitter::on_json_parse_boolean(int boolean)
   }
 
   if (
-    not current_path.empty() &&
+    not current_path.empty() and
     stx::holds_alternative<int>(current_path.back())
   )
   {
@@ -178,7 +215,7 @@ JsonEmitter::on_json_parse_number(const char* s, size_t l)
   }
 
   if (
-    not current_path.empty() &&
+    not current_path.empty() and
     stx::holds_alternative<int>(current_path.back())
   )
   {
@@ -201,7 +238,7 @@ JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringL
   }
 
   if (
-    not current_path.empty() &&
+    not current_path.empty() and
     stx::holds_alternative<int>(current_path.back())
   )
   {
@@ -223,7 +260,7 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
   }
 
   current_path.push_back(
-    std::experimental::string_view(reinterpret_cast<const char*>(stringVal),
+    string_view(reinterpret_cast<const char*>(stringVal),
     stringLen)
   );
 
@@ -249,7 +286,7 @@ JsonEmitter::on_json_parse_start_map()
   }
 
   if (
-    not current_path.empty() &&
+    not current_path.empty() and
     stx::holds_alternative<int>(current_path.back())
   )
   {
@@ -257,7 +294,7 @@ JsonEmitter::on_json_parse_start_map()
     array_idx++;
   }
 
-  current_path.push_back(std::string(""));
+  current_path.push_back(string(""));
 
   return ok;
 }
@@ -300,7 +337,7 @@ JsonEmitter::on_json_parse_start_array()
   }
 
   if (
-    not current_path.empty() &&
+    not current_path.empty() and
     stx::holds_alternative<int>(current_path.back())
   )
   {

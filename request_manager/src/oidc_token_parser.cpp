@@ -16,18 +16,19 @@ using string_view = std::experimental::string_view;
 
 bool
 OIDCTokenParser::parse(
-  std::experimental::string_view chunk,
+  string_view chunk,
   OIDCTokenCallback&& oidc_token_callback,
   JsonToFlatbuffersConverter::Errback&& errback
 )
 {
   return (JsonToFlatbuffersConverter::parse<
-      decltype(oidc_parse_json),
+      decltype(OIDC_Token_parse_json_as_root),
       decltype(OIDC_Token_verify_as_root)
     >
     (
       chunk,
-      oidc_parse_json,
+      OIDC_Token_identifier,
+      OIDC_Token_parse_json_as_root,
       OIDC_Token_verify_as_root,
 
       [&oidc_token_callback]

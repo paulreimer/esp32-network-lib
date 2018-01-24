@@ -13,6 +13,8 @@
 
 struct OIDCToken
 {
+  using string = std::string;
+
   OIDCToken() = default;
   OIDCToken(
     const char* _access_token,
@@ -23,10 +25,10 @@ struct OIDCToken
     const char* _id_token
   );
 
-  std::string access_token;
-  std::string token_type;
-  std::string grant_type;
-  std::string refresh_token;
-  std::string expires_in;
-  std::string id_token;
+  string access_token;
+  string token_type;
+  string grant_type;
+  string refresh_token;
+  string expires_in;
+  string id_token;
 };

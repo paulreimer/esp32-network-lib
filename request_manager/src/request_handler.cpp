@@ -12,6 +12,7 @@
 static constexpr auto TAG = "RequestHandler";
 
 using string_view = std::experimental::string_view;
+using string = std::string;
 
 RequestHandler::RequestHandler(
   Request&& _req,
@@ -37,7 +38,7 @@ RequestHandler::~RequestHandler()
 size_t
 RequestHandler::write_callback(string_view chunk)
 {
-  auto is_success_code = ((res.code > 0) && (res.code < 400));
+  auto is_success_code = ((res.code > 0) and (res.code < 400));
 
   auto post_callback_action = (is_success_code)
     ? on_data_callback(this->req, this->res, chunk)
@@ -46,6 +47,7 @@ RequestHandler::write_callback(string_view chunk)
   if (post_callback_action == AbortProcessing)
   {
     ESP_LOGE(TAG, "write_callback, AbortProcessing");
+    return 0; // anything other than chunk.size() will abort
   }
 
   return chunk.size();
@@ -82,16 +84,16 @@ RequestHandler::header_callback(string_view chunk)
   auto hdr = chunk.substr(0, len);
 
   // Split on header delimiter into k=v
-  const std::string delim = ": ";
+  const string delim = ": ";
   auto delim_pos = hdr.find(delim);
-  if (delim_pos != std::string::npos)
+  if (delim_pos != string::npos)
   {
     auto k = hdr.substr(0, delim_pos);
     auto v = hdr.substr(delim_pos + delim.size());
 
     res.headers.emplace(
-      std::move(std::string(k)),
-      std::move(std::string(v))
+      std::move(string(k)),
+      std::move(string(v))
     );
   }
 
@@ -140,7 +142,7 @@ RequestHandler::remove_request_if_failed(
   Response& res
 )
 {
-  auto is_success_code = ((res.code > 0) && (res.code < 400));
+  auto is_success_code = ((res.code > 0) and (res.code < 400));
 
   if (not is_success_code)
   {

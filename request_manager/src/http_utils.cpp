@@ -11,15 +11,18 @@
 
 #include <string>
 
+using string_view = std::experimental::string_view;
+using string = std::string;
+
 // Extract the HTTP response code from a matching header
 // return 0 otherwise
-int parse_http_status_line(std::experimental::string_view chunk)
+int parse_http_status_line(string_view chunk)
 {
   int code = 0;
 
-  const std::string http_1_0 = "HTTP/1.0 ";
-  const std::string http_1_1 = "HTTP/1.1 ";
-  const std::string http_2 = "HTTP/2 ";
+  const string http_1_0 = "HTTP/1.0 ";
+  const string http_1_1 = "HTTP/1.1 ";
+  const string http_2 = "HTTP/2 ";
 
   bool http_like = false;
   auto remaining = chunk;
@@ -51,7 +54,7 @@ int parse_http_status_line(std::experimental::string_view chunk)
     for (; i<remaining.size(); ++i)
     {
       auto num = remaining[i] - '0';
-      if ((0 <= num) && (num <= 9))
+      if ((0 <= num) and (num <= 9))
       {
         code = (code * 10) + num;
       }

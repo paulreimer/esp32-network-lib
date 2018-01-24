@@ -24,17 +24,27 @@
 class JsonEmitter
 {
 public:
-  typedef stx::variant<int, std::string> JsonPathComponent;
+  using string_view = std::experimental::string_view;
+  using string = std::string;
+
+  typedef stx::variant<int, string> JsonPathComponent;
   typedef std::vector<JsonPathComponent> JsonPath;
 
-  typedef delegate<bool(std::experimental::string_view)> Callback;
-  typedef delegate<bool(std::experimental::string_view)> Errback;
+  typedef delegate<bool(string_view)> Callback;
+  typedef delegate<bool(string_view)> Errback;
+
+  typedef std::unique_ptr<yajl_handle_t, void(*)(yajl_handle_t*)> JsonParserPtr;
+  typedef std::unique_ptr<yajl_gen_t, void(*)(yajl_gen_t*)> JsonGenPtr;
 
   JsonEmitter(const JsonPath& _match_path={});
   ~JsonEmitter() = default;
 
+  bool init();
+  bool clear();
+  bool reset();
+
   bool parse(
-    std::experimental::string_view chunk,
+    string_view chunk,
     Callback&& _callback,
     Errback&& _errback
   );
@@ -66,8 +76,8 @@ private:
   Callback callback;
   Errback errback;
 
-  std::unique_ptr<yajl_handle_t, void(*)(yajl_handle_t*)> json_parser;
-  std::unique_ptr<yajl_gen_t, void(*)(yajl_gen_t*)> json_gen;
+  JsonParserPtr json_parser;
+  JsonGenPtr json_gen;
 
   inline static bool
   path_component_equality_or_wildcard(
@@ -81,9 +91,9 @@ private:
     // Accept only wildcards which used the correct wildcard type
     return (
       (
-       (root.index() == current.index()) &&
-       (root == wildcard_int || root == wildcard_str)
-      ) ||
+       (root.index() == current.index()) and
+       (root == wildcard_int or root == wildcard_str)
+      ) or
       (root == current)
     );
   }
@@ -95,7 +105,7 @@ private:
   )
   {
     return (
-      (match_path.empty()) || (
+      (match_path.empty()) or (
       (current_path.size() >= match_path.size()) &&
       (std::equal(
         match_path.begin(),
