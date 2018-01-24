@@ -89,106 +89,120 @@ RequestManager::fetch(
 
   if (inserted.second == true)
   {
+    auto& handle = inserted.first->first;
     auto& handler = inserted.first->second;
-    auto& req = handler.req;
-    auto& res = handler.res;
 
-    res.errbuf.resize(CURL_ERROR_SIZE, 0);
-    // Reset the c-string contents to zero-length, null-terminated
-    res.errbuf[0] = 0;
-
-    auto* curl = inserted.first->first.get();
-
-    curl_easy_setopt(curl, CURLOPT_URL, req.uri.c_str());
-
-    // Do not print out any updates to stdout
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-    // Do not install signal handlers
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-
-    // Set hint for preferred buffersize
-    curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 1000L);
-
-    // Set user data pointer attached to this request
-    curl_easy_setopt(curl, CURLOPT_PRIVATE, &handler);
-
-    // Provide a buffer for curl to store error strings in
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, res.errbuf.data());
-
-    // Follow redirects (3xx responses) until the actual URL is found
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-    // Attempt HTTP/2 for HTTPS URLs, fallback to HTTP/1.1 otherwise
-    //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
-    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-
-    // Do not include headers in the response stream
-    curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
-    // Parse headers with a separate callback
-    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
-    // Set user data pointer attached to the header function for this request
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &handler);
-
-    // Body data incremental callback
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunction);
-    // Set user data pointer attached to the write function for this request
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &handler);
-
-    // Verify SSL certificates with CA cert(s)
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    // Expect PEM formatted CA cert(s)
-    //curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
-    // Use a function to supply PEM contents of CA cert(s) in memory buffer
-    curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, sslctx_function);
-    // Set user data pointer attached to the sslctx function for this request
-    curl_easy_setopt(curl, CURLOPT_SSL_CTX_DATA, this);
-
-    // Turn off the default CA locations, so no attempts are made to load them
-    curl_easy_setopt(curl, CURLOPT_CAINFO, NULL);
-    curl_easy_setopt(curl, CURLOPT_CAPATH, NULL);
-
-    if (handler.slist)
-    {
-      // Reset existing headers
-      curl_slist_free_all(handler.slist);
-      handler.slist = nullptr;
-    }
-
-    if (not req.headers.empty())
-    {
-      for (auto& hdr : req.headers)
-      {
-        std::string hdr_str(hdr.first + std::string(": ") + hdr.second);
-        handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
-      }
-      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
-    }
-
-    if (req.method == "GET")
-    {
-    }
-    else if (req.method == "POST")
-    {
-      // Use POST
-      curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    }
-
-    // Set the POST body data, if the request specifies a body
-    if (not req.body.empty())
-    {
-      // Specify the length of the post body
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, req.body.size());
-      // Specify a pointer to the data of the post body, do not delete it
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.data());
-    }
-
-    curl_multi_add_handle(multi_handle.get(), curl);
-
-    return true;
+    return send(handle.get(), handler);
   }
 
   return false;
+}
+
+bool
+RequestManager::send(
+  HandleImpl* handle,
+  RequestHandler& handler
+)
+{
+  auto* curl = handle;
+  auto& req = handler.req;
+  auto& res = handler.res;
+
+  // Allocate CURL_ERROR_SIZE bytes of zero-initialized data
+  res.errbuf.resize(CURL_ERROR_SIZE, 0);
+
+  // Reset the c-string contents to zero-length, null-terminated
+  res.errbuf[0] = 0;
+
+  req._url = req.uri;
+  if (not req.query.empty())
+  {
+    char delim = (req.uri.find_first_of('?') == string::npos)? '?' : '&';
+    for (auto& arg : req.query)
+    {
+      req._url += delim + arg.first + '=' + arg.second;
+      delim = '&';
+    }
+  }
+
+  curl_easy_setopt(curl, CURLOPT_URL, req._url.c_str());
+
+  // Do not print out any updates to stdout
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+  // Do not install signal handlers
+  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+
+  // Set user data pointer attached to this request
+  curl_easy_setopt(curl, CURLOPT_PRIVATE, &handler);
+
+  // Provide a buffer for curl to store error strings in
+  curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, res.errbuf.data());
+
+  // Follow redirects (3xx responses) until the actual URL is found
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+  // Attempt HTTP/2 for HTTPS URLs, fallback to HTTP/1.1 otherwise
+  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+
+  // Do not include headers in the response stream
+  curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
+  // Parse headers with a separate callback
+  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
+  // Set user data pointer attached to the header function for this request
+  curl_easy_setopt(curl, CURLOPT_HEADERDATA, &handler);
+
+  // Body data incremental callback
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunction);
+  // Set user data pointer attached to the write function for this request
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &handler);
+
+  // Verify SSL certificates with CA cert(s)
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+  // Use a function to supply PEM contents of CA cert(s) in memory buffer
+  curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, sslctx_function);
+  // Set user data pointer attached to the sslctx function for this request
+  curl_easy_setopt(curl, CURLOPT_SSL_CTX_DATA, this);
+
+  // Turn off the default CA locations, so no attempts are made to load them
+  curl_easy_setopt(curl, CURLOPT_CAINFO, NULL);
+  curl_easy_setopt(curl, CURLOPT_CAPATH, NULL);
+
+  if (handler.slist)
+  {
+    // Reset existing headers
+    curl_slist_free_all(handler.slist);
+    handler.slist = nullptr;
+  }
+
+  if (not req.headers.empty())
+  {
+    for (auto& hdr : req.headers)
+    {
+      string hdr_str(hdr.first + string(": ") + hdr.second);
+      handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
+  }
+
+  if (req.method == "POST")
+  {
+    // Use POST
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+  }
+
+  // Set the POST body data, if the request specifies a body
+  if (not req.body.empty())
+  {
+    // Specify the length of the post body
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, req.body.size());
+    // Specify a pointer to the data of the post body, do not delete it
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.data());
+  }
+
+  curl_multi_add_handle(multi_handle.get(), curl);
+
+  return true;
 }
 
 bool
@@ -197,6 +211,18 @@ RequestManager::wait_all()
   int inflight_count;
   bool any_done = false;
   int MAX_WAIT_MSECS = (30*1000);
+
+  for (auto& handle_and_request_handler : requests)
+  {
+    const auto& handle = handle_and_request_handler.first;
+    auto& handler = handle_and_request_handler.second;
+
+    if (handler.req.pending && handler.req.ready)
+    {
+      handler.req.pending = false;
+      send(handle.get(), handler);
+    }
+  }
 
   curl_multi_perform(multi_handle.get(), &inflight_count);
 
@@ -247,7 +273,7 @@ RequestManager::wait_all()
 
         auto& handler = done_req_handler->second;
 
-        auto post_action_callback = RequestHandler::AbortProcessing;
+        auto post_action_callback = RequestHandler::DisposeRequest;
 
         // Execute the callback if it is set
         if (handler.on_finish_callback)
@@ -269,6 +295,9 @@ RequestManager::wait_all()
           handler.slist = nullptr;
         }
 
+        // Reset the previous response error code
+        handler.res.code = -1;
+
         // Clear the list of headers used in the response
         handler.res.headers.clear();
 
@@ -276,19 +305,33 @@ RequestManager::wait_all()
         handler.res.errbuf[0] = 0;
 
         // Dispose/re-use handle according to on_finish_callback result
-        if (post_action_callback == RequestHandler::DisposeRequest)
+        switch (post_action_callback)
         {
-          ESP_LOGI(TAG, "Removing completed request handle");
-          // Cleanup, free request handle and Request/Response objects
-          requests.erase(done_req_handler);
-          ESP_LOGI(TAG, "Deleted successfully");
-        }
-        else if (post_action_callback == RequestHandler::ReuseRequest)
-        {
-          ESP_LOGW(TAG, "Re-using previous request handle");
-          // Re-use the old handle and re-add it to the multi handle
-          curl_multi_add_handle(multi_handle.get(), done_handle);
-          ESP_LOGI(TAG, "Re-added successfully");
+          case RequestHandler::DisposeRequest:
+          {
+            ESP_LOGI(TAG, "Removing completed request handle");
+            // Cleanup, free request handle and Request/Response objects
+            requests.erase(done_req_handler);
+            ESP_LOGI(TAG, "Deleted successfully");
+            break;
+          }
+
+          case RequestHandler::ReuseRequest:
+          {
+            ESP_LOGW(TAG, "Re-using previous request handle immediately");
+            // Re-use the old handle and re-add it to the multi handle
+            curl_multi_add_handle(multi_handle.get(), done_handle);
+            ESP_LOGI(TAG, "Re-added successfully");
+            break;
+          }
+
+          case RequestHandler::QueueRequest:
+          {
+            ESP_LOGI(TAG, "Leave request handle available for re-use");
+            handler.req.pending = true;
+            handler.req.ready = false;
+            break;
+          }
         }
       }
     }
@@ -365,7 +408,6 @@ RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
   // Default to fail
   CURLcode rv = CURLE_ABORTED_BY_CALLBACK;
 
-  printf("sslctx_callback\n");
   bool ok = true;
   if (ok)
   {

@@ -38,18 +38,24 @@ public:
 
   ~JsonToFlatbuffersConverter() = default;
 
-  template <typename NS_parse_json_T, typename NS_X_verify_as_root_T>
+  bool reset()
+  {
+    return json_emitter.reset();
+  }
+
+  template <typename NS_X_parse_json_as_root_T, typename NS_X_verify_as_root_T>
   bool parse(
-    std::experimental::string_view chunk,
-    NS_parse_json_T&& NS_parse_json,
+    string_view chunk,
+    char* NS_X_identifier,
+    NS_X_parse_json_as_root_T&& NS_X_parse_json_as_root,
     NS_X_verify_as_root_T&& NS_X_verify_as_root,
     Callback&& callback,
     Errback&& errback
   )
   {
     auto ok = json_emitter.parse(chunk,
-      [&NS_parse_json, &NS_X_verify_as_root, &callback, &errback]
-      (std::experimental::string_view json_str) -> RequestHandler::PostCallbackAction
+      [&]
+      (string_view json_str) -> RequestHandler::PostCallbackAction
       {
         flatcc_json_parser_t parser;
 
@@ -59,39 +65,52 @@ public:
         auto parse_flags = flatcc_json_parser_f_skip_unknown;
         size_t len = 0;
 
-        auto parse_err = NS_parse_json(
+        auto parse_err = NS_X_parse_json_as_root(
           &builder,
           &parser,
           json_str.data(),
           json_str.size(),
-          parse_flags
+          parse_flags,
+          NS_X_identifier
         );
 
-        if (!parse_err)
+        if (not parse_err)
         {
-          auto buf = flatcc_builder_finalize_aligned_buffer(&builder, &len);
+          auto* buf = flatcc_builder_finalize_aligned_buffer(&builder, &len);
 
-          auto verify_err = NS_X_verify_as_root(buf, len);
-
-          if (!verify_err)
+          if (buf)
           {
-            callback(std::experimental::string_view(static_cast<char*>(buf), len));
+            auto verify_err = NS_X_verify_as_root(buf, len);
+
+            if (not verify_err)
+            {
+              callback(string_view(static_cast<char*>(buf), len));
+            }
+            else {
+              auto error_str = flatcc_verify_error_string(verify_err);
+              errback(string_view(error_str, strlen(error_str)));
+            }
+
+            // Free the generated flatbuffer buffer
+            flatcc_builder_aligned_free(buf);
           }
           else {
-            auto error_str = flatcc_verify_error_string(verify_err);
-            errback(std::experimental::string_view(error_str, strlen(error_str)));
+            ESP_LOGE("JsonToFlatbuffersConverter", "Invalid flatcc builder");
           }
         }
         else {
           auto error_str = flatcc_json_parser_error_string(parse_err);
-          errback(std::experimental::string_view(error_str, strlen(error_str)));
+          errback(string_view(error_str, strlen(error_str)));
         }
+
+        // Release the builder resources
+        flatcc_builder_clear(&builder);
 
         return RequestHandler::ContinueProcessing;
       },
 
-      [&NS_parse_json, &NS_X_verify_as_root, &callback, &errback]
-      (std::experimental::string_view json_str) -> RequestHandler::PostCallbackAction
+      [&]
+      (string_view json_str) -> RequestHandler::PostCallbackAction
       {
         ESP_LOGE(
           "JsonToFlatbuffersConverter",

@@ -152,7 +152,7 @@ JsonEmitter::emit()
     errback(json_str);
   }
 
-  json_gen.reset(yajl_gen_alloc(nullptr));
+  json_gen = JsonGenPtr{yajl_gen_alloc(nullptr), yajl_gen_free};
 
   return (not json_str.empty());
 }
