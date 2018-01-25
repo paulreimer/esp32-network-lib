@@ -65,7 +65,7 @@ yajl_callbacks json_parse_callbacks = {
 
 inline bool
 path_component_is_wildcard_map(
-  JsonPathComponent root,
+  JsonPathComponent match,
   JsonPathComponent current
 )
 {
@@ -73,14 +73,14 @@ path_component_is_wildcard_map(
 
   // Accept only wildcards which used the correct wildcard type
   return (
-    holds_alternative<string>(root)
-    and (root == wildcard_map_str)
+    holds_alternative<string>(match)
+    and (match == wildcard_map_str)
   );
 }
 
 inline bool
 path_component_is_wildcard(
-  JsonPathComponent root,
+  JsonPathComponent match,
   JsonPathComponent current
 )
 {
@@ -90,24 +90,24 @@ path_component_is_wildcard(
 
   // Accept only wildcards which used the correct wildcard type
   return (
-    root.index() == current.index()
+    match.index() == current.index()
     and (
-      root == wildcard_int
-      or root == wildcard_str
-      or root == wildcard_map_str
+      match == wildcard_int
+      or match == wildcard_str
+      or match == wildcard_map_str
     )
   );
 }
 
 inline bool
 path_component_equality_or_wildcard(
-  JsonPathComponent root,
+  JsonPathComponent match,
   JsonPathComponent current
 )
 {
   return (
-    path_component_is_wildcard(root, current)
-    or (root == current)
+    path_component_is_wildcard(match, current)
+    or (match == current)
   );
 }
 
