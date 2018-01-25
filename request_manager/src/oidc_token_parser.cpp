@@ -21,7 +21,8 @@ OIDCTokenParser::parse(
   JsonToFlatbuffersConverter::Errback&& errback
 )
 {
-  return (JsonToFlatbuffersConverter::parse<
+  return (
+    JsonToFlatbuffersConverter::parse<
       decltype(OIDC_Token_parse_json_as_root),
       decltype(OIDC_Token_verify_as_root)
     >
