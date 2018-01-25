@@ -53,7 +53,7 @@ public:
     Errback&& errback
   )
   {
-    auto ok = json_emitter.parse(chunk,
+    return json_emitter.parse(chunk,
       [&]
       (string_view json_str) -> RequestHandler::PostCallbackAction
       {
@@ -118,11 +118,10 @@ public:
           json_str.size(),
           json_str.data()
         );
+
         return RequestHandler::ContinueProcessing;
       }
     );
-
-    return ok;
   }
 
   template<RequestHandler::PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
