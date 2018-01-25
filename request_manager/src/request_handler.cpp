@@ -102,6 +102,36 @@ RequestHandler::header_callback(string_view chunk)
 
 template<RequestHandler::PostCallbackAction NextActionT>
 RequestHandler::PostCallbackAction
+RequestHandler::print_data_helper(
+  Request& req,
+  Response& res,
+  string_view chunk
+)
+{
+  ESP_LOGE(TAG, "Received chunk: %.*s\n", chunk.size(), chunk.data());
+
+  return NextActionT;
+}
+
+// Explicit template instantiation: ContinueProcessing
+template
+RequestHandler::PostCallbackAction
+RequestHandler::print_data_helper<RequestHandler::ContinueProcessing>(
+  Request& req,
+  Response& res,
+  string_view error_string
+);
+// Explicit template instantiation: AbortProcessing
+template
+RequestHandler::PostCallbackAction
+RequestHandler::print_data_helper<RequestHandler::AbortProcessing>(
+  Request& req,
+  Response& res,
+  string_view error_string
+);
+
+template<RequestHandler::PostCallbackAction NextActionT>
+RequestHandler::PostCallbackAction
 RequestHandler::print_error_helper(
   Request& req,
   Response& res,

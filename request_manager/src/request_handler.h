@@ -51,6 +51,13 @@ struct RequestHandler
   struct curl_slist *slist = nullptr;
 
   template<PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
+  static PostCallbackAction print_data_helper(
+    Request& req,
+    Response& res,
+    string_view error_string
+  );
+
+  template<PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
   static PostCallbackAction print_error_helper(
     Request& req,
     Response& res,
