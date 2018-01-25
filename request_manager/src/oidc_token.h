@@ -11,8 +11,9 @@
 
 #include <string>
 
-struct OIDCToken
+class OIDCToken
 {
+public:
   using string = std::string;
 
   OIDCToken() = default;
@@ -24,6 +25,19 @@ struct OIDCToken
     const char* _expires_in,
     const char* _id_token
   );
+
+  // Just an id_token, e.g. used for receiving Firebase Auth
+  explicit OIDCToken(
+    const char* _id_token
+  );
+
+  // An OIDC token request
+  OIDCToken(
+    const char* _grant_type,
+    const char* _refresh_token
+  );
+
+  string to_json();
 
   string access_token;
   string token_type;
