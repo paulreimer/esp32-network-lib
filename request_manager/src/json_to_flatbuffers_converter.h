@@ -28,8 +28,8 @@ class JsonToFlatbuffersConverter
 public:
   using string_view = std::experimental::string_view;
 
-  typedef delegate<bool(string_view)> Callback;
-  typedef delegate<bool(string_view)> Errback;
+  using Callback = delegate<bool(string_view)>;
+  using Errback = delegate<bool(string_view)>;
 
   JsonToFlatbuffersConverter(const JsonEmitter::JsonPath& _match_path={})
   : json_emitter(_match_path)

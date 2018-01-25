@@ -19,7 +19,7 @@ class OIDCTokenParser
 : public JsonToFlatbuffersConverter
 {
 public:
-  typedef delegate<bool(OIDCToken)> OIDCTokenCallback;
+  using OIDCTokenCallback = delegate<bool(OIDCToken)>;
 
   using string_view = std::experimental::string_view;
 

@@ -21,15 +21,15 @@ struct RequestHandler
     ReuseRequest,
     QueueRequest,
   };
-  typedef delegate<PostRequestAction(Request&, Response&)> OnFinishCallback;
+  using OnFinishCallback = delegate<PostRequestAction(Request&, Response&)>;
 
   enum PostCallbackAction
   {
     AbortProcessing,
     ContinueProcessing,
   };
-  typedef delegate<PostCallbackAction(Request&, Response&, string_view)> OnDataCallback;
-  typedef delegate<PostCallbackAction(Request&, Response&, string_view)> OnDataErrback;
+  using OnDataCallback = delegate<PostCallbackAction(Request&, Response&, string_view)>;
+  using OnDataErrback = delegate<PostCallbackAction(Request&, Response&, string_view)>;
 
   RequestHandler(
     Request&& _req,

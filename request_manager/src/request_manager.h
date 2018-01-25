@@ -58,7 +58,7 @@ public:
   CURLcode sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx);
 
 protected:
-  typedef std::unordered_map<HandleImplPtr, RequestHandler> RequestMap;
+  using RequestMap = std::unordered_map<HandleImplPtr, RequestHandler>;
   RequestMap requests;
 
 private:

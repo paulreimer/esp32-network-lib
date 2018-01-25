@@ -27,14 +27,14 @@ public:
   using string_view = std::experimental::string_view;
   using string = std::string;
 
-  typedef stx::variant<int, string> JsonPathComponent;
-  typedef std::vector<JsonPathComponent> JsonPath;
+  using JsonPathComponent = stx::variant<int, string>;
+  using JsonPath = std::vector<JsonPathComponent>;
 
-  typedef delegate<bool(string_view)> Callback;
-  typedef delegate<bool(string_view)> Errback;
+  using Callback = delegate<bool(string_view)>;
+  using Errback = delegate<bool(string_view)>;
 
-  typedef std::unique_ptr<yajl_handle_t, void(*)(yajl_handle_t*)> JsonParserPtr;
-  typedef std::unique_ptr<yajl_gen_t, void(*)(yajl_gen_t*)> JsonGenPtr;
+  using JsonParserPtr = std::unique_ptr<yajl_handle_t, void(*)(yajl_handle_t*)>;
+  using JsonGenPtr = std::unique_ptr<yajl_gen_t, void(*)(yajl_gen_t*)>;
 
   JsonEmitter(const JsonPath& _match_path={});
   ~JsonEmitter() = default;
