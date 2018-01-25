@@ -13,6 +13,10 @@
 
 using string_view = std::experimental::string_view;
 using string = std::string;
+
+using JsonPathComponent = JsonEmitter::JsonPathComponent;
+using JsonPath = JsonEmitter::JsonPath;
+
 using namespace stx;
 
 yajl_callbacks json_parse_callbacks = {
@@ -58,6 +62,132 @@ yajl_callbacks json_parse_callbacks = {
   [] (void* ctx) -> int
   { return static_cast<JsonEmitter*>(ctx)->on_json_parse_end_array(); },
 };
+
+inline bool
+path_component_is_wildcard_map(
+  JsonPathComponent root,
+  JsonPathComponent current
+)
+{
+  const JsonPathComponent wildcard_map_str("**");
+
+  // Accept only wildcards which used the correct wildcard type
+  return (
+    holds_alternative<string>(root)
+    and (root == wildcard_map_str)
+  );
+}
+
+inline bool
+path_component_is_wildcard(
+  JsonPathComponent root,
+  JsonPathComponent current
+)
+{
+  const JsonPathComponent wildcard_str("*");
+  const JsonPathComponent wildcard_map_str("**");
+  const JsonPathComponent wildcard_int(-1);
+
+  // Accept only wildcards which used the correct wildcard type
+  return (
+    root.index() == current.index()
+    and (
+      root == wildcard_int
+      or root == wildcard_str
+      or root == wildcard_map_str
+    )
+  );
+}
+
+inline bool
+path_component_equality_or_wildcard(
+  JsonPathComponent root,
+  JsonPathComponent current
+)
+{
+  return (
+    path_component_is_wildcard(root, current)
+    or (root == current)
+  );
+}
+
+inline bool
+is_a_subpath(
+  const JsonPath& match_path,
+  const JsonPath& current_path
+)
+{
+  return (
+    match_path.empty()
+    or (
+      (current_path.size() >= match_path.size())
+      and std::equal(
+        match_path.begin(),
+        match_path.end(),
+        current_path.begin(),
+        path_component_equality_or_wildcard
+      )
+    )
+  );
+}
+
+inline bool
+is_a_strict_subpath(
+  const JsonPath& match_path,
+  const JsonPath& current_path
+)
+{
+  return (
+    is_a_subpath(match_path, current_path)
+    and (current_path.size() > match_path.size())
+  );
+}
+
+inline bool
+is_a_wildcard_subpath(
+  const JsonPath& match_path,
+  const JsonPath& current_path
+)
+{
+  return (
+    not current_path.empty()
+    and (current_path.size() == match_path.size())
+    and (path_component_is_wildcard(match_path.back(), current_path.back()))
+  );
+}
+
+inline bool
+is_emitting_at_path(
+  const JsonPath& match_path,
+  const JsonPath& current_path
+)
+{
+  return (
+    // Must be a subpath
+    (is_a_subpath(match_path, current_path))
+    and (
+      // Check for a strict subpath
+      (current_path.size() > match_path.size())
+      // Check for an exact wildcard match at this depth
+      or is_a_wildcard_subpath(match_path, current_path)
+    )
+  );
+}
+
+inline bool
+apply_map_workaround(
+  const JsonPath& match_path,
+  const JsonPath& current_path
+)
+{
+  return (
+    is_a_subpath(match_path, current_path)
+    and not match_path.empty()
+    and not current_path.empty()
+    and (current_path.size() == match_path.size())
+    and path_component_is_wildcard_map(match_path.back(), current_path.back())
+  );
+}
 
 JsonEmitter::JsonEmitter(const JsonPath& _match_path)
 : match_path(_match_path)
@@ -163,15 +293,16 @@ JsonEmitter::on_json_parse_null()
 {
   auto ok = true;
 
-  if (is_a_subpath(current_path, match_path))
+  if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_null(g));
   }
 
+  // Check if we are an item in an array
   if (
-    not current_path.empty() and
-    holds_alternative<int>(current_path.back())
+    not current_path.empty()
+    and holds_alternative<int>(current_path.back())
   )
   {
     auto& array_idx = get<int>(current_path.back());
@@ -186,15 +317,16 @@ JsonEmitter::on_json_parse_boolean(int boolean)
 {
   auto ok = true;
 
-  if (is_a_subpath(current_path, match_path))
+  if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_bool(g, boolean));
   }
 
+  // Check if we are an item in an array
   if (
-    not current_path.empty() and
-    holds_alternative<int>(current_path.back())
+    not current_path.empty()
+    and holds_alternative<int>(current_path.back())
   )
   {
     auto& array_idx = get<int>(current_path.back());
@@ -209,15 +341,16 @@ JsonEmitter::on_json_parse_number(const char* s, size_t l)
 {
   auto ok = true;
 
-  if (is_a_subpath(current_path, match_path))
+  if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_number(g, s, l));
   }
 
+  // Check if we are an item in an array
   if (
-    not current_path.empty() and
-    holds_alternative<int>(current_path.back())
+    not current_path.empty()
+    and holds_alternative<int>(current_path.back())
   )
   {
     auto& array_idx = get<int>(current_path.back());
@@ -232,15 +365,16 @@ JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringL
 {
   auto ok = true;
 
-  if (is_a_subpath(current_path, match_path))
+  if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
   }
 
+  // Check if we are an item in an array
   if (
-    not current_path.empty() and
-    holds_alternative<int>(current_path.back())
+    not current_path.empty()
+    and holds_alternative<int>(current_path.back())
   )
   {
     auto& array_idx = get<int>(current_path.back());
@@ -255,21 +389,70 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
 {
   auto ok = true;
 
+  auto is_first_key = (
+    not current_path.empty()
+    and holds_alternative<string>(current_path.back())
+    and get<string>(current_path.back()).empty()
+  );
+
+  auto needs_map_workaround = apply_map_workaround(match_path, current_path);
+  auto was_emitting = is_emitting_at_path(match_path, current_path);
+
   if (not current_path.empty())
   {
     current_path.pop_back();
   }
 
-  current_path.push_back(
-    string_view(reinterpret_cast<const char*>(stringVal),
-    stringLen)
-  );
+  auto still_emitting = is_emitting_at_path(match_path, current_path);
+  auto was_empty = current_path.empty();
 
-  //if (is_a_subpath(current_path, match_path))
-  if (is_a_strict_subpath(current_path, match_path))
+  if (was_emitting
+      and not still_emitting
+      and not is_first_key
+      and not current_path.empty()
+  )
   {
     auto* g = json_gen.get();
-    ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
+
+    if (needs_map_workaround)
+    {
+      // Close the previous object's wrapper object
+      ok = (yajl_gen_status_ok == yajl_gen_map_close(g));
+    }
+
+    // Close the previous object
+    ok = (yajl_gen_status_ok == yajl_gen_map_close(g));
+    // Emit the previous object
+    emit();
+    // Begin the next object
+    ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
+  }
+
+  current_path.push_back(
+    string_view(reinterpret_cast<const char*>(stringVal), stringLen)
+  );
+
+  if (is_emitting_at_path(match_path, current_path))
+  {
+    auto* g = json_gen.get();
+
+    if (apply_map_workaround(match_path, current_path))
+    {
+      string_view id = "id";
+      auto _id = reinterpret_cast<const unsigned char*>(id.data());
+
+      string_view val = "val";
+      auto _val = reinterpret_cast<const unsigned char*>(val.data());
+
+      // Begin a wrapper object
+      ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, _id, id.size()));
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, _val, val.size()));
+    }
+    else {
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
+    }
   }
 
   return ok;
@@ -280,15 +463,16 @@ JsonEmitter::on_json_parse_start_map()
 {
   auto ok = true;
 
-  if (is_a_subpath(current_path, match_path))
+  if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
   }
 
+  // Check if we are an item in an array
   if (
-    not current_path.empty() and
-    holds_alternative<int>(current_path.back())
+    not current_path.empty()
+    and holds_alternative<int>(current_path.back())
   )
   {
     auto& array_idx = get<int>(current_path.back());
@@ -305,8 +489,8 @@ JsonEmitter::on_json_parse_end_map()
 {
   auto ok = true;
 
-  auto was_a_subpath = is_a_strict_subpath(current_path, match_path);
-  if (was_a_subpath)
+  auto was_emitting = is_emitting_at_path(match_path, current_path);
+  if (was_emitting)
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_map_close(g));
@@ -317,8 +501,8 @@ JsonEmitter::on_json_parse_end_map()
     current_path.pop_back();
   }
 
-  auto still_a_subpath = is_a_strict_subpath(current_path, match_path);
-  if (was_a_subpath and not still_a_subpath)
+  auto still_emitting = is_emitting_at_path(match_path, current_path);
+  if (was_emitting and not still_emitting)
   {
     emit();
   }
@@ -331,15 +515,16 @@ JsonEmitter::on_json_parse_start_array()
 {
   auto ok = true;
 
-  if (is_a_subpath(current_path, match_path))
+  if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_array_open(g));
   }
 
+  // Check if we are an item in an array
   if (
-    not current_path.empty() and
-    holds_alternative<int>(current_path.back())
+    not current_path.empty()
+    and holds_alternative<int>(current_path.back())
   )
   {
     auto& array_idx = get<int>(current_path.back());
@@ -356,20 +541,21 @@ JsonEmitter::on_json_parse_end_array()
 {
   auto ok = true;
 
-  auto was_a_subpath = is_a_strict_subpath(current_path, match_path);
-  if (was_a_subpath)
+  auto was_emitting = is_emitting_at_path(match_path, current_path);
+  if (was_emitting)
   {
     auto* g = json_gen.get();
     ok = (yajl_gen_status_ok == yajl_gen_array_close(g));
   }
 
+  // Remove the last element from the path (the final item's index)
   if (not current_path.empty())
   {
     current_path.pop_back();
   }
 
-  auto still_a_subpath = is_a_strict_subpath(current_path, match_path);
-  if (was_a_subpath and not still_a_subpath)
+  auto still_emitting = is_emitting_at_path(match_path, current_path);
+  if (was_emitting and not still_emitting)
   {
     emit();
   }
