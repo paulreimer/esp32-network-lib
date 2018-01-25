@@ -40,17 +40,26 @@ CFLAGS += \
 
 # Depends on oidc.fbs
 src/oidc_token_parser.o: \
+	$(COMPONENT_PATH)/src/gen/flatbuffers_common_builder.h \
 	$(COMPONENT_PATH)/src/gen/flatbuffers_common_reader.h \
-	$(COMPONENT_PATH)/src/gen/oidc_json_parser.h \
+	$(COMPONENT_PATH)/src/gen/oidc_builder.h \
+	$(COMPONENT_PATH)/src/gen/oidc_reader.h \
 	$(COMPONENT_PATH)/src/gen/oidc_verifier.h \
-	$(COMPONENT_PATH)/src/gen/oidc_reader.h
+	$(COMPONENT_PATH)/src/gen/oidc_json_parser.h \
+	$(COMPONENT_PATH)/src/gen/oidc_json_printer.h
 
 # Output these files to the component path
+$(COMPONENT_PATH)/src/gen/flatbuffers_common_builder.h: $(COMPONENT_PATH)/src/oidc.fbs
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -cw -o $(COMPONENT_PATH)/src/gen $^
 $(COMPONENT_PATH)/src/gen/flatbuffers_common_reader.h: $(COMPONENT_PATH)/src/oidc.fbs
-	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -cv --json-parser -o $(COMPONENT_PATH)/src/gen $^
-$(COMPONENT_PATH)/src/gen/oidc_json_parser.h: $(COMPONENT_PATH)/src/oidc.fbs
-	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -cv --json-parser -o $(COMPONENT_PATH)/src/gen $^
-$(COMPONENT_PATH)/src/gen/oidc_verifier.h: $(COMPONENT_PATH)/src/oidc.fbs
-	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -cv --json-parser -o $(COMPONENT_PATH)/src/gen $^
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -c -o $(COMPONENT_PATH)/src/gen $^
+$(COMPONENT_PATH)/src/gen/oidc_builder.h: $(COMPONENT_PATH)/src/oidc.fbs
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -w -o $(COMPONENT_PATH)/src/gen $^
 $(COMPONENT_PATH)/src/gen/oidc_reader.h: $(COMPONENT_PATH)/src/oidc.fbs
-	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -cv --json-parser -o $(COMPONENT_PATH)/src/gen $^
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -o $(COMPONENT_PATH)/src/gen $^
+$(COMPONENT_PATH)/src/gen/oidc_verifier.h: $(COMPONENT_PATH)/src/oidc.fbs
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc -v -o $(COMPONENT_PATH)/src/gen $^
+$(COMPONENT_PATH)/src/gen/oidc_json_parser.h: $(COMPONENT_PATH)/src/oidc.fbs
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc --json-parser -o $(COMPONENT_PATH)/src/gen $^
+$(COMPONENT_PATH)/src/gen/oidc_json_printer.h: $(COMPONENT_PATH)/src/oidc.fbs
+	/Users/paulreimer/Development/lib/mymonster/bin/flatcc --json-printer -o $(COMPONENT_PATH)/src/gen $^
