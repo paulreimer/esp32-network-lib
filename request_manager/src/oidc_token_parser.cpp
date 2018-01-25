@@ -27,7 +27,7 @@ OIDCTokenParser::parse(
     >
     (
       chunk,
-      OIDC_Token_identifier,
+      OIDC_Token_type_identifier,
       OIDC_Token_parse_json_as_root,
       OIDC_Token_verify_as_root,
 
