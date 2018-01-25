@@ -22,11 +22,7 @@ OIDCTokenParser::parse(
 )
 {
   return (
-    JsonToFlatbuffersConverter::parse<
-      decltype(OIDC_Token_parse_json_as_root),
-      decltype(OIDC_Token_verify_as_root)
-    >
-    (
+    JsonToFlatbuffersConverter::parse(
       chunk,
       OIDC_Token_type_identifier,
       OIDC_Token_parse_json_as_root,
