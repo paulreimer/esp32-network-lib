@@ -404,12 +404,12 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
   }
 
   auto still_emitting = is_emitting_at_path(match_path, current_path);
-  auto was_empty = current_path.empty();
 
-  if (was_emitting
-      and not still_emitting
-      and not is_first_key
-      and not current_path.empty()
+  if (
+    was_emitting
+    and not still_emitting
+    and not is_first_key
+    and not match_path.empty()
   )
   {
     auto* g = json_gen.get();
