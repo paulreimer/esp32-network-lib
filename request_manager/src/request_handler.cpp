@@ -138,7 +138,7 @@ RequestHandler::print_error_helper(
   string_view error_string
 )
 {
-  ESP_LOGE(TAG, "RequestHandler data processing failed: %.*s\n", error_string.size(), error_string.data());
+  ESP_LOGE(TAG, "Processing failed: %.*s\n", error_string.size(), error_string.data());
 
   auto len = strnlen(res.errbuf.data(), res.errbuf.size());
   if (len > 0)
