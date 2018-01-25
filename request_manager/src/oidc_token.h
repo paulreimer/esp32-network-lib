@@ -38,6 +38,7 @@ public:
   );
 
   string to_json();
+  string to_flatbuffer();
 
   string access_token;
   string token_type;

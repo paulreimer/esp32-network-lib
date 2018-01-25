@@ -13,6 +13,8 @@
 
 #include <cstring>
 
+#include "oidc_builder.h"
+
 #include "yajl/yajl_parse.h"
 #include "yajl/yajl_gen.h"
 
@@ -153,4 +155,87 @@ OIDCToken::to_json()
   }
 
   return json_str;
+}
+
+std::string
+OIDCToken::to_flatbuffer()
+{
+  // Prepare the flatbuffer builder
+  flatcc_builder_t builder;
+  flatcc_builder_init(&builder);
+
+  // Populate the flatbuffer
+  OIDC_Token_start_as_root(&builder);
+
+  if (not access_token.empty())
+  {
+    OIDC_Token_access_token_create(
+      &builder,
+      access_token.data(),
+      access_token.size()
+    );
+  }
+  if (not token_type.empty())
+  {
+    OIDC_Token_token_type_create(
+      &builder,
+      token_type.data(),
+      token_type.size()
+    );
+  }
+  if (not grant_type.empty())
+  {
+    OIDC_Token_grant_type_create(
+      &builder,
+      grant_type.data(),
+      grant_type.size()
+    );
+  }
+  if (not refresh_token.empty())
+  {
+    OIDC_Token_refresh_token_create(
+      &builder,
+      refresh_token.data(),
+      refresh_token.size()
+    );
+  }
+  if (not expires_in.empty())
+  {
+    OIDC_Token_expires_in_create(
+      &builder,
+      expires_in.data(),
+      expires_in.size()
+    );
+  }
+  if (not id_token.empty())
+  {
+    OIDC_Token_id_token_create(
+      &builder,
+      id_token.data(),
+      id_token.size()
+    );
+  }
+
+  OIDC_Token_end_as_root(&builder);
+
+  // Extract the generated binary flatbuffer
+  size_t _flatbuffer_size;
+  auto* _flatbuffer_data = flatcc_builder_finalize_aligned_buffer(
+    &builder,
+    &_flatbuffer_size
+  );
+
+  // Copy the flatbuffer buffer before freeing the underlying resources
+  auto flatbuffer_str = string{
+    reinterpret_cast<const char*>(_flatbuffer_data),
+    _flatbuffer_size
+  };
+
+  // Free the generated flatbuffer buffer
+  flatcc_builder_aligned_free(_flatbuffer_data);
+
+  // Release the builder resources
+  flatcc_builder_clear(&builder);
+
+  return flatbuffer_str;
 }
