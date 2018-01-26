@@ -438,15 +438,15 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
 
     if (apply_map_workaround(match_path, current_path))
     {
-      string_view id = "id";
-      auto _id = reinterpret_cast<const unsigned char*>(id.data());
+      string_view name = "name";
+      auto _name = reinterpret_cast<const unsigned char*>(name.data());
 
       string_view val = "val";
       auto _val = reinterpret_cast<const unsigned char*>(val.data());
 
       // Begin a wrapper object
       ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
-      ok = (yajl_gen_status_ok == yajl_gen_string(g, _id, id.size()));
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, _name, name.size()));
       ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
       ok = (yajl_gen_status_ok == yajl_gen_string(g, _val, val.size()));
     }
