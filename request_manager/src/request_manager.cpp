@@ -200,6 +200,7 @@ RequestManager::send(
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.data());
   }
 
+  ESP_LOGI(TAG, "Fetching %s", req.uri.c_str());
   curl_multi_add_handle(multi_handle.get(), curl);
 
   return true;
@@ -269,8 +270,6 @@ RequestManager::wait_all()
       if (done_req_handler != requests.end())
       {
         any_done = true;
-        printf("Transfer completed with status %d\n", msg->data.result);
-
         auto& handler = done_req_handler->second;
 
         auto post_action_callback = RequestHandler::DisposeRequest;
@@ -318,10 +317,9 @@ RequestManager::wait_all()
 
           case RequestHandler::ReuseRequest:
           {
-            ESP_LOGW(TAG, "Re-using previous request handle immediately");
             // Re-use the old handle and re-add it to the multi handle
+            ESP_LOGI(TAG, "Fetching (again) %s", handler.req.uri.c_str());
             curl_multi_add_handle(multi_handle.get(), done_handle);
-            ESP_LOGI(TAG, "Re-added successfully");
             break;
           }
 
@@ -349,7 +347,6 @@ RequestManager::add_cacert_pem(string_view cacert_pem)
   // Check for null-terminating byte
   if (cacert_pem.back() == '\0')
   {
-    printf("About to parse '%.*s'\n", cacert_pem.size(), cacert_pem.data());
     // Parse the PEM text
     auto ret = mbedtls_x509_crt_parse(
       &cacert,
@@ -380,7 +377,7 @@ RequestManager::add_cacert_der(string_view cacert_der)
 {
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
-  printf("About to parse (%d) DER formatted bytes\n", cacert_der.size());
+
   // Parse the DER content
   auto ret = mbedtls_x509_crt_parse_der(
     &cacert,

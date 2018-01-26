@@ -108,7 +108,7 @@ RequestHandler::print_data_helper(
   string_view chunk
 )
 {
-  ESP_LOGE(TAG, "Received chunk: %.*s\n", chunk.size(), chunk.data());
+  ESP_LOGI(TAG, "Received chunk: %.*s\n", chunk.size(), chunk.data());
 
   return NextActionT;
 }
