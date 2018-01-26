@@ -15,10 +15,12 @@
 #include <unordered_map>
 
 class RequestManager;
+class RequestHandler;
 
 class Request
 {
   friend class RequestManager;
+  friend class RequestHandler;
 public:
   using string = std::string;
   using string_view = std::experimental::string_view;
