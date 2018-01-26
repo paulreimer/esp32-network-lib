@@ -26,6 +26,9 @@ public:
   bool parse(
     string_view chunk,
     OIDCTokenCallback&& callback,
-    JsonToFlatbuffersConverter::Errback&& errback
+    JsonToFlatbuffersConverter::Errback&& errback = print_error_helper
+    <
+      RequestHandler::ContinueProcessing
+    >
   );
 };

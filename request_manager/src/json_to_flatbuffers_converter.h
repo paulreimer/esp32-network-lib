@@ -50,7 +50,7 @@ public:
     NS_X_parse_json_as_root_T&& NS_X_parse_json_as_root,
     NS_X_verify_as_root_T&& NS_X_verify_as_root,
     Callback&& callback,
-    Errback&& errback
+    Errback&& errback = print_error_helper<RequestHandler::ContinueProcessing>
   )
   {
     return json_emitter.parse(chunk,
