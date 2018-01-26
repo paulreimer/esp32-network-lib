@@ -64,6 +64,8 @@ RequestHandler::header_callback(string_view chunk)
       // Assign the parsed status code to this response object
       res.code = _code;
 
+      ESP_LOGI(req.uri.c_str(), "%.*s", chunk.size(), chunk.data());
+
       // Do not attempt to parse this header any further
       return chunk.size();
     }
