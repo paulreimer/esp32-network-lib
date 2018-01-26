@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -84,6 +84,9 @@
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_NETINET_IN6_H
+#include <netinet/in6.h>
 #endif
 
 #include "timeval.h"
@@ -752,6 +755,7 @@ struct http_connect_state {
     TUNNEL_CONNECT, /* CONNECT has been sent off */
     TUNNEL_COMPLETE /* CONNECT response received completely */
   } tunnel_state;
+  bool close_connection;
 };
 
 /*
@@ -775,9 +779,10 @@ struct connectdata {
   void *closesocket_client;
 
   bool inuse; /* This is a marker for the connection cache logic. If this is
-                 TRUE this handle is being used by an easy handle and cannot
-                 be used by any other easy handle without careful
-                 consideration (== only for pipelining). */
+                 TRUE this handle is being used by one or more easy handles
+                 and can only used by any other easy handle without careful
+                 consideration (== only for pipelining/multiplexing) and it
+                 cannot be used by another multi handle! */
 
   /**** Fields set when inited and not modified again */
   long connection_id; /* Contains a unique number to make it easier to
@@ -860,6 +865,9 @@ struct connectdata {
 #endif /* USE_RECV_BEFORE_SEND_WORKAROUND */
   struct ssl_connect_data ssl[2]; /* this is for ssl-stuff */
   struct ssl_connect_data proxy_ssl[2]; /* this is for proxy ssl-stuff */
+#ifdef USE_SSL
+  void *ssl_extra; /* separately allocated backend-specific data */
+#endif
   struct ssl_primary_config ssl_config;
   struct ssl_primary_config proxy_ssl_config;
   bool tls_upgraded;
@@ -1322,6 +1330,9 @@ struct UrlState {
   struct Curl_easy *stream_depends_on;
   bool stream_depends_e; /* set or don't set the Exclusive bit */
   int stream_weight;
+#ifdef CURLDEBUG
+  bool conncache_lock;
+#endif
 };
 
 
@@ -1407,7 +1418,7 @@ enum dupstring {
   STRING_RTSP_SESSION_ID, /* Session ID to use */
   STRING_RTSP_STREAM_URI, /* Stream URI for this request */
   STRING_RTSP_TRANSPORT,  /* Transport for this session */
-#ifdef USE_LIBSSH2
+#if defined(USE_LIBSSH2) || defined(USE_LIBSSH)
   STRING_SSH_PRIVATE_KEY, /* path to the private key file for auth */
   STRING_SSH_PUBLIC_KEY,  /* path to the public key file for auth */
   STRING_SSH_HOST_PUBLIC_KEY_MD5, /* md5 of host public key in ascii hex */
@@ -1588,7 +1599,7 @@ struct UserDefined {
   bool http_keep_sending_on_error; /* for HTTP status codes >= 300 */
   bool http_follow_location; /* follow HTTP redirects */
   bool http_transfer_encoding; /* request compressed HTTP transfer-encoding */
-  bool http_disable_hostname_check_before_authentication;
+  bool allow_auth_to_other_hosts;
   bool include_header;   /* include received protocol headers in data output */
   bool http_set_referer; /* is a custom referer used */
   bool http_auto_referer; /* set "correct" referer when following location: */

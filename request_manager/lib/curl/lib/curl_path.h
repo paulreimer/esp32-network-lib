@@ -1,5 +1,3 @@
-#ifndef HEADER_CURL_SETOPT_H
-#define HEADER_CURL_SETOPT_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -7,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -22,8 +20,25 @@
  *
  ***************************************************************************/
 
-CURLcode Curl_setstropt(char **charp, const char *s);
-CURLcode Curl_vsetopt(struct Curl_easy *data, CURLoption option,
-                      va_list arg);
+#include "curl_setup.h"
+#include <curl/curl.h>
+#include "urldata.h"
 
-#endif /* HEADER_CURL_SETOPT_H */
+#ifdef WIN32
+#  undef  PATH_MAX
+#  define PATH_MAX MAX_PATH
+#  ifndef R_OK
+#    define R_OK 4
+#  endif
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024 /* just an extra precaution since there are systems that
+                         have their definition hidden well */
+#endif
+
+CURLcode Curl_getworkingpath(struct connectdata *conn,
+                             char *homedir,
+                             char **path);
+
+CURLcode Curl_get_pathname(const char **cpp, char **path, char *homedir);

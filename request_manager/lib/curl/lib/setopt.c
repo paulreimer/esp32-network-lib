@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -22,8 +22,10 @@
 
 #include "curl_setup.h"
 
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
 #endif
 
 #ifdef HAVE_LINUX_TCP_H
@@ -108,8 +110,8 @@ static CURLcode setstropt_userpwd(char *option, char **userp, char **passwdp)
 #define C_SSLVERSION_VALUE(x) (x & 0xffff)
 #define C_SSLVERSION_MAX_VALUE(x) (x & 0xffff0000)
 
-static CURLcode setopt(struct Curl_easy *data, CURLoption option,
-                       va_list param)
+CURLcode Curl_vsetopt(struct Curl_easy *data, CURLoption option,
+                      va_list param)
 {
   char *argptr;
   CURLcode result = CURLE_OK;
@@ -273,7 +275,7 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
      * before it is considered failure. For pingpong protocols.
      */
     arg = va_arg(param, long);
-    if((arg >= 0) && (arg < (INT_MAX/1000)))
+    if((arg >= 0) && (arg <= (INT_MAX/1000)))
       data->set.server_response_timeout = arg * 1000;
     else
       return CURLE_BAD_FUNCTION_ARGUMENT;
@@ -358,32 +360,34 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
      */
     data->set.timevalue = (time_t)va_arg(param, long);
     break;
+
   case CURLOPT_SSLVERSION:
+  case CURLOPT_PROXY_SSLVERSION:
     /*
      * Set explicit SSL version to try to connect with, as some SSL
      * implementations are lame.
      */
 #ifdef USE_SSL
-    arg = va_arg(param, long);
-    if((arg < CURL_SSLVERSION_DEFAULT) || (arg > CURL_SSLVERSION_TLSv1_3))
-      return CURLE_BAD_FUNCTION_ARGUMENT;
-    data->set.ssl.primary.version = C_SSLVERSION_VALUE(arg);
-    data->set.ssl.primary.version_max = C_SSLVERSION_MAX_VALUE(arg);
-#else
-    result = CURLE_UNKNOWN_OPTION;
-#endif
-    break;
-  case CURLOPT_PROXY_SSLVERSION:
-    /*
-     * Set explicit SSL version to try to connect with for proxy, as some SSL
-     * implementations are lame.
-     */
-#ifdef USE_SSL
-    arg = va_arg(param, long);
-    if((arg < CURL_SSLVERSION_DEFAULT) || (arg > CURL_SSLVERSION_TLSv1_3))
-      return CURLE_BAD_FUNCTION_ARGUMENT;
-    data->set.proxy_ssl.primary.version = C_SSLVERSION_VALUE(arg);
-    data->set.proxy_ssl.primary.version_max = C_SSLVERSION_MAX_VALUE(arg);
+    {
+      long version, version_max;
+      struct ssl_primary_config *primary = (option == CURLOPT_SSLVERSION ?
+                                            &data->set.ssl.primary :
+                                            &data->set.proxy_ssl.primary);
+
+      arg = va_arg(param, long);
+
+      version = C_SSLVERSION_VALUE(arg);
+      version_max = C_SSLVERSION_MAX_VALUE(arg);
+
+      if(version < CURL_SSLVERSION_DEFAULT ||
+         version >= CURL_SSLVERSION_LAST ||
+         version_max < CURL_SSLVERSION_MAX_NONE ||
+         version_max >= CURL_SSLVERSION_MAX_LAST)
+        return CURLE_BAD_FUNCTION_ARGUMENT;
+
+      primary->version = version;
+      primary->version_max = version_max;
+    }
 #else
     result = CURLE_UNKNOWN_OPTION;
 #endif
@@ -438,7 +442,7 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
      * Send authentication (user+password) when following locations, even when
      * hostname changed.
      */
-    data->set.http_disable_hostname_check_before_authentication =
+    data->set.allow_auth_to_other_hosts =
       (0 != va_arg(param, long)) ? TRUE : FALSE;
     break;
 
@@ -1198,7 +1202,7 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
      * operation.
      */
     arg = va_arg(param, long);
-    if((arg >= 0) && (arg < (INT_MAX/1000)))
+    if((arg >= 0) && (arg <= (INT_MAX/1000)))
       data->set.timeout = arg * 1000;
     else
       return CURLE_BAD_FUNCTION_ARGUMENT;
@@ -1216,7 +1220,7 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
      * The maximum time you allow curl to use to connect.
      */
     arg = va_arg(param, long);
-    if((arg >= 0) && (arg < (INT_MAX/1000)))
+    if((arg >= 0) && (arg <= (INT_MAX/1000)))
       data->set.connecttimeout = arg * 1000;
     else
       return CURLE_BAD_FUNCTION_ARGUMENT;
@@ -2110,7 +2114,7 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
     data->set.proxy_ssl.primary.sessionid = data->set.ssl.primary.sessionid;
     break;
 
-#ifdef USE_LIBSSH2
+#if defined(USE_LIBSSH2) || defined(USE_LIBSSH)
     /* we only include SSH options if explicitly built to support SSH */
   case CURLOPT_SSH_AUTH_TYPES:
     data->set.ssh_auth_types = va_arg(param, long);
@@ -2161,7 +2165,6 @@ static CURLcode setopt(struct Curl_easy *data, CURLoption option,
     data->set.ssh_keyfunc_userp = va_arg(param, void *);
     break;
 #endif /* HAVE_LIBSSH2_KNOWNHOST_API */
-
 #endif /* USE_LIBSSH2 */
 
   case CURLOPT_HTTP_TRANSFER_DECODING:
@@ -2546,9 +2549,8 @@ CURLcode curl_easy_setopt(struct Curl_easy *data, CURLoption tag, ...)
 
   va_start(arg, tag);
 
-  result = setopt(data, tag, arg);
+  result = Curl_vsetopt(data, tag, arg);
 
   va_end(arg);
   return result;
 }
-

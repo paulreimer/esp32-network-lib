@@ -25,6 +25,9 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef HAVE_NETINET_IN6_H
+#include <netinet/in6.h>
+#endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
@@ -874,9 +877,12 @@ CURLcode Curl_loadhostpairs(struct Curl_easy *data)
           dns->inuse--;
         }
       }
-      else
+      else {
         /* this is a duplicate, free it again */
+        infof(data, "RESOLVE %s:%d is already cached, %s not stored!\n",
+              hostname, port, address);
         Curl_freeaddrinfo(addr);
+      }
 
       if(data->share)
         Curl_share_unlock(data, CURL_LOCK_DATA_DNS);
