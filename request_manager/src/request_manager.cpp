@@ -185,10 +185,18 @@ RequestManager::send(
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
   }
 
-  if (req.method == "POST")
+  if (req.method == "GET")
+  {
+    // Use GET (default)
+  }
+  else if (req.method == "POST")
   {
     // Use POST
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
+  }
+  else {
+    // Use a custom (user-supplied) HTTP method (e.g. PATCH)
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, req.method.c_str());
   }
 
   // Set the POST body data, if the request specifies a body
