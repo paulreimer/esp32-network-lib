@@ -12,6 +12,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 
+#include "lwip/ip4_addr.h"
+
+struct NetworkInterfaceDetails
+{
+  ip4_addr_t ip;
+  ip4_addr_t gw;
+  ip4_addr_t netmask;
+};
+
 EventBits_t
 wait_for_network(const EventBits_t bits, TickType_t ticks_to_wait);
 
@@ -20,6 +29,12 @@ set_network(const EventBits_t bits);
 
 EventBits_t
 reset_network(const EventBits_t bits);
+
+NetworkInterfaceDetails
+get_network_details();
+
+int
+get_wifi_connection_rssi(size_t samples);
 
 // The event group allows multiple bits for each event,
 // but we only care about one event - are we connected

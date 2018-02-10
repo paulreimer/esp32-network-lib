@@ -9,6 +9,14 @@
  */
 #include "network.h"
 
+#include "delay.h"
+
+#include "esp_wifi.h"
+
+#include <chrono>
+
+using namespace std::chrono_literals;
+
 // FreeRTOS event group to signal when we are connected & ready
 EventGroupHandle_t network_event_group;
 
@@ -21,7 +29,7 @@ wait_for_network(const EventBits_t bits, TickType_t ticks_to_wait)
     false, // ClearOnExit
     true, // WaitForAllBits
     ticks_to_wait // TicksToWait
-    );
+  );
 }
 
 EventBits_t
@@ -34,4 +42,30 @@ EventBits_t
 reset_network(const EventBits_t bits)
 {
   return xEventGroupClearBits(network_event_group, bits);
+}
+
+int
+get_wifi_connection_rssi(size_t samples)
+{
+  wifi_ap_record_t current_ap_info;
+
+  auto total_rssi = 0;
+  auto missed_samples = 0;
+
+  auto interval = 25ms;
+
+  for (auto i = 0; i < samples; ++i)
+  {
+    if (esp_wifi_sta_get_ap_info(&current_ap_info) == 0)
+    {
+      total_rssi += current_ap_info.rssi;
+      delay(interval);
+    }
+    else {
+      missed_samples++;
+    }
+  }
+
+  auto average_rssi = (total_rssi / (samples - missed_samples));
+  return average_rssi;
 }

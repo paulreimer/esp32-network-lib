@@ -8,10 +8,11 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 #include "wifi_task.h"
-#include "network.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+#include "network.h"
 
 #include "esp_event_loop.h"
 #include "esp_log.h"
@@ -26,6 +27,8 @@ constexpr char TAG[] = "Wifi";
 constexpr auto EXAMPLE_WIFI_SSID = CONFIG_WIFI_SSID;
 constexpr auto EXAMPLE_WIFI_PASS = CONFIG_WIFI_PASSWORD;
 
+NetworkInterfaceDetails wifi_network_details;
+
 esp_err_t
 event_handler(void* /* ctx */,  system_event_t* event)
 {
@@ -33,19 +36,34 @@ event_handler(void* /* ctx */,  system_event_t* event)
     case SYSTEM_EVENT_STA_START:
       esp_wifi_connect();
       break;
+
     case SYSTEM_EVENT_STA_GOT_IP:
+      wifi_network_details = {
+        event->event_info.got_ip.ip_info.ip,
+        event->event_info.got_ip.ip_info.gw,
+        event->event_info.got_ip.ip_info.netmask,
+      };
+
       set_network(NETWORK_IS_CONNECTED);
       break;
+
     case SYSTEM_EVENT_STA_DISCONNECTED:
       // This is a workaround as ESP32 WiFi libs don't currently
       // auto-reassociate.
       esp_wifi_connect();
       reset_network(NETWORK_IS_CONNECTED);
       break;
+
     default:
       break;
   }
   return ESP_OK;
+}
+
+NetworkInterfaceDetails
+get_network_details()
+{
+  return wifi_network_details;
 }
 
 void
