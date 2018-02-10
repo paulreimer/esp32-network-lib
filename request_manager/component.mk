@@ -9,13 +9,10 @@ COMPONENT_ADD_INCLUDEDIRS := \
 	lib/delegate \
 	lib/flatcc/include \
 	lib/GSL/include \
-	lib/curl/include \
 	lib/yajl/include
 
 COMPONENT_PRIV_INCLUDEDIRS := \
 	lib \
-	lib/curl/lib \
-	lib/curl/include \
 	lib/flatcc \
 	lib/yajl \
 	lib/zlib
@@ -24,19 +21,9 @@ COMPONENT_SRCDIRS := \
 	src \
 	src/gen \
 	lib \
-	lib/curl/lib \
-	lib/curl/lib/vauth \
-	lib/curl/lib/vtls \
 	lib/flatcc/src/runtime \
 	lib/yajl/src \
 	lib/zlib
-
-CFLAGS += \
-	-DHAVE_CONFIG_H=1 \
-	-DBUILDING_LIBCURL=1 \
-	-DCURL_MAX_WRITE_SIZE=1024 \
-	-DCURL_SOCKET_HASH_TABLE_SIZE=17 \
-	-DCURL_CONNECTION_HASH_SIZE=17
 
 # Depends on oidc.fbs
 src/oidc_token_parser.o: \
