@@ -9,8 +9,12 @@
  */
 #include "ntp_task.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "network.h"
 #include "date/ptz.h"
+#include "delay.h"
 
 #include <chrono>
 #include <string>
@@ -24,6 +28,8 @@
 constexpr char TAG[] = "NTP";
 
 static char ntp_server[] = "pool.ntp.org";
+
+using namespace std::chrono_literals;
 
 bool
 is_time_set()
@@ -47,7 +53,7 @@ obtain_time()
     }
 
     ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    delay(2s);
   }
 
   ESP_LOGW(TAG, "Failed to set system time from NTP");
