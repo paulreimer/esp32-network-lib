@@ -9,4 +9,4 @@
  */
 #pragma once
 
-void wifi_task(void *user_data=nullptr);
+void wifi_task(void* user_data = nullptr);

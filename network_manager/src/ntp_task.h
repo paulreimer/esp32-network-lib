@@ -9,4 +9,4 @@
  */
 #pragma once
 
-void ntp_task(void *user_data=nullptr);
+void ntp_task(void* user_data = nullptr);
