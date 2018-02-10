@@ -51,13 +51,13 @@ RequestManager::RequestManager()
   auto m = multi_handle.get();
 
   // Set the maximum number of connections to keep in the cache
-  curl_multi_setopt(m, CURLMOPT_MAXCONNECTS, 4L);
+  curl_multi_setopt(m, CURLMOPT_MAXCONNECTS, 2L);
 
   // Set the maximum number of active connections (after which, block)
-  curl_multi_setopt(m, CURLMOPT_MAX_TOTAL_CONNECTIONS, 4L);
+  curl_multi_setopt(m, CURLMOPT_MAX_TOTAL_CONNECTIONS, 2L);
 
   // Attempt to pipeline and/or multiplex requests if possible
-  curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
+  //curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
 }
 
 RequestManager::~RequestManager()
@@ -143,7 +143,8 @@ RequestManager::send(
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
   // Attempt HTTP/2 for HTTPS URLs, fallback to HTTP/1.1 otherwise
-  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+  //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
   // Do not include headers in the response stream
   curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
@@ -159,6 +160,8 @@ RequestManager::send(
 
   // Verify SSL certificates with CA cert(s)
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+  // Expect PEM formatted CA cert(s)
+  //curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
   // Use a function to supply PEM contents of CA cert(s) in memory buffer
   curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, sslctx_function);
   // Set user data pointer attached to the sslctx function for this request
@@ -219,7 +222,7 @@ RequestManager::wait_all()
 {
   int inflight_count;
   bool any_done = false;
-  int MAX_WAIT_MSECS = (30*1000);
+  int MAX_WAIT_MSECS = (5*1000);
 
   for (auto& handle_and_request_handler : requests)
   {
