@@ -1,0 +1,68 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * All rights reserved.
+ *
+ */
+
+namespace ActorModel;
+
+enum SupervisionStrategy:byte
+{
+  one_for_one,
+  one_for_all,
+  rest_for_one,
+  simple_one_for_one
+}
+
+enum ProcessFlag:short
+{
+  trap_exit
+}
+
+table Message
+{
+  type:string;
+  payload:string;
+}
+
+struct _UUID
+{
+  ab:ulong;
+  cd:ulong;
+}
+
+table Ok
+{
+  _:string;
+}
+
+table Error
+{
+  reason:string;
+}
+
+union Result { Ok, Error }
+
+table Signal
+{
+  from_pid:_UUID;
+  reason:string;
+}
+
+table SupervisorFlags
+{
+  strategy:SupervisionStrategy = one_for_one;
+  intensity:uint;
+  period:uint;
+}
+
+table ActorExecutionConfig
+{
+  task_prio:int = 5;
+  task_stack_size:uint = 8192;
+}
+
+root_type Message;
+
+file_identifier "Act!";
