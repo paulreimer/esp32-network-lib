@@ -3,7 +3,8 @@
 #
 
 COMPONENT_ADD_INCLUDEDIRS := \
-	src
+	src \
+	lib/sole
 
 COMPONENT_SRCDIRS := \
 	src
