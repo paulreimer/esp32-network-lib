@@ -25,6 +25,9 @@ enum ProcessFlag:short
 table Message
 {
   type:string;
+  timestamp:ulong;
+  from_pid:UUID;
+  payload_alignment:uint;
   payload:[ubyte];
 }
 

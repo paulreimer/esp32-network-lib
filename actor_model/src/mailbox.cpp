@@ -6,6 +6,8 @@
  */
 #include "mailbox.h"
 
+#include <chrono>
+
 namespace ActorModel {
 
 using string_view = std::experimental::string_view;
@@ -28,9 +30,47 @@ Mailbox::~Mailbox()
 auto Mailbox::send(const MessageT& message)
   -> bool
 {
+  using std::chrono::microseconds;
+  using std::chrono::system_clock;
+  using std::chrono::duration_cast;
+
+  // Apply the current timestamp
+  auto now = system_clock::now();
+  auto epoch_microseconds = duration_cast<microseconds>(
+    now.time_since_epoch()
+  ).count();
+
   // Serialize and send
   flatbuffers::FlatBufferBuilder fbb;
-  fbb.Finish(Message::Pack(fbb, &message));
+
+  auto type_str = fbb.CreateString(
+    message.type
+  );
+
+  // Allow for custom alignment values for the nested payload bytes
+  if (message.payload_alignment)
+  {
+    fbb.ForceVectorAlignment(
+      message.payload.size(),
+      sizeof(uint8_t),
+      message.payload_alignment
+    );
+  }
+
+  auto payload_bytes = fbb.CreateVector(
+    message.payload.data(),
+    message.payload.size()
+  );
+
+  auto message_loc = CreateMessage(
+    fbb,
+    type_str,
+    epoch_microseconds,
+    message.from_pid.get(),
+    message.payload_alignment,
+    payload_bytes
+  );
+  FinishMessageBuffer(fbb, message_loc);
 
   if (impl)
   {
