@@ -5,6 +5,7 @@
  *
  */
 #include "node.h"
+#include "uuid.h"
 
 #include "actor.h"
 
@@ -46,7 +47,7 @@ auto Node::_spawn(
 {
   auto child_pid = uuidgen();
 
-  printf("Spawn Pid %s\n", child_pid.str().c_str());
+  printf("Spawn Pid %s\n", get_uuid_str(child_pid).c_str());
   auto inserted = process_registry.emplace(
     child_pid,
     ActorPtr{
@@ -104,9 +105,9 @@ auto Node::send(const Pid& pid, const MessageT& message)
 auto Node::signal(const Pid& pid, const SignalT& sig)
   -> bool
 {
-  printf("Send signal to Pid %s\n", pid.str().c_str());
+  printf("Send signal to Pid %s\n", get_uuid_str(pid).c_str());
 
-  auto from_pid = sole::rebuild(sig.from_pid->ab(), sig.from_pid->cd());
+  const auto& from_pid = *(sig.from_pid);
 
   const auto& process_iter = process_registry.find(pid);
   if (process_iter != process_registry.end())
@@ -168,7 +169,9 @@ auto Node::terminate(const Pid& pid)
     i != end;
   )
   {
-    if (i->second == pid)
+    // Instantiate a one-time function object to do the equality check
+    auto compare_uuids = UUIDEqualFunc{};
+    if (compare_uuids(i->second, pid))
     {
       i = named_process_registry.erase(i);
     }

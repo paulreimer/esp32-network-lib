@@ -53,7 +53,7 @@ Actor::Actor(
     link(*initial_link_pid);
   }
 
-  auto task_name = pid.str().c_str();
+  auto task_name = get_uuid_str(pid).c_str();
 
   const auto task_prio = execution_config.task_prio;
   const auto task_stack_size = execution_config.task_stack_size;
@@ -73,12 +73,12 @@ Actor::Actor(
 
 Actor::~Actor()
 {
-  printf("Terminating PID %s\n", pid.str().c_str());
+  printf("Terminating PID %s\n", get_uuid_str(pid).c_str());
 
   // Send exit reason to links
   for (const auto& pid2 : links)
   {
-    printf("Send exit message to linked PID %s\n", pid2.str().c_str());
+    printf("Send exit message to linked PID %s\n", get_uuid_str(pid2).c_str());
     exit(pid2, poison_pill.reason);
   }
 
@@ -97,7 +97,7 @@ auto Actor::exit(Reason exit_reason)
   // Store the reason why this process is being killed
   // So it can be sent to each linked process
   SignalT poison_pill;
-  poison_pill.from_pid.reset(new _UUID{pid.ab, pid.cd});
+  poison_pill.from_pid.reset(new UUID{pid.ab(), pid.cd()});
   poison_pill.reason = exit_reason;
 
   // Remove this pid from process_registry unconditionally (deleting it),
@@ -114,7 +114,7 @@ auto Actor::exit(const Pid& pid2, Reason exit_reason)
   auto& node = get_current_node();
 
   SignalT exit_signal;
-  exit_signal.from_pid.reset(new _UUID{pid.ab, pid.cd});
+  exit_signal.from_pid.reset(new UUID{pid.ab(), pid.cd()});
   exit_signal.reason = exit_reason;
 
   return node.signal(pid2, exit_signal);

@@ -30,7 +30,12 @@ public:
 
   using ActorPtr = std::unique_ptr<Actor>;
 
-  using ProcessRegistry = std::unordered_map<Pid, ActorPtr>;
+  using ProcessRegistry = std::unordered_map<
+    Pid,
+    ActorPtr,
+    UUIDHashFunc,
+    UUIDEqualFunc
+  >;
   using NamedProcessRegistry = std::unordered_map<string, Pid>;
 
   // public constructors/destructors:

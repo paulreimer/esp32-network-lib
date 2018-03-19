@@ -4,8 +4,9 @@
  * All rights reserved.
  *
  */
-#include "pid.h"
 
-namespace ActorModel {
-
-} // namespace ActorModel
+struct UUID
+{
+  ab:ulong;
+  cd:ulong;
+}

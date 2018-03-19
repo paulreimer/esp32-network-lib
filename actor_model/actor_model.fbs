@@ -5,6 +5,8 @@
  *
  */
 
+include "uuid.fbs";
+
 namespace ActorModel;
 
 enum SupervisionStrategy:byte
@@ -23,13 +25,7 @@ enum ProcessFlag:short
 table Message
 {
   type:string;
-  payload:string;
-}
-
-struct _UUID
-{
-  ab:ulong;
-  cd:ulong;
+  payload:[ubyte];
 }
 
 table Ok
@@ -46,7 +42,7 @@ union Result { Ok, Error }
 
 table Signal
 {
-  from_pid:_UUID;
+  from_pid:UUID;
   reason:string;
 }
 

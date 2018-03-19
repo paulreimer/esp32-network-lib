@@ -10,6 +10,7 @@
 #include "mailbox.h"
 #include "node.h"
 #include "pid.h"
+#include "uuid.h"
 
 #include "actor_model_generated.h"
 

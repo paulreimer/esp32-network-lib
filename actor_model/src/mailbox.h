@@ -7,6 +7,7 @@
 #pragma once
 
 #include "pid.h"
+#include "uuid.h"
 
 #include "actor_model_generated.h"
 
@@ -26,7 +27,13 @@ public:
   using string_view = std::experimental::string_view;
 
   using Address = UUID;
-  using AddressRegistry = std::unordered_map<Address, Mailbox*>;
+
+  using AddressRegistry = std::unordered_map<
+    Address,
+    Mailbox*,
+    UUIDHashFunc,
+    UUIDEqualFunc
+  >;
 
   Mailbox();
   ~Mailbox();
