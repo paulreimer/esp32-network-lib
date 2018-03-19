@@ -14,10 +14,8 @@
 
 #include "actor_model_generated.h"
 
-#include <list>
-#include <map>
-#include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace ActorModel {
 
@@ -33,9 +31,23 @@ class Actor
 public:
   // type aliases:
   using Reason = std::string;
-  using LinkList = std::list<Pid>;
-  using MonitorList = std::list<Pid>;
-  using ProcessFlags = std::map<ProcessFlag, bool>;
+  using LinkList = std::unordered_set<Pid, UUIDHashFunc, UUIDEqualFunc>;
+  using MonitorList = std::unordered_set<Pid, UUIDHashFunc, UUIDEqualFunc>;
+
+  struct ProcessFlagHashFunc
+  {
+    auto operator()(const ProcessFlag& flag) const
+      -> size_t
+    {
+      return static_cast<size_t>(flag);
+    }
+  };
+
+  using ProcessFlags = std::unordered_map<
+    ProcessFlag,
+    bool,
+    ProcessFlagHashFunc
+  >;
 
   struct ProcessDictionary
   {

@@ -186,10 +186,10 @@ auto Actor::link(const Pid& pid2)
     if (process2_iter->second)
     {
       // Create the link from us to them
-      links.emplace_back(pid2);
+      links.emplace(pid2);
 
       // Create the link from them to us
-      process2_iter->second->links.emplace_back(pid);
+      process2_iter->second->links.emplace(pid);
 
       return true;
     }
@@ -203,7 +203,7 @@ auto Actor::unlink(const Pid& pid2)
 {
   auto& node = get_current_node();
   // Remove our link unconditionally
-  links.remove(pid2);
+  auto erased_ours = links.erase(pid2);
 
   // Attempt to remove the link from the reference
   const auto& process2_iter = node.process_registry.find(pid2);
@@ -213,9 +213,9 @@ auto Actor::unlink(const Pid& pid2)
     if (process2_iter->second)
     {
       // Remove the link from them to us
-      links.remove(pid);
+      auto erased_theirs = process2_iter->second->links.erase(pid);
 
-      return true;
+      return (erased_ours and erased_theirs);
     }
   }
 
