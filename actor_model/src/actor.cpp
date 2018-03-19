@@ -137,7 +137,7 @@ auto Actor::loop()
   }
 
   const auto& message = mailbox.receive();
-  const auto& result = behaviour(pid, message);
+  const auto& result = behaviour(pid, state, message);
 
   if (result.type == Result::Error)
   {

@@ -12,8 +12,17 @@
 
 #include "delegate.hpp"
 
+#include <memory>
+
 namespace ActorModel {
 
-using Behaviour = delegate<ResultUnion(const Pid&, const MessageT&)>;
+using State = void;
+using StatePtr = std::shared_ptr<State>;
+
+using Behaviour = delegate<ResultUnion(
+  const Pid&,
+  StatePtr& state,
+  const MessageT&
+)>;
 
 } // namespace ActorModel

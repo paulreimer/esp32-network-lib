@@ -84,11 +84,17 @@ protected:
 
   const Pid pid;
 
+  // Actor implementation:
   Behaviour behaviour;
   Mailbox mailbox;
+  StatePtr state;
+
+  // References to other actors:
   //Children children;
   LinkList links;
   //MonitorList monitors;
+
+  // Actor metadata:
   ProcessDictionary dictionary;
   ProcessFlags process_flags;
   //SupervisionStrategy supervision_strategy = SupervisionStrategy::one_for_one;
