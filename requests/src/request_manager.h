@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#include "request.h"
-#include "response.h"
 #include "request_handler.h"
 
 #include "curl/curl.h"
@@ -26,6 +24,8 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/x509_crt.h"
 
+namespace Requests {
+
 class RequestManager
 {
 public:
@@ -39,7 +39,7 @@ public:
 
   // move-only
   bool fetch(
-    Request&& _req,
+    RequestT&& _req,
     RequestHandler::OnDataCallback&& on_data_callback,
     RequestHandler::OnDataErrback&& on_data_errback,
     RequestHandler::OnFinishCallback&& _on_finish_callback
@@ -64,3 +64,5 @@ protected:
 private:
   std::unique_ptr<CURLM, CURLMcode(*)(CURLM*)> multi_handle;
 };
+
+} // namespace Requests

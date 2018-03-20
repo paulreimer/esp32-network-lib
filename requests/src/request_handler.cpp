@@ -1,13 +1,19 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * All rights reserved.
+ *
+ */
 #include "request_handler.h"
 
 #include "http_utils.h"
-
-#include "curl/curl.h"
 
 #include <cstring>
 #include <cstdio>
 
 #include "esp_log.h"
+
+namespace Requests {
 
 static constexpr auto TAG = "RequestHandler";
 
@@ -15,12 +21,12 @@ using string_view = std::experimental::string_view;
 using string = std::string;
 
 RequestHandler::RequestHandler(
-  Request&& _req,
+  RequestT&& _req,
   OnDataCallback _on_data_callback,
   OnDataErrback _on_data_errback,
   OnFinishCallback _on_finish_callback
 )
-: req(_req)
+: req(std::move(_req))
 , on_data_callback(_on_data_callback)
 , on_data_errback(_on_data_errback)
 , on_finish_callback(_on_finish_callback)
@@ -93,10 +99,10 @@ RequestHandler::header_callback(string_view chunk)
     auto k = hdr.substr(0, delim_pos);
     auto v = hdr.substr(delim_pos + delim.size());
 
-    res.headers.emplace(
-      std::move(string(k)),
-      std::move(string(v))
-    );
+    auto header = std::make_unique<HeaderPairT>();
+    header->first.assign(k.data(), k.size());
+    header->second.assign(v.data(), v.size());
+    res.headers.emplace_back(std::move(header));
   }
 
   return chunk.size();
@@ -105,8 +111,8 @@ RequestHandler::header_callback(string_view chunk)
 template<RequestHandler::PostCallbackAction NextActionT>
 RequestHandler::PostCallbackAction
 RequestHandler::print_data_helper(
-  Request& req,
-  Response& res,
+  RequestT& req,
+  ResponseT& res,
   string_view chunk
 )
 {
@@ -119,24 +125,24 @@ RequestHandler::print_data_helper(
 template
 RequestHandler::PostCallbackAction
 RequestHandler::print_data_helper<RequestHandler::ContinueProcessing>(
-  Request& req,
-  Response& res,
+  RequestT& req,
+  ResponseT& res,
   string_view error_string
 );
 // Explicit template instantiation: AbortProcessing
 template
 RequestHandler::PostCallbackAction
 RequestHandler::print_data_helper<RequestHandler::AbortProcessing>(
-  Request& req,
-  Response& res,
+  RequestT& req,
+  ResponseT& res,
   string_view error_string
 );
 
 template<RequestHandler::PostCallbackAction NextActionT>
 RequestHandler::PostCallbackAction
 RequestHandler::print_error_helper(
-  Request& req,
-  Response& res,
+  RequestT& req,
+  ResponseT& res,
   string_view error_string
 )
 {
@@ -155,23 +161,23 @@ RequestHandler::print_error_helper(
 template
 RequestHandler::PostCallbackAction
 RequestHandler::print_error_helper<RequestHandler::ContinueProcessing>(
-  Request& req,
-  Response& res,
+  RequestT& req,
+  ResponseT& res,
   string_view error_string
 );
 // Explicit template instantiation: AbortProcessing
 template
 RequestHandler::PostCallbackAction
 RequestHandler::print_error_helper<RequestHandler::AbortProcessing>(
-  Request& req,
-  Response& res,
+  RequestT& req,
+  ResponseT& res,
   string_view error_string
 );
 
 RequestHandler::PostRequestAction
 RequestHandler::remove_request_if_failed(
-  Request& req,
-  Response& res
+  RequestT& req,
+  ResponseT& res
 )
 {
   auto is_success_code = ((res.code > 0) and (res.code < 400));
@@ -197,3 +203,4 @@ RequestHandler::remove_request_if_failed(
   return is_success_code? ReuseRequest : DisposeRequest;
 }
 
+} // namespace Requests

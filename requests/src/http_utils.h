@@ -11,4 +11,8 @@
 
 #include <experimental/string_view>
 
+namespace Requests {
+
 int parse_http_status_line(std::experimental::string_view chunk);
+
+} // namespace Requests

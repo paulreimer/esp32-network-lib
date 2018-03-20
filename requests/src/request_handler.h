@@ -1,11 +1,24 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * All rights reserved.
+ *
+ */
 #pragma once
 
-#include "request.h"
-#include "response.h"
+#include "requests_generated.h"
 
 #include "delegate.hpp"
 
 #include <experimental/string_view>
+#include <string>
+#include <vector>
+
+#include "curl/curl.h"
+
+using curl_slist = struct curl_slist;
+
+namespace Requests {
 
 class RequestManager;
 
@@ -13,6 +26,7 @@ struct RequestHandler
 {
   friend class RequestManager;
 
+  using string = std::string;
   using string_view = std::experimental::string_view;
 
   enum PostRequestAction
@@ -21,18 +35,18 @@ struct RequestHandler
     ReuseRequest,
     QueueRequest,
   };
-  using OnFinishCallback = delegate<PostRequestAction(Request&, Response&)>;
+  using OnFinishCallback = delegate<PostRequestAction(RequestT&, ResponseT&)>;
 
   enum PostCallbackAction
   {
     AbortProcessing,
     ContinueProcessing,
   };
-  using OnDataCallback = delegate<PostCallbackAction(Request&, Response&, string_view)>;
-  using OnDataErrback = delegate<PostCallbackAction(Request&, Response&, string_view)>;
+  using OnDataCallback = delegate<PostCallbackAction(RequestT&, ResponseT&, string_view)>;
+  using OnDataErrback = delegate<PostCallbackAction(RequestT&, ResponseT&, string_view)>;
 
   RequestHandler(
-    Request&& _req,
+    RequestT&& _req,
     OnDataCallback _on_data_callback,
     OnDataErrback _on_data_errback,
     OnFinishCallback _on_finish_callback
@@ -45,28 +59,28 @@ struct RequestHandler
   RequestHandler(const RequestHandler&) = delete;
   RequestHandler& operator= (const RequestHandler&) = delete;
 
-  Request req;
-  Response res;
+  RequestT req;
+  ResponseT res;
 
-  struct curl_slist *slist = nullptr;
+  curl_slist *slist = nullptr;
 
   template<PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
   static PostCallbackAction print_data_helper(
-    Request& req,
-    Response& res,
+    RequestT& req,
+    ResponseT& res,
     string_view error_string
   );
 
   template<PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
   static PostCallbackAction print_error_helper(
-    Request& req,
-    Response& res,
+    RequestT& req,
+    ResponseT& res,
     string_view error_string
   );
 
   static PostRequestAction remove_request_if_failed(
-    Request& req,
-    Response& res
+    RequestT& req,
+    ResponseT& res
   );
 
   // Must be public to be accessible from c-style callback
@@ -77,4 +91,9 @@ private:
   OnDataCallback on_data_callback;
   OnDataErrback on_data_errback;
   OnFinishCallback on_finish_callback;
+
+  std::vector<char> errbuf;
+  string _req_url;
 };
+
+} // namespace Requests

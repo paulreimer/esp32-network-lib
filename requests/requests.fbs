@@ -1,0 +1,66 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * All rights reserved.
+ *
+ */
+
+include "../actor_model/uuid.fbs";
+
+namespace Requests;
+
+table QueryPair
+{
+  first:string;
+  second:string;
+}
+
+table HeaderPair
+{
+  first:string;
+  second:string;
+}
+
+struct RequestState
+{
+  pending:bool;
+  ready:bool;
+  abort:bool;
+}
+
+table Request
+{
+  method:string;
+  uri:string;
+  body:string;
+  query:[QueryPair];
+  headers:[HeaderPair];
+
+  //TODO: private fields, should be client state?
+  state:RequestState;
+}
+
+table Response
+{
+  code:short = -1;
+  headers:[HeaderPair];
+  errbuf:string;
+}
+
+enum ResponseFilter:short
+{
+  FullResponseBody,
+  PartialResponseChunks,
+  JsonPath,
+  JsonPathAsFlatbuffers
+}
+
+table RequestIntent
+{
+  request:Request;
+  to_pid:UUID;
+  json_path:[string];
+  desired_format:ResponseFilter = FullResponseBody;
+}
+
+file_identifier "Req!";

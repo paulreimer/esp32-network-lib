@@ -11,6 +11,8 @@
 
 #include <cstdio>
 
+namespace Requests {
+
 using string_view = std::experimental::string_view;
 using string = std::string;
 
@@ -562,3 +564,5 @@ JsonEmitter::on_json_parse_end_array()
 
   return ok;
 }
+
+} // namespace Requests

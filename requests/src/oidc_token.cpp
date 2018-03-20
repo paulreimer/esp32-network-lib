@@ -18,6 +18,8 @@
 #include "yajl/yajl_parse.h"
 #include "yajl/yajl_gen.h"
 
+namespace Requests {
+
 using string = std::string;
 
 OIDCToken::OIDCToken(
@@ -239,3 +241,5 @@ OIDCToken::to_flatbuffer()
 
   return flatbuffer_str;
 }
+
+} // namespace Requests

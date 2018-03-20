@@ -11,6 +11,8 @@
 
 #include <string>
 
+namespace Requests {
+
 using string_view = std::experimental::string_view;
 using string = std::string;
 
@@ -68,3 +70,5 @@ int parse_http_status_line(string_view chunk)
   // Return the parsed code, or 0 if failed
   return code;
 }
+
+} // namespace Requests

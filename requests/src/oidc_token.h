@@ -11,6 +11,8 @@
 
 #include <string>
 
+namespace Requests {
+
 class OIDCToken
 {
 public:
@@ -47,3 +49,5 @@ public:
   string expires_in;
   string id_token;
 };
+
+} // namespace Requests

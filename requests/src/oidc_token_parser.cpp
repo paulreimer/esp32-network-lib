@@ -14,6 +14,8 @@
 
 using string_view = std::experimental::string_view;
 
+namespace Requests {
+
 bool
 OIDCTokenParser::parse(
   string_view chunk,
@@ -47,3 +49,5 @@ OIDCTokenParser::parse(
     )
   );
 }
+
+} // namespace Requests

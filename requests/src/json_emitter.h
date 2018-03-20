@@ -21,6 +21,8 @@
 #include "yajl/yajl_parse.h"
 #include "yajl/yajl_gen.h"
 
+namespace Requests {
+
 class JsonEmitter
 {
 public:
@@ -79,3 +81,5 @@ private:
   JsonParserPtr json_parser;
   JsonGenPtr json_gen;
 };
+
+} // namespace Requests

@@ -11,9 +11,10 @@
 
 #include "json_to_flatbuffers_converter.h"
 #include "oidc_token.h"
-#include "response.h"
 
 #include <experimental/string_view>
+
+namespace Requests {
 
 class OIDCTokenParser
 : public JsonToFlatbuffersConverter
@@ -29,3 +30,5 @@ public:
     JsonToFlatbuffersConverter::Errback&& errback = print_error_helper
   );
 };
+
+} // namespace Requests

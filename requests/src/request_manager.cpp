@@ -17,6 +17,8 @@
 
 #include "esp_log.h"
 
+namespace Requests {
+
 using string_view = std::experimental::string_view;
 using string = std::string;
 
@@ -67,7 +69,7 @@ RequestManager::~RequestManager()
 
 bool
 RequestManager::fetch(
-  Request&& _req,
+  RequestT&& _req,
   RequestHandler::OnDataCallback&& _on_data_callback,
   RequestHandler::OnDataErrback&& _on_data_errback,
   RequestHandler::OnFinishCallback&& _on_finish_callback
@@ -114,18 +116,18 @@ RequestManager::send(
   // Reset the c-string contents to zero-length, null-terminated
   res.errbuf[0] = 0;
 
-  req._url = req.uri;
+  handler._req_url = req.uri;
   if (not req.query.empty())
   {
     char delim = (req.uri.find_first_of('?') == string::npos)? '?' : '&';
     for (auto& arg : req.query)
     {
-      req._url += delim + arg.first + '=' + arg.second;
+      handler._req_url += delim + arg->first + '=' + arg->second;
       delim = '&';
     }
   }
 
-  curl_easy_setopt(curl, CURLOPT_URL, req._url.c_str());
+  curl_easy_setopt(curl, CURLOPT_URL, handler._req_url.c_str());
 
   // Do not print out any updates to stdout
   curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
@@ -182,7 +184,7 @@ RequestManager::send(
   {
     for (auto& hdr : req.headers)
     {
-      string hdr_str(hdr.first + string(": ") + hdr.second);
+      string hdr_str(hdr->first + string(": ") + hdr->second);
       handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
@@ -211,7 +213,7 @@ RequestManager::send(
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.data());
   }
 
-  ESP_LOGI(TAG, "Fetching %s", req.uri.c_str());
+  ESP_LOGI(TAG, "%s %s", req.method.c_str(), req.uri.c_str());
   curl_multi_add_handle(multi_handle.get(), curl);
 
   return true;
@@ -229,9 +231,9 @@ RequestManager::wait_all()
     const auto& handle = handle_and_request_handler.first;
     auto& handler = handle_and_request_handler.second;
 
-    if (handler.req.pending && handler.req.ready)
+    if (handler.req.state->pending() && handler.req.state->ready())
     {
-      handler.req.pending = false;
+      handler.req.state->mutate_pending(false);
       send(handle.get(), handler);
     }
   }
@@ -320,7 +322,7 @@ RequestManager::wait_all()
           case RequestHandler::DisposeRequest:
           {
             ESP_LOGI(TAG, "Removing completed request handle");
-            // Cleanup, free request handle and Request/Response objects
+            // Cleanup, free request handle and RequestT/ResponseT objects
             requests.erase(done_req_handler);
             ESP_LOGI(TAG, "Deleted successfully");
             break;
@@ -337,8 +339,8 @@ RequestManager::wait_all()
           case RequestHandler::QueueRequest:
           {
             ESP_LOGI(TAG, "Leave request handle available for re-use");
-            handler.req.pending = true;
-            handler.req.ready = false;
+            handler.req.state->mutate_pending(true);
+            handler.req.state->mutate_ready(false);
             break;
           }
         }
@@ -432,3 +434,5 @@ RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
 
   return rv;
 }
+
+} // namespace Requests

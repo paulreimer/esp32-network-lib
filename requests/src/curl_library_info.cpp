@@ -1,8 +1,16 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * All rights reserved.
+ *
+ */
 #include "curl_library_info.h"
 
 #include "curl/curl.h"
 
 #include "esp_log.h"
+
+namespace Requests {
 
 bool
 has_feature(auto features, auto feature_flag)
@@ -45,3 +53,5 @@ print_curl_library_info()
     i++;
   }
 }
+
+} // namespace Requests
