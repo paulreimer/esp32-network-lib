@@ -92,7 +92,6 @@ private:
   OnDataErrback on_data_errback;
   OnFinishCallback on_finish_callback;
 
-  std::vector<char> errbuf;
   string _req_url;
 };
 
