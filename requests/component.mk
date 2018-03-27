@@ -29,6 +29,12 @@ src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_verifier.h
 src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_json_parser.h
 src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_json_printer.h
 
+src/oidc_token.o: $(COMPONENT_PATH)/src/gen/oidc_builder.h
+src/oidc_token.o: $(COMPONENT_PATH)/src/gen/oidc_reader.h
+src/oidc_token.o: $(COMPONENT_PATH)/src/gen/oidc_verifier.h
+src/oidc_token.o: $(COMPONENT_PATH)/src/gen/oidc_json_parser.h
+src/oidc_token.o: $(COMPONENT_PATH)/src/gen/oidc_json_printer.h
+
 src/request_handler.o: $(COMPONENT_PATH)/src/gen/requests_generated.h
 src/request_manager.o: $(COMPONENT_PATH)/src/gen/requests_generated.h
 src/request_manager.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
