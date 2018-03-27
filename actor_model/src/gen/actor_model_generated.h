@@ -191,8 +191,13 @@ struct MessageT : public flatbuffers::NativeTable {
     return "ActorModel.MessageT";
   }
   std::string type;
+  uint64_t timestamp;
+  std::unique_ptr<UUID> from_pid;
+  uint32_t payload_alignment;
   std::vector<uint8_t> payload;
-  MessageT() {
+  MessageT()
+      : timestamp(0),
+        payload_alignment(0) {
   }
 };
 
@@ -203,13 +208,34 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   enum {
     VT_TYPE = 4,
-    VT_PAYLOAD = 6
+    VT_TIMESTAMP = 6,
+    VT_FROM_PID = 8,
+    VT_PAYLOAD_ALIGNMENT = 10,
+    VT_PAYLOAD = 12
   };
   const flatbuffers::String *type() const {
     return GetPointer<const flatbuffers::String *>(VT_TYPE);
   }
   flatbuffers::String *mutable_type() {
     return GetPointer<flatbuffers::String *>(VT_TYPE);
+  }
+  uint64_t timestamp() const {
+    return GetField<uint64_t>(VT_TIMESTAMP, 0);
+  }
+  bool mutate_timestamp(uint64_t _timestamp) {
+    return SetField<uint64_t>(VT_TIMESTAMP, _timestamp, 0);
+  }
+  const UUID *from_pid() const {
+    return GetStruct<const UUID *>(VT_FROM_PID);
+  }
+  UUID *mutable_from_pid() {
+    return GetStruct<UUID *>(VT_FROM_PID);
+  }
+  uint32_t payload_alignment() const {
+    return GetField<uint32_t>(VT_PAYLOAD_ALIGNMENT, 0);
+  }
+  bool mutate_payload_alignment(uint32_t _payload_alignment) {
+    return SetField<uint32_t>(VT_PAYLOAD_ALIGNMENT, _payload_alignment, 0);
   }
   const flatbuffers::Vector<uint8_t> *payload() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_PAYLOAD);
@@ -221,6 +247,9 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TYPE) &&
            verifier.Verify(type()) &&
+           VerifyField<uint64_t>(verifier, VT_TIMESTAMP) &&
+           VerifyField<UUID>(verifier, VT_FROM_PID) &&
+           VerifyField<uint32_t>(verifier, VT_PAYLOAD_ALIGNMENT) &&
            VerifyOffset(verifier, VT_PAYLOAD) &&
            verifier.Verify(payload()) &&
            verifier.EndTable();
@@ -235,6 +264,15 @@ struct MessageBuilder {
   flatbuffers::uoffset_t start_;
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
     fbb_.AddOffset(Message::VT_TYPE, type);
+  }
+  void add_timestamp(uint64_t timestamp) {
+    fbb_.AddElement<uint64_t>(Message::VT_TIMESTAMP, timestamp, 0);
+  }
+  void add_from_pid(const UUID *from_pid) {
+    fbb_.AddStruct(Message::VT_FROM_PID, from_pid);
+  }
+  void add_payload_alignment(uint32_t payload_alignment) {
+    fbb_.AddElement<uint32_t>(Message::VT_PAYLOAD_ALIGNMENT, payload_alignment, 0);
   }
   void add_payload(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload) {
     fbb_.AddOffset(Message::VT_PAYLOAD, payload);
@@ -254,9 +292,15 @@ struct MessageBuilder {
 inline flatbuffers::Offset<Message> CreateMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> type = 0,
+    uint64_t timestamp = 0,
+    const UUID *from_pid = 0,
+    uint32_t payload_alignment = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload = 0) {
   MessageBuilder builder_(_fbb);
+  builder_.add_timestamp(timestamp);
   builder_.add_payload(payload);
+  builder_.add_payload_alignment(payload_alignment);
+  builder_.add_from_pid(from_pid);
   builder_.add_type(type);
   return builder_.Finish();
 }
@@ -264,10 +308,16 @@ inline flatbuffers::Offset<Message> CreateMessage(
 inline flatbuffers::Offset<Message> CreateMessageDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *type = nullptr,
+    uint64_t timestamp = 0,
+    const UUID *from_pid = 0,
+    uint32_t payload_alignment = 0,
     const std::vector<uint8_t> *payload = nullptr) {
   return ActorModel::CreateMessage(
       _fbb,
       type ? _fbb.CreateString(type) : 0,
+      timestamp,
+      from_pid,
+      payload_alignment,
       payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
 }
 
@@ -683,6 +733,9 @@ inline void Message::UnPackTo(MessageT *_o, const flatbuffers::resolver_function
   (void)_o;
   (void)_resolver;
   { auto _e = type(); if (_e) _o->type = _e->str(); };
+  { auto _e = timestamp(); _o->timestamp = _e; };
+  { auto _e = from_pid(); if (_e) _o->from_pid = std::unique_ptr<UUID>(new UUID(*_e)); };
+  { auto _e = payload_alignment(); _o->payload_alignment = _e; };
   { auto _e = payload(); if (_e) { _o->payload.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->payload[_i] = _e->Get(_i); } } };
 }
 
@@ -695,10 +748,16 @@ inline flatbuffers::Offset<Message> CreateMessage(flatbuffers::FlatBufferBuilder
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MessageT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _type = _o->type.empty() ? 0 : _fbb.CreateString(_o->type);
+  auto _timestamp = _o->timestamp;
+  auto _from_pid = _o->from_pid ? _o->from_pid.get() : 0;
+  auto _payload_alignment = _o->payload_alignment;
   auto _payload = _o->payload.size() ? _fbb.CreateVector(_o->payload) : 0;
   return ActorModel::CreateMessage(
       _fbb,
       _type,
+      _timestamp,
+      _from_pid,
+      _payload_alignment,
       _payload);
 }
 
@@ -1007,14 +1066,23 @@ inline flatbuffers::TypeTable *ResultTypeTable() {
 inline flatbuffers::TypeTable *MessageTypeTable() {
   static flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_ULONG, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UCHAR, 1, -1 }
+  };
+  static flatbuffers::TypeFunction type_refs[] = {
+    UUIDTypeTable
   };
   static const char *names[] = {
     "type",
+    "timestamp",
+    "from_pid",
+    "payload_alignment",
     "payload"
   };
   static flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
