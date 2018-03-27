@@ -23,8 +23,6 @@ COMPONENT_SRCDIRS := \
 	lib/zlib
 
 # Depends on oidc.fbs
-src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/flatbuffers_common_builder.h
-src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/flatbuffers_common_reader.h
 src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_builder.h
 src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_reader.h
 src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_verifier.h
