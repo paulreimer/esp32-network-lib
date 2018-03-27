@@ -1,10 +1,8 @@
 # Generic support for running flatc to generate C++ accessors
 # For *.fbs files, generate *_generated.h
-#.SECONDEXPANSION:
-#$$(COMPONENT_PATH)/%_generated.h: $$(COMPONENT_PATH)/%.fbs
-#$$(COMPONENT_PATH)/%_generated.h:
-%_generated.h: %.fbs
+$(COMPILING_COMPONENT_PATH)/src/gen/%_generated.h: $(COMPILING_COMPONENT_PATH)/%.fbs
 	flatc --cpp -o $(@D) \
+		--scoped-enums \
 		--gen-mutable \
 		--gen-object-api \
 		--gen-name-strings \
