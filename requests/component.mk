@@ -23,14 +23,13 @@ COMPONENT_SRCDIRS := \
 	lib/zlib
 
 # Depends on oidc.fbs
-src/oidc_token_parser.o: \
-	$(COMPONENT_PATH)/src/gen/flatbuffers_common_builder.h \
-	$(COMPONENT_PATH)/src/gen/flatbuffers_common_reader.h \
-	$(COMPONENT_PATH)/src/gen/oidc_builder.h \
-	$(COMPONENT_PATH)/src/gen/oidc_reader.h \
-	$(COMPONENT_PATH)/src/gen/oidc_verifier.h \
-	$(COMPONENT_PATH)/src/gen/oidc_json_parser.h \
-	$(COMPONENT_PATH)/src/gen/oidc_json_printer.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/flatbuffers_common_builder.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/flatbuffers_common_reader.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_builder.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_reader.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_verifier.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_json_parser.h
+src/oidc_token_parser.o: $(COMPONENT_PATH)/src/gen/oidc_json_printer.h
 
 src/request_handler.o: $(COMPONENT_PATH)/src/gen/requests_generated.h
 src/request_manager.o: $(COMPONENT_PATH)/src/gen/requests_generated.h
