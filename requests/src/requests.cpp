@@ -63,9 +63,6 @@ auto update_request(
   }
 
   req.body.assign(body.data(), body.size());
-
-  // pending, ready, abort;
-  req.state = std::make_unique<RequestState>(false, true, false);
 }
 
 auto set_query_arg(

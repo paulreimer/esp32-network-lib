@@ -21,13 +21,6 @@ table HeaderPair
   second:string;
 }
 
-struct RequestState
-{
-  pending:bool;
-  ready:bool;
-  abort:bool;
-}
-
 table Request
 {
   method:string;
@@ -35,16 +28,21 @@ table Request
   body:string;
   query:[QueryPair];
   headers:[HeaderPair];
-
-  //TODO: private fields, should be client state?
-  state:RequestState;
 }
 
 table Response
 {
   code:short = -1;
   headers:[HeaderPair];
+  body:string;
   errbuf:string;
+  request_id:UUID;
+}
+
+enum PostCallbackAction:byte
+{
+  AbortProcessing,
+  ContinueProcessing,
 }
 
 enum ResponseFilter:short
@@ -52,15 +50,17 @@ enum ResponseFilter:short
   FullResponseBody,
   PartialResponseChunks,
   JsonPath,
-  JsonPathAsFlatbuffers
+  JsonPathAsFlatbuffers,
 }
 
 table RequestIntent
 {
+  id:UUID;
   request:Request;
   to_pid:UUID;
-  json_path:[string];
+  object_path:string;
   desired_format:ResponseFilter = FullResponseBody;
+  include_headers:bool = false;
 }
 
 file_identifier "Req!";

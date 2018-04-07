@@ -68,12 +68,7 @@ RequestManager::~RequestManager()
 }
 
 bool
-RequestManager::fetch(
-  RequestT&& _req,
-  RequestHandler::OnDataCallback&& _on_data_callback,
-  RequestHandler::OnDataErrback&& _on_data_errback,
-  RequestHandler::OnFinishCallback&& _on_finish_callback
-)
+RequestManager::fetch(RequestIntentT&& _req_intent)
 {
   //const auto& inserted = requests.emplace(std::move(_req), std::move(_res));
   const auto& inserted = requests.emplace(
@@ -82,10 +77,7 @@ RequestManager::fetch(
       curl_easy_cleanup
     }),
     std::move(RequestHandler{
-      std::move(_req),
-      std::move(_on_data_callback),
-      std::move(_on_data_errback),
-      std::move(_on_finish_callback)
+      std::move(_req_intent)
     })
   );
 
@@ -107,7 +99,7 @@ RequestManager::send(
 )
 {
   auto* curl = handle;
-  auto& req = handler.req;
+  auto& req = *(handler.request_intent.request);
   auto& res = handler.res;
 
   // Allocate CURL_ERROR_SIZE bytes of zero-initialized data
@@ -226,18 +218,6 @@ RequestManager::wait_all()
   bool any_done = false;
   int MAX_WAIT_MSECS = (5*1000);
 
-  for (auto& handle_and_request_handler : requests)
-  {
-    const auto& handle = handle_and_request_handler.first;
-    auto& handler = handle_and_request_handler.second;
-
-    if (handler.req.state->pending() && handler.req.state->ready())
-    {
-      handler.req.state->mutate_pending(false);
-      send(handle.get(), handler);
-    }
-  }
-
   curl_multi_perform(multi_handle.get(), &inflight_count);
 
   do {
@@ -285,16 +265,7 @@ RequestManager::wait_all()
         any_done = true;
         auto& handler = done_req_handler->second;
 
-        auto post_action_callback = RequestHandler::DisposeRequest;
-
-        // Execute the callback if it is set
-        if (handler.on_finish_callback)
-        {
-          post_action_callback = handler.on_finish_callback(
-            handler.req,
-            handler.res
-          );
-        }
+        handler.finish_callback();
 
         // Remove the request handle from the multi handle
         curl_multi_remove_handle(multi_handle.get(), done_handle);
@@ -316,34 +287,10 @@ RequestManager::wait_all()
         // Reset the c-string contents to zero-length, null-terminated
         handler.res.errbuf[0] = 0;
 
-        // Dispose/re-use handle according to on_finish_callback result
-        switch (post_action_callback)
-        {
-          case RequestHandler::DisposeRequest:
-          {
-            ESP_LOGI(TAG, "Removing completed request handle");
-            // Cleanup, free request handle and RequestT/ResponseT objects
-            requests.erase(done_req_handler);
-            ESP_LOGI(TAG, "Deleted successfully");
-            break;
-          }
-
-          case RequestHandler::ReuseRequest:
-          {
-            // Re-use the old handle and re-add it to the multi handle
-            ESP_LOGI(TAG, "Fetching (again) %s", handler.req.uri.c_str());
-            curl_multi_add_handle(multi_handle.get(), done_handle);
-            break;
-          }
-
-          case RequestHandler::QueueRequest:
-          {
-            ESP_LOGI(TAG, "Leave request handle available for re-use");
-            handler.req.state->mutate_pending(true);
-            handler.req.state->mutate_ready(false);
-            break;
-          }
-        }
+        // Dispose handle (curl_multi may retain it in the connection cache)
+        // Cleanup, free request handle and RequestT/ResponseT objects
+        requests.erase(done_req_handler);
+        ESP_LOGI(TAG, "Deleted completed request handle successfully");
       }
     }
   }

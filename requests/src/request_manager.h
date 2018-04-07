@@ -13,7 +13,6 @@
 
 #include "curl/curl.h"
 #include "curl/multi.h"
-#include "delegate.hpp"
 
 #include <experimental/string_view>
 
@@ -38,12 +37,7 @@ public:
   ~RequestManager();
 
   // move-only
-  bool fetch(
-    RequestT&& _req,
-    RequestHandler::OnDataCallback&& on_data_callback,
-    RequestHandler::OnDataErrback&& on_data_errback,
-    RequestHandler::OnFinishCallback&& _on_finish_callback
-  );
+  bool fetch(RequestIntentT&& _req_intent);
 
   bool send(
     HandleImpl* handle,

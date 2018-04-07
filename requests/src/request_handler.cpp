@@ -6,6 +6,8 @@
  */
 #include "request_handler.h"
 
+#include "actor_model.h"
+
 #include "http_utils.h"
 
 #include <cstring>
@@ -20,17 +22,18 @@ static constexpr auto TAG = "RequestHandler";
 using string_view = std::experimental::string_view;
 using string = std::string;
 
-RequestHandler::RequestHandler(
-  RequestT&& _req,
-  OnDataCallback _on_data_callback,
-  OnDataErrback _on_data_errback,
-  OnFinishCallback _on_finish_callback
-)
-: req(std::move(_req))
-, on_data_callback(_on_data_callback)
-, on_data_errback(_on_data_errback)
-, on_finish_callback(_on_finish_callback)
+using ActorModel::send;
+
+RequestHandler::RequestHandler(RequestIntentT&& _request_intent)
+: request_intent(std::move(_request_intent))
 {
+  if (request_intent.id)
+  {
+    res.request_id.reset(new UUID{
+      request_intent.id->ab(),
+      request_intent.id->cd()
+    });
+  }
 }
 
 RequestHandler::~RequestHandler()
@@ -46,22 +49,129 @@ RequestHandler::write_callback(string_view chunk)
 {
   auto is_success_code = ((res.code > 0) and (res.code < 400));
 
-  auto post_callback_action = (is_success_code)
-    ? on_data_callback(this->req, this->res, chunk)
-    : on_data_errback(this->req, this->res, chunk);
-
-  if (post_callback_action == AbortProcessing)
+  if (request_intent.to_pid)
   {
-    ESP_LOGE(TAG, "write_callback, AbortProcessing");
-    return 0; // anything other than chunk.size() will abort
+    switch (request_intent.desired_format)
+    {
+      case ResponseFilter::FullResponseBody:
+      {
+        res.body.append(chunk.data(), chunk.size());
+        break;
+      }
+
+      case ResponseFilter::PartialResponseChunks:
+      default:
+      {
+        res.body.assign(chunk.begin(), chunk.end());
+
+        // Generate flatbuffer for nesting inside the parent Message object
+        flatbuffers::FlatBufferBuilder fbb;
+        fbb.Finish(Response::Pack(fbb, &res));
+
+        string_view payload{
+          reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+          fbb.GetSize()
+        };
+
+        send(*(request_intent.to_pid), "chunk", payload);
+
+        break;
+      }
+
+      case ResponseFilter::JsonPath:
+      {
+        if (not json_path_emitter)
+        {
+          json_path_emitter.reset(new JsonEmitter{request_intent.object_path});
+        }
+
+        json_path_emitter->parse(chunk,
+          [this]
+          (string_view parsed_chunk) -> PostCallbackAction
+          {
+            res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
+
+            // Generate flatbuffer for nesting inside the parent Message object
+            flatbuffers::FlatBufferBuilder fbb;
+            fbb.Finish(Response::Pack(fbb, &res));
+
+            string_view payload{
+              reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+              fbb.GetSize()
+            };
+
+            send(*(request_intent.to_pid), "chunk", payload);
+
+            return PostCallbackAction::ContinueProcessing;
+          },
+
+          [this]
+          (string_view parsed_chunk) -> PostCallbackAction
+          {
+            res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
+
+            // Generate flatbuffer for nesting inside the parent Message object
+            flatbuffers::FlatBufferBuilder fbb;
+            fbb.Finish(Response::Pack(fbb, &res));
+
+            string_view payload{
+              reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+              fbb.GetSize()
+            };
+
+            send(*(request_intent.to_pid), "error", payload);
+
+            return PostCallbackAction::ContinueProcessing;
+          }
+        );
+
+        break;
+      }
+
+      case ResponseFilter::JsonPathAsFlatbuffers:
+      {
+        printf("Unsupported ResponseFilter::JsonPathAsFlatbuffers\n");
+        break;
+      }
+    }
   }
 
   return chunk.size();
 }
 
+void
+RequestHandler::finish_callback()
+{
+  auto is_success_code = ((res.code > 0) and (res.code < 400));
+
+  if (request_intent.to_pid)
+  {
+    auto type = is_success_code? "complete" : "error";
+
+    // Clear the body for the final message
+    // If response has already been processed by streaming messages
+    if (request_intent.desired_format != ResponseFilter::FullResponseBody)
+    {
+      res.body.clear();
+    }
+
+    // Generate flatbuffer for nesting inside the parent Message object
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(Response::Pack(fbb, &res));
+
+    string_view payload{
+      reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+      fbb.GetSize()
+    };
+
+    send(*(request_intent.to_pid), type, payload);
+  }
+}
+
 size_t
 RequestHandler::header_callback(string_view chunk)
 {
+  // Parse header for HTTP version and response code
   if (res.code < 0)
   {
     auto _code = parse_http_status_line(chunk);
@@ -70,137 +180,47 @@ RequestHandler::header_callback(string_view chunk)
       // Assign the parsed status code to this response object
       res.code = _code;
 
-      ESP_LOGI(req.uri.c_str(), "%.*s", chunk.size(), chunk.data());
+      const auto& tag = request_intent.request->uri.c_str();
+      ESP_LOGI(tag, "%.*s", chunk.size(), chunk.data());
 
       // Do not attempt to parse this header any further
       return chunk.size();
     }
   }
 
-  // Detect trailing CR and/or LF (popped in reverse-order)
-  auto len = chunk.size();
-  if (chunk[len - 1] == '\n')
+  // Only parse response headers if they were requested
+  if (request_intent.include_headers)
   {
-    len--;
-  }
-  if (chunk[len - 1] == '\r')
-  {
-    len--;
-  }
+    // Detect trailing CR and/or LF (popped in reverse-order)
+    auto len = chunk.size();
+    if (chunk[len - 1] == '\n')
+    {
+      len--;
+    }
+    if (chunk[len - 1] == '\r')
+    {
+      len--;
+    }
 
-  // Remove trailing CR and/or LF
-  auto hdr = chunk.substr(0, len);
+    // Remove trailing CR and/or LF
+    auto hdr = chunk.substr(0, len);
 
-  // Split on header delimiter into k=v
-  const string delim = ": ";
-  auto delim_pos = hdr.find(delim);
-  if (delim_pos != string::npos)
-  {
-    auto k = hdr.substr(0, delim_pos);
-    auto v = hdr.substr(delim_pos + delim.size());
+    // Split on header delimiter into k=v
+    const string delim = ": ";
+    auto delim_pos = hdr.find(delim);
+    if (delim_pos != string::npos)
+    {
+      auto k = hdr.substr(0, delim_pos);
+      auto v = hdr.substr(delim_pos + delim.size());
 
-    auto header = std::make_unique<HeaderPairT>();
-    header->first.assign(k.data(), k.size());
-    header->second.assign(v.data(), v.size());
-    res.headers.emplace_back(std::move(header));
+      auto header = std::make_unique<HeaderPairT>();
+      header->first.assign(k.data(), k.size());
+      header->second.assign(v.data(), v.size());
+      res.headers.emplace_back(std::move(header));
+    }
   }
 
   return chunk.size();
-}
-
-template<RequestHandler::PostCallbackAction NextActionT>
-RequestHandler::PostCallbackAction
-RequestHandler::print_data_helper(
-  RequestT& req,
-  ResponseT& res,
-  string_view chunk
-)
-{
-  ESP_LOGI(TAG, "Received chunk: %.*s\n", chunk.size(), chunk.data());
-
-  return NextActionT;
-}
-
-// Explicit template instantiation: ContinueProcessing
-template
-RequestHandler::PostCallbackAction
-RequestHandler::print_data_helper<RequestHandler::ContinueProcessing>(
-  RequestT& req,
-  ResponseT& res,
-  string_view error_string
-);
-// Explicit template instantiation: AbortProcessing
-template
-RequestHandler::PostCallbackAction
-RequestHandler::print_data_helper<RequestHandler::AbortProcessing>(
-  RequestT& req,
-  ResponseT& res,
-  string_view error_string
-);
-
-template<RequestHandler::PostCallbackAction NextActionT>
-RequestHandler::PostCallbackAction
-RequestHandler::print_error_helper(
-  RequestT& req,
-  ResponseT& res,
-  string_view error_string
-)
-{
-  ESP_LOGE(TAG, "Processing failed: %.*s\n", error_string.size(), error_string.data());
-
-  auto len = strnlen(res.errbuf.data(), res.errbuf.size());
-  if (len > 0)
-  {
-    ESP_LOGE(TAG, "errbuf: %s\n", res.errbuf.data());
-  }
-
-  return NextActionT;
-}
-
-// Explicit template instantiation: ContinueProcessing
-template
-RequestHandler::PostCallbackAction
-RequestHandler::print_error_helper<RequestHandler::ContinueProcessing>(
-  RequestT& req,
-  ResponseT& res,
-  string_view error_string
-);
-// Explicit template instantiation: AbortProcessing
-template
-RequestHandler::PostCallbackAction
-RequestHandler::print_error_helper<RequestHandler::AbortProcessing>(
-  RequestT& req,
-  ResponseT& res,
-  string_view error_string
-);
-
-RequestHandler::PostRequestAction
-RequestHandler::remove_request_if_failed(
-  RequestT& req,
-  ResponseT& res
-)
-{
-  auto is_success_code = ((res.code > 0) and (res.code < 400));
-
-  if (not is_success_code)
-  {
-    if (res.code < 200)
-    {
-      //ESP_LOGW(TAG, "Request failed with curl error %d: %s", res.code, curl_easy_strerror(res.code));
-      ESP_LOGW(TAG, "Request failed with library error %d", res.code);
-    }
-    else {
-      ESP_LOGW(TAG, "Request failed with status code %d", res.code);
-    }
-
-    auto len = strnlen(res.errbuf.data(), res.errbuf.size());
-    if (len)
-    {
-      ESP_LOGE(TAG, "errbuf: %s\n", res.errbuf.data());
-    }
-  }
-
-  return is_success_code? ReuseRequest : DisposeRequest;
 }
 
 } // namespace Requests

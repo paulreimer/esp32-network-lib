@@ -30,8 +30,8 @@ class JsonToFlatbuffersConverter
 public:
   using string_view = std::experimental::string_view;
 
-  using Callback = delegate<bool(string_view)>;
-  using Errback = delegate<bool(string_view)>;
+  using Callback = delegate<PostCallbackAction(string_view)>;
+  using Errback = delegate<PostCallbackAction(string_view)>;
 
   JsonToFlatbuffersConverter(const JsonEmitter::JsonPath& _match_path={})
   : json_emitter(_match_path)
@@ -52,12 +52,12 @@ public:
     NS_X_parse_json_as_root_T&& NS_X_parse_json_as_root,
     NS_X_verify_as_root_T&& NS_X_verify_as_root,
     Callback&& callback,
-    Errback&& errback = print_error_helper
+    Errback&& errback
   )
   {
     return json_emitter.parse(chunk,
       [&]
-      (string_view json_str) -> RequestHandler::PostCallbackAction
+      (string_view json_str) -> PostCallbackAction
       {
         flatcc_json_parser_t parser;
 
@@ -108,11 +108,11 @@ public:
         // Release the builder resources
         flatcc_builder_clear(&builder);
 
-        return RequestHandler::ContinueProcessing;
+        return PostCallbackAction::ContinueProcessing;
       },
 
       [&]
-      (string_view json_str) -> RequestHandler::PostCallbackAction
+      (string_view json_str) -> PostCallbackAction
       {
         ESP_LOGE(
           "JsonToFlatbuffersConverter",
@@ -121,24 +121,9 @@ public:
           json_str.data()
         );
 
-        return RequestHandler::ContinueProcessing;
+        return PostCallbackAction::ContinueProcessing;
       }
     );
-  }
-
-  template<RequestHandler::PostCallbackAction NextActionT = RequestHandler::ContinueProcessing>
-  static RequestHandler::PostCallbackAction print_error_helper(
-    string_view error_string
-  )
-  {
-    ESP_LOGE(
-      "JsonToFlatbuffersConverter",
-      "Response data processing failed: %.*s\n",
-      error_string.size(),
-      error_string.data()
-    );
-
-    return NextActionT;
   }
 
 private:
