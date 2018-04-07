@@ -21,6 +21,8 @@
 #include "yajl/yajl_parse.h"
 #include "yajl/yajl_gen.h"
 
+#include "requests_generated.h"
+
 namespace Requests {
 
 class JsonEmitter
@@ -32,12 +34,13 @@ public:
   using JsonPathComponent = stx::variant<int, string>;
   using JsonPath = std::vector<JsonPathComponent>;
 
-  using Callback = delegate<bool(string_view)>;
-  using Errback = delegate<bool(string_view)>;
+  using Callback = delegate<PostCallbackAction(string_view)>;
+  using Errback = delegate<PostCallbackAction(string_view)>;
 
   using JsonParserPtr = std::unique_ptr<yajl_handle_t, void(*)(yajl_handle_t*)>;
   using JsonGenPtr = std::unique_ptr<yajl_gen_t, void(*)(yajl_gen_t*)>;
 
+  JsonEmitter(string_view match_path_str);
   JsonEmitter(const JsonPath& _match_path={});
   ~JsonEmitter() = default;
 
@@ -51,9 +54,7 @@ public:
     Errback&& _errback
   );
 
-protected:
-//TODO: make this protected
-public:
+  // Callbacks must be public for access from static C
   int on_json_parse_null();
   int on_json_parse_boolean(int boolean);
   int on_json_parse_number(const char* s, size_t l);
@@ -63,6 +64,11 @@ public:
   int on_json_parse_end_map();
   int on_json_parse_start_array();
   int on_json_parse_end_array();
+
+protected:
+  static JsonPath parse_json_path(string_view json_path_str);
+
+public:
 
 private:
   // Convenience function to output JSON, then call the stored callback/errback

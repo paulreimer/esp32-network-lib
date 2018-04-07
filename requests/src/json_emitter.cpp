@@ -191,6 +191,14 @@ apply_map_workaround(
   );
 }
 
+JsonEmitter::JsonEmitter(string_view match_path_str)
+: match_path(parse_json_path(match_path_str))
+, json_parser{yajl_alloc(&json_parse_callbacks, nullptr, this), yajl_free}
+, json_gen{yajl_gen_alloc(nullptr), yajl_gen_free}
+{
+  init();
+}
+
 JsonEmitter::JsonEmitter(const JsonPath& _match_path)
 : match_path(_match_path)
 , json_parser{yajl_alloc(&json_parse_callbacks, nullptr, this), yajl_free}
@@ -572,6 +580,79 @@ JsonEmitter::on_json_parse_end_array()
   }
 
   return ok;
+}
+
+JsonPath
+JsonEmitter::parse_json_path(string_view json_path_str)
+{
+  JsonPath json_path;
+
+  // Check for initial key
+  auto delim_pos = json_path_str.find_first_of(".[");
+  while (delim_pos != string::npos)
+  {
+    delim_pos = json_path_str.find_first_of(".[");
+    auto is_array_delim = (json_path_str.at(delim_pos) == '[');
+
+    // Handle '[?]', possibly with string key
+    if (is_array_delim)
+    {
+      auto next_char = json_path_str.at(delim_pos+1);
+      auto is_string_key = (
+        next_char == '\''
+        or next_char == '"'
+      );
+
+      auto end_delim = is_string_key? next_char : ']';
+      int key_start_pos = is_string_key? delim_pos+2 : delim_pos+1;
+      int key_end_pos = json_path_str.find_first_of(end_delim, key_start_pos);
+      auto final_char = is_string_key? key_end_pos+1 : key_end_pos;
+
+      auto key = json_path_str.substr(
+        key_start_pos,
+        key_end_pos - key_start_pos
+      );
+
+      if (is_string_key)
+      {
+        // Add a string key
+        json_path.emplace_back(string{key});
+      }
+      else {
+        // Add an int key
+        int index = not key.empty()? std::stoi(string{key}) : -1;
+        json_path.emplace_back(index);
+      }
+
+      json_path_str = json_path_str.substr(final_char+1, string::npos);
+    }
+
+    // Handle '.?'
+    else {
+      auto key_start_pos = delim_pos+1;
+      auto key_end_pos = json_path_str.find_first_of(".[", key_start_pos);
+
+      auto key = json_path_str.substr(
+        key_start_pos,
+        key_end_pos - key_start_pos
+      );
+
+      // Add a string key
+      json_path.emplace_back(string{key});
+
+      // Continuing parsing the rest of the path, if any
+      if (key_end_pos != string::npos)
+      {
+        json_path_str = json_path_str.substr(key_end_pos, string::npos);
+      }
+      // Exit the loop if no delimiters found
+      else {
+        break;
+      }
+    }
+  }
+
+  return json_path;
 }
 
 } // namespace Requests
