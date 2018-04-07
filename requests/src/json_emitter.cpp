@@ -374,6 +374,14 @@ JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringL
     ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
   }
 
+  else if (
+    is_a_subpath(match_path, current_path)
+    and match_path.size() == 1
+  )
+  {
+    callback(string_view{reinterpret_cast<const char*>(stringVal), stringLen});
+  }
+
   // Check if we are an item in an array
   if (
     not current_path.empty()
