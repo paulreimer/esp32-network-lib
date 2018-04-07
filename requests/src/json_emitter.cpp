@@ -67,8 +67,8 @@ yajl_callbacks json_parse_callbacks = {
 
 inline bool
 path_component_is_wildcard_map(
-  JsonPathComponent match,
-  JsonPathComponent current
+  const JsonPathComponent& match,
+  const JsonPathComponent& current
 )
 {
   const JsonPathComponent wildcard_map_str("**");
@@ -82,13 +82,13 @@ path_component_is_wildcard_map(
 
 inline bool
 path_component_is_wildcard(
-  JsonPathComponent match,
-  JsonPathComponent current
+  const JsonPathComponent& match,
+  const JsonPathComponent& current
 )
 {
-  const JsonPathComponent wildcard_str("*");
-  const JsonPathComponent wildcard_map_str("**");
-  const JsonPathComponent wildcard_int(-1);
+  static const JsonPathComponent wildcard_str("*");
+  static const JsonPathComponent wildcard_map_str("**");
+  static const JsonPathComponent wildcard_int(-1);
 
   // Accept only wildcards which used the correct wildcard type
   return (
@@ -103,8 +103,8 @@ path_component_is_wildcard(
 
 inline bool
 path_component_equality_or_wildcard(
-  JsonPathComponent match,
-  JsonPathComponent current
+  const JsonPathComponent& match,
+  const JsonPathComponent& current
 )
 {
   return (
@@ -430,7 +430,7 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
     ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
   }
 
-  current_path.push_back(
+  current_path.emplace_back(
     string_view(reinterpret_cast<const char*>(stringVal), stringLen)
   );
 
@@ -481,7 +481,7 @@ JsonEmitter::on_json_parse_start_map()
     array_idx++;
   }
 
-  current_path.push_back(string(""));
+  current_path.emplace_back("");
 
   return ok;
 }
@@ -533,7 +533,7 @@ JsonEmitter::on_json_parse_start_array()
     array_idx++;
   }
 
-  current_path.push_back(0);
+  current_path.emplace_back(0);
 
   return ok;
 }
