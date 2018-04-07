@@ -11,6 +11,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include <chrono>
+
+#include "esp_log.h"
+
 using namespace std::chrono_literals;
 
 namespace ActorModel {
@@ -25,7 +29,7 @@ void actor_task(void* user_data = nullptr);
 Actor::Actor(
   const Pid& _pid,
   Behaviour&& _behaviour,
-  const ActorExecutionConfigT& _execution_config,
+  const ActorExecutionConfig& _execution_config,
   const MaybePid& initial_link_pid,
   const Actor::ProcessDictionary::AncestorList&& _ancestors,
   Node* _current_node
@@ -33,16 +37,14 @@ Actor::Actor(
 : pid(_pid)
 , behaviour(_behaviour)
 , current_node(_current_node)
-, execution_config(_execution_config)
+, execution_config(&_execution_config)
 , started(false)
 {
   // Setup re-usable return object
   Ok.type = Result::Ok;
 
   // Setup re-usable return object
-  ErrorT normal_error;
-  normal_error.reason = "normal";
-  Done.Set(std::move(normal_error));
+  Done.type = Result::Error;
 
   dictionary.ancestors = _ancestors;
 
@@ -55,8 +57,8 @@ Actor::Actor(
 
   auto task_name = get_uuid_str(pid).c_str();
 
-  const auto task_prio = execution_config.task_prio;
-  const auto task_stack_size = execution_config.task_stack_size;
+  const auto task_prio = execution_config->task_prio();
+  const auto task_stack_size = execution_config->task_stack_size();
   auto* task_user_data = this;
 
   auto retval = xTaskCreate(
@@ -79,7 +81,11 @@ Actor::~Actor()
   for (const auto& pid2 : links)
   {
     printf("Send exit message to linked PID %s\n", get_uuid_str(pid2).c_str());
-    exit(pid2, poison_pill.reason);
+    auto exit_reason = string_view{
+      poison_pill->reason()->data(),
+      poison_pill->reason()->size()
+    };
+    exit(pid2, exit_reason);
   }
 
   // Stop the actor's execution context
@@ -96,9 +102,27 @@ auto Actor::exit(Reason exit_reason)
 
   // Store the reason why this process is being killed
   // So it can be sent to each linked process
-  SignalT poison_pill;
-  poison_pill.from_pid.reset(new UUID{pid.ab(), pid.cd()});
-  poison_pill.reason = exit_reason;
+  flatbuffers::FlatBufferBuilder fbb;
+
+  auto exit_reason_str = fbb.CreateString(
+    exit_reason.data(),
+    exit_reason.size()
+  );
+
+  auto poison_pill_offset = CreateSignal(
+    fbb,
+    &pid,
+    exit_reason_str
+  );
+
+  fbb.Finish(poison_pill_offset);
+
+  poison_pill_flatbuf = flatbuf(
+    fbb.GetBufferPointer(),
+    fbb.GetBufferPointer() + fbb.GetSize()
+  );
+
+  poison_pill = flatbuffers::GetRoot<Signal>(poison_pill_flatbuf.data());
 
   // Remove this pid from process_registry unconditionally (deleting it),
   // and remove from named_process_registry if present
@@ -113,20 +137,40 @@ auto Actor::exit(const Pid& pid2, Reason exit_reason)
 {
   auto& node = get_current_node();
 
-  SignalT exit_signal;
-  exit_signal.from_pid.reset(new UUID{pid.ab(), pid.cd()});
-  exit_signal.reason = exit_reason;
+  flatbuffers::FlatBufferBuilder fbb;
 
-  return node.signal(pid2, exit_signal);
+  auto exit_reason_str = fbb.CreateString(
+    exit_reason.data(),
+    exit_reason.size()
+  );
+
+  auto exit_signal_offset = CreateSignal(
+    fbb,
+    &pid,
+    exit_reason_str
+  );
+
+  fbb.Finish(exit_signal_offset);
+
+  auto* exit_signal = flatbuffers::GetRoot<Signal>(fbb.GetBufferPointer());
+
+  return node.signal(pid2, *(exit_signal));
 }
 
 auto Actor::loop()
   -> ResultUnion
 {
+  ResultUnion result;
+
   // Check for poison pill
-  if (not poison_pill.reason.empty())
+  if (poison_pill and poison_pill->reason()->size() > 0)
   {
-    exit(poison_pill.reason);
+    auto exit_reason = string_view{
+      poison_pill->reason()->data(),
+      poison_pill->reason()->size()
+    };
+
+    exit(exit_reason);
 
     ResultUnion poison_pill_behaviour;
     poison_pill_behaviour.type = Result::Error;
@@ -136,16 +180,27 @@ auto Actor::loop()
     return poison_pill_behaviour;
   }
 
-  const auto& message = mailbox.receive();
-  const auto& result = behaviour(pid, state, message);
-
-  if (result.type == Result::Error)
+  // Wait for and obtain a reference to a message
+  // (which must be released afterwards)
+  auto _message = mailbox.receive_raw();
+  if (not _message.empty())
   {
-    if (result.AsError()->reason == "normal")
+    const Message* message = flatbuffers::GetRoot<Message>(_message.data());
+
+    result = behaviour(pid, state, *(message));
+
+    if (result.type == Result::Error)
     {
-      exit(result.AsError()->reason);
+      string_view reason = "normal";
+      if (reason == "normal")
+      {
+        exit(reason);
+      }
     }
+
   }
+  // Release the memory back to the buffer
+  mailbox.release(_message);
 
   return result;
 }
@@ -162,16 +217,47 @@ auto actor_task(void* user_data)
       auto result = actor->loop();
       if (result.type == Result::Error)
       {
-        break;
+        string_view reason = "normal";
+        if (reason == "normal")
+        {
+          break;
+        }
+        else {
+          break;
+        }
       }
     }
   }
 }
 
-auto Actor::send(const MessageT& message)
+auto Actor::send(const Message& message)
   -> bool
 {
-  return mailbox.send(message);
+  auto did_send = mailbox.send(message);
+  if (not did_send)
+  {
+    ESP_LOGE(
+      get_uuid_str(pid).c_str(),
+      "Unable to send message (payload size %d)",
+      message.payload()->size()
+    );
+  }
+  return did_send;
+}
+
+auto Actor::send(string_view type, string_view payload)
+  -> bool
+{
+  auto did_send = mailbox.send(type, payload);
+  if (not did_send)
+  {
+    ESP_LOGE(
+      get_uuid_str(pid).c_str(),
+      "Unable to send message (payload size %d)",
+      payload.size()
+    );
+  }
+  return did_send;
 }
 
 auto Actor::link(const Pid& pid2)

@@ -19,10 +19,15 @@ namespace ActorModel {
 using State = void;
 using StatePtr = std::shared_ptr<State>;
 
+struct ResultUnion {
+  Result type;
+  flatbuffers::Offset<void> data;
+};
+
 using Behaviour = delegate<ResultUnion(
   const Pid&,
   StatePtr& state,
-  const MessageT&
+  const Message&
 )>;
 
 } // namespace ActorModel

@@ -11,22 +11,28 @@
 namespace ActorModel {
 
 struct Message;
-struct MessageT;
 
 struct Ok;
-struct OkT;
 
 struct Error;
-struct ErrorT;
 
 struct Signal;
-struct SignalT;
 
 struct SupervisorFlags;
-struct SupervisorFlagsT;
 
 struct ActorExecutionConfig;
-struct ActorExecutionConfigT;
+
+inline const flatbuffers::TypeTable *MessageTypeTable();
+
+inline const flatbuffers::TypeTable *OkTypeTable();
+
+inline const flatbuffers::TypeTable *ErrorTypeTable();
+
+inline const flatbuffers::TypeTable *SignalTypeTable();
+
+inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable();
+
+inline const flatbuffers::TypeTable *ActorExecutionConfigTypeTable();
 
 enum class SupervisionStrategy : int8_t {
   one_for_one = 0,
@@ -37,8 +43,8 @@ enum class SupervisionStrategy : int8_t {
   MAX = simple_one_for_one
 };
 
-inline SupervisionStrategy (&EnumValuesSupervisionStrategy())[4] {
-  static SupervisionStrategy values[] = {
+inline const SupervisionStrategy (&EnumValuesSupervisionStrategy())[4] {
+  static const SupervisionStrategy values[] = {
     SupervisionStrategy::one_for_one,
     SupervisionStrategy::one_for_all,
     SupervisionStrategy::rest_for_one,
@@ -47,8 +53,8 @@ inline SupervisionStrategy (&EnumValuesSupervisionStrategy())[4] {
   return values;
 }
 
-inline const char **EnumNamesSupervisionStrategy() {
-  static const char *names[] = {
+inline const char * const *EnumNamesSupervisionStrategy() {
+  static const char * const names[] = {
     "one_for_one",
     "one_for_all",
     "rest_for_one",
@@ -69,15 +75,15 @@ enum class ProcessFlag : int16_t {
   MAX = trap_exit
 };
 
-inline ProcessFlag (&EnumValuesProcessFlag())[1] {
-  static ProcessFlag values[] = {
+inline const ProcessFlag (&EnumValuesProcessFlag())[1] {
+  static const ProcessFlag values[] = {
     ProcessFlag::trap_exit
   };
   return values;
 }
 
-inline const char **EnumNamesProcessFlag() {
-  static const char *names[] = {
+inline const char * const *EnumNamesProcessFlag() {
+  static const char * const names[] = {
     "trap_exit",
     nullptr
   };
@@ -97,8 +103,8 @@ enum class Result : uint8_t {
   MAX = Error
 };
 
-inline Result (&EnumValuesResult())[3] {
-  static Result values[] = {
+inline const Result (&EnumValuesResult())[3] {
+  static const Result values[] = {
     Result::NONE,
     Result::Ok,
     Result::Error
@@ -106,8 +112,8 @@ inline Result (&EnumValuesResult())[3] {
   return values;
 }
 
-inline const char **EnumNamesResult() {
-  static const char *names[] = {
+inline const char * const *EnumNamesResult() {
+  static const char * const names[] = {
     "NONE",
     "Ok",
     "Error",
@@ -133,76 +139,13 @@ template<> struct ResultTraits<Error> {
   static const Result enum_value = Result::Error;
 };
 
-struct ResultUnion {
-  Result type;
-  void *value;
-
-  ResultUnion() : type(Result::NONE), value(nullptr) {}
-  ResultUnion(ResultUnion&& u) FLATBUFFERS_NOEXCEPT :
-    type(Result::NONE), value(nullptr)
-    { std::swap(type, u.type); std::swap(value, u.value); }
-  ResultUnion(const ResultUnion &) FLATBUFFERS_NOEXCEPT;
-  ResultUnion &operator=(const ResultUnion &u) FLATBUFFERS_NOEXCEPT
-    { ResultUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
-  ResultUnion &operator=(ResultUnion &&u) FLATBUFFERS_NOEXCEPT
-    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
-  ~ResultUnion() { Reset(); }
-
-  void Reset();
-
-#ifndef FLATBUFFERS_CPP98_STL
-  template <typename T>
-  void Set(T&& val) {
-    Reset();
-    type = ResultTraits<typename T::TableType>::enum_value;
-    if (type != Result::NONE) {
-      value = new T(std::forward<T>(val));
-    }
-  }
-#endif  // FLATBUFFERS_CPP98_STL
-
-  static void *UnPack(const void *obj, Result type, const flatbuffers::resolver_function_t *resolver);
-  flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
-
-  OkT *AsOk() {
-    return type == Result::Ok ?
-      reinterpret_cast<OkT *>(value) : nullptr;
-  }
-  const OkT *AsOk() const {
-    return type == Result::Ok ?
-      reinterpret_cast<const OkT *>(value) : nullptr;
-  }
-  ErrorT *AsError() {
-    return type == Result::Error ?
-      reinterpret_cast<ErrorT *>(value) : nullptr;
-  }
-  const ErrorT *AsError() const {
-    return type == Result::Error ?
-      reinterpret_cast<const ErrorT *>(value) : nullptr;
-  }
-};
-
 bool VerifyResult(flatbuffers::Verifier &verifier, const void *obj, Result type);
 bool VerifyResultVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-struct MessageT : public flatbuffers::NativeTable {
-  typedef Message TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.MessageT";
-  }
-  std::string type;
-  uint64_t timestamp;
-  std::unique_ptr<UUID> from_pid;
-  uint32_t payload_alignment;
-  std::vector<uint8_t> payload;
-  MessageT()
-      : timestamp(0),
-        payload_alignment(0) {
-  }
-};
-
 struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef MessageT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MessageTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Message";
   }
@@ -254,9 +197,6 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(payload()) &&
            verifier.EndTable();
   }
-  MessageT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MessageT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Message> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MessageT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MessageBuilder {
@@ -321,20 +261,10 @@ inline flatbuffers::Offset<Message> CreateMessageDirect(
       payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
 }
 
-flatbuffers::Offset<Message> CreateMessage(flatbuffers::FlatBufferBuilder &_fbb, const MessageT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct OkT : public flatbuffers::NativeTable {
-  typedef Ok TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.OkT";
-  }
-  std::string _;
-  OkT() {
-  }
-};
-
 struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef OkT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return OkTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Ok";
   }
@@ -353,9 +283,6 @@ struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(_()) &&
            verifier.EndTable();
   }
-  OkT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(OkT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Ok> Pack(flatbuffers::FlatBufferBuilder &_fbb, const OkT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct OkBuilder {
@@ -392,20 +319,10 @@ inline flatbuffers::Offset<Ok> CreateOkDirect(
       _ ? _fbb.CreateString(_) : 0);
 }
 
-flatbuffers::Offset<Ok> CreateOk(flatbuffers::FlatBufferBuilder &_fbb, const OkT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct ErrorT : public flatbuffers::NativeTable {
-  typedef Error TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.ErrorT";
-  }
-  std::string reason;
-  ErrorT() {
-  }
-};
-
 struct Error FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef ErrorT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ErrorTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Error";
   }
@@ -424,9 +341,6 @@ struct Error FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(reason()) &&
            verifier.EndTable();
   }
-  ErrorT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ErrorT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Error> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ErrorT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct ErrorBuilder {
@@ -463,21 +377,10 @@ inline flatbuffers::Offset<Error> CreateErrorDirect(
       reason ? _fbb.CreateString(reason) : 0);
 }
 
-flatbuffers::Offset<Error> CreateError(flatbuffers::FlatBufferBuilder &_fbb, const ErrorT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct SignalT : public flatbuffers::NativeTable {
-  typedef Signal TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.SignalT";
-  }
-  std::unique_ptr<UUID> from_pid;
-  std::string reason;
-  SignalT() {
-  }
-};
-
 struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef SignalT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return SignalTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Signal";
   }
@@ -504,9 +407,6 @@ struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(reason()) &&
            verifier.EndTable();
   }
-  SignalT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(SignalT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Signal> Pack(flatbuffers::FlatBufferBuilder &_fbb, const SignalT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct SignalBuilder {
@@ -550,25 +450,10 @@ inline flatbuffers::Offset<Signal> CreateSignalDirect(
       reason ? _fbb.CreateString(reason) : 0);
 }
 
-flatbuffers::Offset<Signal> CreateSignal(flatbuffers::FlatBufferBuilder &_fbb, const SignalT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct SupervisorFlagsT : public flatbuffers::NativeTable {
-  typedef SupervisorFlags TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.SupervisorFlagsT";
-  }
-  SupervisionStrategy strategy;
-  uint32_t intensity;
-  uint32_t period;
-  SupervisorFlagsT()
-      : strategy(SupervisionStrategy::one_for_one),
-        intensity(0),
-        period(0) {
-  }
-};
-
 struct SupervisorFlags FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef SupervisorFlagsT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return SupervisorFlagsTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.SupervisorFlags";
   }
@@ -602,9 +487,6 @@ struct SupervisorFlags FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_PERIOD) &&
            verifier.EndTable();
   }
-  SupervisorFlagsT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(SupervisorFlagsT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<SupervisorFlags> Pack(flatbuffers::FlatBufferBuilder &_fbb, const SupervisorFlagsT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct SupervisorFlagsBuilder {
@@ -643,23 +525,10 @@ inline flatbuffers::Offset<SupervisorFlags> CreateSupervisorFlags(
   return builder_.Finish();
 }
 
-flatbuffers::Offset<SupervisorFlags> CreateSupervisorFlags(flatbuffers::FlatBufferBuilder &_fbb, const SupervisorFlagsT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct ActorExecutionConfigT : public flatbuffers::NativeTable {
-  typedef ActorExecutionConfig TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.ActorExecutionConfigT";
-  }
-  int32_t task_prio;
-  uint32_t task_stack_size;
-  ActorExecutionConfigT()
-      : task_prio(5),
-        task_stack_size(8192) {
-  }
-};
-
 struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef ActorExecutionConfigT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ActorExecutionConfigTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.ActorExecutionConfig";
   }
@@ -685,9 +554,6 @@ struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
            VerifyField<uint32_t>(verifier, VT_TASK_STACK_SIZE) &&
            verifier.EndTable();
   }
-  ActorExecutionConfigT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ActorExecutionConfigT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<ActorExecutionConfig> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ActorExecutionConfigT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct ActorExecutionConfigBuilder {
@@ -721,188 +587,6 @@ inline flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(
   return builder_.Finish();
 }
 
-flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(flatbuffers::FlatBufferBuilder &_fbb, const ActorExecutionConfigT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-inline MessageT *Message::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MessageT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Message::UnPackTo(MessageT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = type(); if (_e) _o->type = _e->str(); };
-  { auto _e = timestamp(); _o->timestamp = _e; };
-  { auto _e = from_pid(); if (_e) _o->from_pid = std::unique_ptr<UUID>(new UUID(*_e)); };
-  { auto _e = payload_alignment(); _o->payload_alignment = _e; };
-  { auto _e = payload(); if (_e) { _o->payload.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->payload[_i] = _e->Get(_i); } } };
-}
-
-inline flatbuffers::Offset<Message> Message::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MessageT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMessage(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Message> CreateMessage(flatbuffers::FlatBufferBuilder &_fbb, const MessageT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MessageT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _type = _o->type.empty() ? 0 : _fbb.CreateString(_o->type);
-  auto _timestamp = _o->timestamp;
-  auto _from_pid = _o->from_pid ? _o->from_pid.get() : 0;
-  auto _payload_alignment = _o->payload_alignment;
-  auto _payload = _o->payload.size() ? _fbb.CreateVector(_o->payload) : 0;
-  return ActorModel::CreateMessage(
-      _fbb,
-      _type,
-      _timestamp,
-      _from_pid,
-      _payload_alignment,
-      _payload);
-}
-
-inline OkT *Ok::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new OkT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Ok::UnPackTo(OkT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = _(); if (_e) _o->_ = _e->str(); };
-}
-
-inline flatbuffers::Offset<Ok> Ok::Pack(flatbuffers::FlatBufferBuilder &_fbb, const OkT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateOk(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Ok> CreateOk(flatbuffers::FlatBufferBuilder &_fbb, const OkT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const OkT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto __ = _o->_.empty() ? 0 : _fbb.CreateString(_o->_);
-  return ActorModel::CreateOk(
-      _fbb,
-      __);
-}
-
-inline ErrorT *Error::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ErrorT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Error::UnPackTo(ErrorT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = reason(); if (_e) _o->reason = _e->str(); };
-}
-
-inline flatbuffers::Offset<Error> Error::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ErrorT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateError(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Error> CreateError(flatbuffers::FlatBufferBuilder &_fbb, const ErrorT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ErrorT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _reason = _o->reason.empty() ? 0 : _fbb.CreateString(_o->reason);
-  return ActorModel::CreateError(
-      _fbb,
-      _reason);
-}
-
-inline SignalT *Signal::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new SignalT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Signal::UnPackTo(SignalT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = from_pid(); if (_e) _o->from_pid = std::unique_ptr<UUID>(new UUID(*_e)); };
-  { auto _e = reason(); if (_e) _o->reason = _e->str(); };
-}
-
-inline flatbuffers::Offset<Signal> Signal::Pack(flatbuffers::FlatBufferBuilder &_fbb, const SignalT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateSignal(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Signal> CreateSignal(flatbuffers::FlatBufferBuilder &_fbb, const SignalT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const SignalT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _from_pid = _o->from_pid ? _o->from_pid.get() : 0;
-  auto _reason = _o->reason.empty() ? 0 : _fbb.CreateString(_o->reason);
-  return ActorModel::CreateSignal(
-      _fbb,
-      _from_pid,
-      _reason);
-}
-
-inline SupervisorFlagsT *SupervisorFlags::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new SupervisorFlagsT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void SupervisorFlags::UnPackTo(SupervisorFlagsT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = strategy(); _o->strategy = _e; };
-  { auto _e = intensity(); _o->intensity = _e; };
-  { auto _e = period(); _o->period = _e; };
-}
-
-inline flatbuffers::Offset<SupervisorFlags> SupervisorFlags::Pack(flatbuffers::FlatBufferBuilder &_fbb, const SupervisorFlagsT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateSupervisorFlags(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<SupervisorFlags> CreateSupervisorFlags(flatbuffers::FlatBufferBuilder &_fbb, const SupervisorFlagsT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const SupervisorFlagsT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _strategy = _o->strategy;
-  auto _intensity = _o->intensity;
-  auto _period = _o->period;
-  return ActorModel::CreateSupervisorFlags(
-      _fbb,
-      _strategy,
-      _intensity,
-      _period);
-}
-
-inline ActorExecutionConfigT *ActorExecutionConfig::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ActorExecutionConfigT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void ActorExecutionConfig::UnPackTo(ActorExecutionConfigT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = task_prio(); _o->task_prio = _e; };
-  { auto _e = task_stack_size(); _o->task_stack_size = _e; };
-}
-
-inline flatbuffers::Offset<ActorExecutionConfig> ActorExecutionConfig::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ActorExecutionConfigT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateActorExecutionConfig(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(flatbuffers::FlatBufferBuilder &_fbb, const ActorExecutionConfigT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ActorExecutionConfigT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _task_prio = _o->task_prio;
-  auto _task_stack_size = _o->task_stack_size;
-  return ActorModel::CreateActorExecutionConfig(
-      _fbb,
-      _task_prio,
-      _task_stack_size);
-}
-
 inline bool VerifyResult(flatbuffers::Verifier &verifier, const void *obj, Result type) {
   switch (type) {
     case Result::NONE: {
@@ -921,6 +605,7 @@ inline bool VerifyResult(flatbuffers::Verifier &verifier, const void *obj, Resul
 }
 
 inline bool VerifyResultVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyResult(
@@ -931,236 +616,163 @@ inline bool VerifyResultVector(flatbuffers::Verifier &verifier, const flatbuffer
   return true;
 }
 
-inline void *ResultUnion::UnPack(const void *obj, Result type, const flatbuffers::resolver_function_t *resolver) {
-  switch (type) {
-    case Result::Ok: {
-      auto ptr = reinterpret_cast<const Ok *>(obj);
-      return ptr->UnPack(resolver);
-    }
-    case Result::Error: {
-      auto ptr = reinterpret_cast<const Error *>(obj);
-      return ptr->UnPack(resolver);
-    }
-    default: return nullptr;
-  }
-}
-
-inline flatbuffers::Offset<void> ResultUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
-  switch (type) {
-    case Result::Ok: {
-      auto ptr = reinterpret_cast<const OkT *>(value);
-      return CreateOk(_fbb, ptr, _rehasher).Union();
-    }
-    case Result::Error: {
-      auto ptr = reinterpret_cast<const ErrorT *>(value);
-      return CreateError(_fbb, ptr, _rehasher).Union();
-    }
-    default: return 0;
-  }
-}
-
-inline ResultUnion::ResultUnion(const ResultUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
-  switch (type) {
-    case Result::Ok: {
-      value = new OkT(*reinterpret_cast<OkT *>(u.value));
-      break;
-    }
-    case Result::Error: {
-      value = new ErrorT(*reinterpret_cast<ErrorT *>(u.value));
-      break;
-    }
-    default:
-      break;
-  }
-}
-
-inline void ResultUnion::Reset() {
-  switch (type) {
-    case Result::Ok: {
-      auto ptr = reinterpret_cast<OkT *>(value);
-      delete ptr;
-      break;
-    }
-    case Result::Error: {
-      auto ptr = reinterpret_cast<ErrorT *>(value);
-      delete ptr;
-      break;
-    }
-    default: break;
-  }
-  value = nullptr;
-  type = Result::NONE;
-}
-
-inline flatbuffers::TypeTable *MessageTypeTable();
-
-inline flatbuffers::TypeTable *OkTypeTable();
-
-inline flatbuffers::TypeTable *ErrorTypeTable();
-
-inline flatbuffers::TypeTable *SignalTypeTable();
-
-inline flatbuffers::TypeTable *SupervisorFlagsTypeTable();
-
-inline flatbuffers::TypeTable *ActorExecutionConfigTypeTable();
-
-inline flatbuffers::TypeTable *SupervisionStrategyTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *SupervisionStrategyTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     SupervisionStrategyTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "one_for_one",
     "one_for_all",
     "rest_for_one",
     "simple_one_for_one"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 4, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *ProcessFlagTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *ProcessFlagTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SHORT, 0, 0 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     ProcessFlagTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "trap_exit"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 1, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *ResultTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *ResultTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     OkTypeTable,
     ErrorTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "NONE",
     "Ok",
     "Error"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_UNION, 3, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *MessageTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *MessageTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_ULONG, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UCHAR, 1, -1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     UUIDTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "type",
     "timestamp",
     "from_pid",
     "payload_alignment",
     "payload"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *OkTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *OkTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 }
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "_"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *ErrorTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *ErrorTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 }
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "reason"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *SignalTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *SignalTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_STRING, 0, -1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     UUIDTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "from_pid",
     "reason"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *SupervisorFlagsTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
-  static flatbuffers::TypeFunction type_refs[] = {
+  static const flatbuffers::TypeFunction type_refs[] = {
     SupervisionStrategyTypeTable
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "strategy",
     "intensity",
     "period"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
 
-inline flatbuffers::TypeTable *ActorExecutionConfigTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *ActorExecutionConfigTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
-  static const char *names[] = {
+  static const char * const names[] = {
     "task_prio",
     "task_stack_size"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
   };
   return &tt;
@@ -1168,6 +780,10 @@ inline flatbuffers::TypeTable *ActorExecutionConfigTypeTable() {
 
 inline const ActorModel::Message *GetMessage(const void *buf) {
   return flatbuffers::GetRoot<ActorModel::Message>(buf);
+}
+
+inline const ActorModel::Message *GetSizePrefixedMessage(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<ActorModel::Message>(buf);
 }
 
 inline Message *GetMutableMessage(void *buf) {
@@ -1188,16 +804,21 @@ inline bool VerifyMessageBuffer(
   return verifier.VerifyBuffer<ActorModel::Message>(MessageIdentifier());
 }
 
+inline bool VerifySizePrefixedMessageBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<ActorModel::Message>(MessageIdentifier());
+}
+
 inline void FinishMessageBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<ActorModel::Message> root) {
   fbb.Finish(root, MessageIdentifier());
 }
 
-inline std::unique_ptr<MessageT> UnPackMessage(
-    const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return std::unique_ptr<MessageT>(GetMessage(buf)->UnPack(res));
+inline void FinishSizePrefixedMessageBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<ActorModel::Message> root) {
+  fbb.FinishSizePrefixed(root, MessageIdentifier());
 }
 
 }  // namespace ActorModel

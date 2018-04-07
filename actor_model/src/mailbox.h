@@ -38,11 +38,20 @@ public:
   Mailbox();
   ~Mailbox();
 
-  auto send(const MessageT& message)
+  auto send(const Message& message)
+    -> bool;
+
+  auto send(string_view type, string_view payload)
     -> bool;
 
   auto receive()
-    -> MessageT;
+    -> const Message*;
+
+  auto receive_raw()
+    -> string_view;
+
+  auto release(string_view message)
+    -> bool;
 
   const Address address;
 
@@ -51,8 +60,14 @@ private:
 
 //static methods:
 protected:
-  static auto send(const Address& address, const MessageT& message)
+  static auto send(const Address& address, const Message& message)
     -> bool;
+
+  static auto send(
+    const Address& address,
+    string_view type,
+    string_view payload
+  ) -> bool;
 
   static AddressRegistry address_registry;
 };

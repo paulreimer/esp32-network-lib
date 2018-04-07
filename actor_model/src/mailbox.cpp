@@ -27,7 +27,7 @@ Mailbox::~Mailbox()
 }
 
 //TODO (@paulreimer): make this a non-blocking send (or allow custom timeout)
-auto Mailbox::send(const MessageT& message)
+auto Mailbox::send(const Message& message)
   -> bool
 {
   using std::chrono::microseconds;
@@ -44,30 +44,97 @@ auto Mailbox::send(const MessageT& message)
   flatbuffers::FlatBufferBuilder fbb;
 
   auto type_str = fbb.CreateString(
-    message.type
+    message.type()->data(),
+    message.type()->size()
   );
 
   // Allow for custom alignment values for the nested payload bytes
-  if (message.payload_alignment)
+  if (message.payload_alignment())
   {
     fbb.ForceVectorAlignment(
-      message.payload.size(),
+      message.payload()->size(),
       sizeof(uint8_t),
-      message.payload_alignment
+      message.payload_alignment()
     );
   }
 
   auto payload_bytes = fbb.CreateVector(
-    message.payload.data(),
-    message.payload.size()
+    message.payload()->data(),
+    message.payload()->size()
   );
 
   auto message_loc = CreateMessage(
     fbb,
     type_str,
     epoch_microseconds,
-    message.from_pid.get(),
-    message.payload_alignment,
+    message.from_pid(),
+    message.payload_alignment(),
+    payload_bytes
+  );
+  FinishMessageBuffer(fbb, message_loc);
+
+  if (impl)
+  {
+    auto retval = xRingbufferSend(
+      impl,
+      fbb.GetBufferPointer(),
+      fbb.GetSize(),
+      portMAX_DELAY
+    );
+
+    return (retval == pdTRUE);
+  }
+
+  return false;
+}
+
+//TODO (@paulreimer): make this a non-blocking send (or allow custom timeout)
+auto Mailbox::send(string_view type, string_view payload)
+  -> bool
+{
+  using std::chrono::microseconds;
+  using std::chrono::system_clock;
+  using std::chrono::duration_cast;
+
+  // Apply the current timestamp
+  auto now = system_clock::now();
+  auto epoch_microseconds = duration_cast<microseconds>(
+    now.time_since_epoch()
+  ).count();
+
+  //auto payload_alignment = message.payload_alignment;
+  auto payload_alignment = sizeof(uint64_t);
+
+  //auto from_pid = message.from_pid.get();
+  auto from_pid = nullptr;
+
+  // Serialize and send
+  flatbuffers::FlatBufferBuilder fbb;
+
+  auto type_str = fbb.CreateString(type.data(), type.size());
+
+  // Allow for custom alignment values for the nested payload bytes
+  if (payload_alignment)
+  {
+    fbb.ForceVectorAlignment(
+      payload.size(),
+      sizeof(uint8_t),
+      payload_alignment
+    );
+  }
+
+  auto payload_bytes = fbb.CreateVector(
+    reinterpret_cast<const unsigned char*>(payload.data()),
+    payload.size()
+  );
+
+  auto message_loc = CreateMessage(
+    fbb,
+    type_str,
+    epoch_microseconds,
+    //message.from_pid.get(),
+    nullptr,
+    payload_alignment,
     payload_bytes
   );
   FinishMessageBuffer(fbb, message_loc);
@@ -88,9 +155,9 @@ auto Mailbox::send(const MessageT& message)
 }
 
 auto Mailbox::receive()
-  -> MessageT
+  -> const Message*
 {
-  MessageT message;
+  const Message* message = nullptr;
 
   if (impl)
   {
@@ -103,8 +170,7 @@ auto Mailbox::receive()
     if (flatbuf)
     {
       // Make a copy of the flatbuffer data into a new C++ object
-      auto fb = flatbuffers::GetRoot<Message>(flatbuf);
-      fb->UnPackTo(&message);
+      message = flatbuffers::GetRoot<Message>(flatbuf);
 
       // Return the memory to the ringbuffer
       vRingbufferReturnItem(impl, flatbuf);
@@ -114,17 +180,37 @@ auto Mailbox::receive()
   return message;
 }
 
-auto Mailbox::send(const Mailbox::Address& address, const MessageT& message)
+auto Mailbox::receive_raw()
+  -> string_view
+{
+  string_view message;
+
+  if (impl)
+  {
+    // Extract an item from the ringbuffer
+    size_t size;
+    auto* flatbuf = xRingbufferReceive(impl, &size, portMAX_DELAY);
+
+    if (flatbuf)
+    {
+      message = string_view{
+        reinterpret_cast<char*>(flatbuf),
+        size
+      };
+    }
+  }
+
+  return message;
+}
+
+auto Mailbox::release(string_view message)
   -> bool
 {
-  auto addr_mailbox_iter = address_registry.find(address);
-  if (addr_mailbox_iter != address_registry.end())
+  if (impl)
   {
-    if (addr_mailbox_iter->second)
-    {
-      addr_mailbox_iter->second->send(message);
-      return true;
-    }
+    // Return the memory to the ringbuffer
+    vRingbufferReturnItem(impl, const_cast<char*>(message.data()));
+    return true;
   }
 
   return false;

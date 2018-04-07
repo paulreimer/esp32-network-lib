@@ -8,11 +8,13 @@
 
 namespace ActorModel {
 
+using string_view = std::experimental::string_view;
+
 // free functions bound to default node
 
 auto spawn(
   Behaviour&& _behaviour,
-  const ActorExecutionConfigT& _execution_config
+  const ActorExecutionConfig& _execution_config
 ) -> Pid
 {
   auto& node = Actor::get_default_node();
@@ -25,7 +27,7 @@ auto spawn(
 auto spawn_link(
   Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
-  const ActorExecutionConfigT& _execution_config
+  const ActorExecutionConfig& _execution_config
 ) -> Pid
 {
   auto& node = Actor::get_default_node();
@@ -43,21 +45,28 @@ auto process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
   return node.process_flag(pid, flag, flag_setting);
 }
 
-auto send(const Pid& pid, const MessageT& message)
+auto send(const Pid& pid, const Message& message)
   -> bool
 {
   auto& node = Actor::get_default_node();
   return node.send(pid, message);
 }
 
-auto register_name(std::experimental::string_view name, const Pid& pid)
+auto send(const Pid& pid, string_view type, string_view payload)
+  -> bool
+{
+  auto& node = Actor::get_default_node();
+  return node.send(pid, type, payload);
+}
+
+auto register_name(string_view name, const Pid& pid)
   -> bool
 {
   auto& node = Actor::get_default_node();
   return node.register_name(name, pid);
 }
 
-auto unregister(std::experimental::string_view name)
+auto unregister(string_view name)
   -> bool
 {
   auto& node = Actor::get_default_node();
@@ -71,7 +80,7 @@ auto registered()
   return node.registered();
 }
 
-auto whereis(std::experimental::string_view name)
+auto whereis(string_view name)
   -> MaybePid
 {
   auto& node = Actor::get_default_node();

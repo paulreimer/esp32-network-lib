@@ -16,7 +16,8 @@
 
 namespace ActorModel {
 
-static ActorExecutionConfigT default_execution_config;
+// Create an ActorExecutionConfig from default values in fbs schema
+const ActorExecutionConfig& get_default_execution_config();
 
 class Actor;
 class Node
@@ -43,20 +44,26 @@ public:
 
   auto spawn(
     Behaviour&& _behaviour,
-    const ActorExecutionConfigT& _execution_config = default_execution_config
+    const ActorExecutionConfig& _execution_config = get_default_execution_config()
   ) -> Pid;
 
   auto spawn_link(
     Behaviour&& _behaviour,
     const Pid& _initial_link_pid,
-    const ActorExecutionConfigT& _execution_config = default_execution_config
+    const ActorExecutionConfig& _execution_config = get_default_execution_config()
   ) -> Pid;
 
   auto process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
     -> bool;
 
-  auto send(const Pid& pid, const MessageT& message)
+  auto send(const Pid& pid, const Message& message)
     -> bool;
+
+  auto send(
+    const Pid& pid,
+    string_view type,
+    string_view payload
+  ) -> bool;
 
   auto register_name(string_view name, const Pid& pid)
     -> bool;
@@ -73,14 +80,14 @@ public:
 protected:
   auto _spawn(
     Behaviour&& _behaviour,
-    const ActorExecutionConfigT& _execution_config = default_execution_config,
+    const ActorExecutionConfig& _execution_config = get_default_execution_config(),
     const MaybePid& _initial_link_pid = std::experimental::nullopt
   ) -> Pid;
 
   auto terminate(const Pid& pid)
     -> bool;
 
-  auto signal(const Pid& pid, const SignalT& sig)
+  auto signal(const Pid& pid, const Signal& sig)
     -> bool;
 
   ProcessRegistry process_registry;

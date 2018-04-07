@@ -11,13 +11,31 @@
 
 namespace ActorModel {
 
+// Create an ActorExecutionConfig from default values in fbs schema
+const ActorExecutionConfig& get_default_execution_config()
+{
+  static flatbuffers::FlatBufferBuilder default_execution_config_fbb;
+  static const ActorExecutionConfig* default_execution_config = nullptr;
+
+  if (default_execution_config == nullptr)
+  {
+    auto default_execution_config_offset = CreateActorExecutionConfig(default_execution_config_fbb);
+  default_execution_config_fbb.Finish(default_execution_config_offset);
+    default_execution_config = flatbuffers::GetRoot<ActorExecutionConfig>(
+      default_execution_config_fbb.GetBufferPointer()
+    );
+  }
+
+  return *(default_execution_config);
+}
+
 Node::Node()
 {
 }
 
 auto Node::spawn(
   Behaviour&& _behaviour,
-  const ActorExecutionConfigT& _execution_config
+  const ActorExecutionConfig& _execution_config
 ) -> Pid
 {
   return _spawn(
@@ -29,7 +47,7 @@ auto Node::spawn(
 auto Node::spawn_link(
   Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
-  const ActorExecutionConfigT& _execution_config
+  const ActorExecutionConfig& _execution_config
 ) -> Pid
 {
   return _spawn(
@@ -41,7 +59,7 @@ auto Node::spawn_link(
 
 auto Node::_spawn(
   Behaviour&& _behaviour,
-  const ActorExecutionConfigT& _execution_config,
+  const ActorExecutionConfig& _execution_config,
   const MaybePid& _initial_link_pid
 ) -> Pid
 {
@@ -87,7 +105,7 @@ auto Node::process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
   return false;
 }
 
-auto Node::send(const Pid& pid, const MessageT& message)
+auto Node::send(const Pid& pid, const Message& message)
   -> bool
 {
   const auto& process_iter = process_registry.find(pid);
@@ -102,12 +120,27 @@ auto Node::send(const Pid& pid, const MessageT& message)
   return false;
 }
 
-auto Node::signal(const Pid& pid, const SignalT& sig)
+auto Node::send(const Pid& pid, string_view type, string_view payload)
+  -> bool
+{
+  const auto& process_iter = process_registry.find(pid);
+  if (process_iter != process_registry.end())
+  {
+    if (process_iter->second)
+    {
+      return process_iter->second->send(type, payload);
+    }
+  }
+
+  return false;
+}
+
+auto Node::signal(const Pid& pid, const Signal& sig)
   -> bool
 {
   printf("Send signal to Pid %s\n", get_uuid_str(pid).c_str());
 
-  const auto& from_pid = *(sig.from_pid);
+  const auto& from_pid = *(sig.from_pid());
 
   const auto& process_iter = process_registry.find(pid);
   if (process_iter != process_registry.end())
@@ -123,15 +156,36 @@ auto Node::signal(const Pid& pid, const SignalT& sig)
       // Exit signal of type KILL is the only exception, it should really kill
       if (
         process.get_process_flag(ProcessFlag::trap_exit)
-        and sig.reason != "KILL"
+        and sig.reason()->str() != "KILL"
       )
       {
         // Convert signal exit reason to message with EXIT type
-        MessageT exit_msg;
-        exit_msg.type = "EXIT";
-        exit_msg.payload = sig.reason;
+        flatbuffers::FlatBufferBuilder fbb;
 
-        return process.send(exit_msg);
+        auto timestamp = 0;
+        auto alignment_bytes = 1;
+
+        auto kill_type_str = fbb.CreateString("KILL");
+
+        auto payload_bytes = fbb.CreateVector(
+          reinterpret_cast<const unsigned char*>(sig.reason()->data()),
+          sig.reason()->size()
+        );
+
+        auto exit_msg_offset = CreateMessage(
+          fbb,
+          kill_type_str,
+          timestamp,
+          &from_pid,
+          alignment_bytes,
+          payload_bytes
+        );
+
+        fbb.Finish(exit_msg_offset);
+
+        auto* exit_msg = flatbuffers::GetRoot<Message>(fbb.GetBufferPointer());
+
+        return process.send(*(exit_msg));
       }
       else {
         // Remove this pid from process_registry unconditionally (deleting it),

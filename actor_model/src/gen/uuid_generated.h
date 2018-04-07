@@ -8,7 +8,9 @@
 
 struct UUID;
 
-MANUALLY_ALIGNED_STRUCT(8) UUID FLATBUFFERS_FINAL_CLASS {
+inline const flatbuffers::TypeTable *UUIDTypeTable();
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) UUID FLATBUFFERS_FINAL_CLASS {
  private:
   uint64_t ab_;
   uint64_t cd_;
@@ -37,21 +39,19 @@ MANUALLY_ALIGNED_STRUCT(8) UUID FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&cd_, _cd);
   }
 };
-STRUCT_END(UUID, 16);
+FLATBUFFERS_STRUCT_END(UUID, 16);
 
-inline flatbuffers::TypeTable *UUIDTypeTable();
-
-inline flatbuffers::TypeTable *UUIDTypeTable() {
-  static flatbuffers::TypeCode type_codes[] = {
+inline const flatbuffers::TypeTable *UUIDTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_ULONG, 0, -1 },
     { flatbuffers::ET_ULONG, 0, -1 }
   };
   static const int32_t values[] = { 0, 8, 16 };
-  static const char *names[] = {
+  static const char * const names[] = {
     "ab",
     "cd"
   };
-  static flatbuffers::TypeTable tt = {
+  static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
   };
   return &tt;
