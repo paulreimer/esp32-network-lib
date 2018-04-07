@@ -23,8 +23,7 @@ auto make_request(
     std::pair<std::experimental::string_view, std::experimental::string_view>
   > headers = {},
   std::experimental::string_view body = ""
-)
-  -> RequestT;
+) -> RequestT;
 
 auto update_request(
   RequestT& req,
@@ -37,14 +36,12 @@ auto update_request(
     std::pair<std::experimental::string_view, std::experimental::string_view>
   > headers = {},
   std::experimental::string_view body = ""
-)
-  -> void;
+) -> void;
 
 auto set_query_arg(
   auto& query,
   std::experimental::string_view first,
   std::experimental::string_view second
-)
-  -> bool;
+) -> bool;
 
 } // namespace Requests

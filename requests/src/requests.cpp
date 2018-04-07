@@ -16,8 +16,7 @@ auto make_request(
   std::vector<std::pair<string_view, string_view>> query,
   std::vector<std::pair<string_view, string_view>> headers,
   string_view body
-)
-  -> RequestT
+) -> RequestT
 {
   RequestT req{};
 
@@ -40,8 +39,7 @@ auto update_request(
   std::vector<std::pair<string_view, string_view>> query,
   std::vector<std::pair<string_view, string_view>> headers,
   string_view body
-)
-  -> void
+) -> void
 {
   req.method.assign(method.data(), method.size());
   req.uri.assign(uri.data(), uri.size());
@@ -69,8 +67,7 @@ auto set_query_arg(
   auto& query,
   string_view first,
   string_view second
-)
-  -> bool
+) -> bool
 {
   auto updated_existing_arg = false;
 
@@ -94,6 +91,5 @@ auto set_query_arg(
 
   return updated_existing_arg;
 }
-
 
 } // namespace ActorModel
