@@ -85,6 +85,23 @@ RequestHandler::write_callback(string_view chunk)
           json_path_emitter.reset(new JsonEmitter{request_intent.object_path});
         }
 
+        // Check for magic prefix sent at the beginning of Google APIs responses
+        if (not json_path_emitter->has_parse_state())
+        {
+          auto prefix = string{")]}'\n"};
+          auto prefix_found = (chunk.compare(0, prefix.size(), prefix) == 0);
+          if (prefix_found)
+          {
+            ESP_LOGI(
+              TAG,
+              "Removing security prefix ')]}'\\n' from Google APIs response"
+            );
+
+            // If the prefix was found, skip it when parsing
+            chunk = chunk.substr(prefix.size());
+          }
+        }
+
         json_path_emitter->parse(chunk,
           [this]
           (string_view parsed_chunk) -> PostCallbackAction
