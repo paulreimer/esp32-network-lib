@@ -59,7 +59,7 @@ table SupervisorFlags
 table ActorExecutionConfig
 {
   task_prio:int = 5;
-  task_stack_size:uint = 8192;
+  task_stack_size:uint = 4096;
 }
 
 root_type Message;

@@ -543,10 +543,10 @@ struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
     return SetField<int32_t>(VT_TASK_PRIO, _task_prio, 5);
   }
   uint32_t task_stack_size() const {
-    return GetField<uint32_t>(VT_TASK_STACK_SIZE, 8192);
+    return GetField<uint32_t>(VT_TASK_STACK_SIZE, 4096);
   }
   bool mutate_task_stack_size(uint32_t _task_stack_size) {
-    return SetField<uint32_t>(VT_TASK_STACK_SIZE, _task_stack_size, 8192);
+    return SetField<uint32_t>(VT_TASK_STACK_SIZE, _task_stack_size, 4096);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -563,7 +563,7 @@ struct ActorExecutionConfigBuilder {
     fbb_.AddElement<int32_t>(ActorExecutionConfig::VT_TASK_PRIO, task_prio, 5);
   }
   void add_task_stack_size(uint32_t task_stack_size) {
-    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 8192);
+    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 4096);
   }
   explicit ActorExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -580,7 +580,7 @@ struct ActorExecutionConfigBuilder {
 inline flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t task_prio = 5,
-    uint32_t task_stack_size = 8192) {
+    uint32_t task_stack_size = 4096) {
   ActorExecutionConfigBuilder builder_(_fbb);
   builder_.add_task_stack_size(task_stack_size);
   builder_.add_task_prio(task_prio);
