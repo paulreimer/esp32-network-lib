@@ -482,6 +482,8 @@ JsonEmitter::on_json_parse_start_map()
 {
   auto ok = true;
 
+  current_path.emplace_back("");
+
   if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
@@ -497,8 +499,6 @@ JsonEmitter::on_json_parse_start_map()
     auto& array_idx = get<int>(current_path.back());
     array_idx++;
   }
-
-  current_path.emplace_back("");
 
   return ok;
 }
