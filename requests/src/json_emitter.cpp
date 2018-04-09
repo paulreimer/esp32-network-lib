@@ -416,6 +416,7 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
 
   auto needs_map_workaround = apply_map_workaround(match_path, current_path);
   auto was_emitting = is_emitting_at_path(match_path, current_path);
+  auto was_wildcard_match = is_a_wildcard_subpath(match_path, current_path);
 
   if (not current_path.empty())
   {
@@ -426,6 +427,7 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
 
   if (
     was_emitting
+    and was_wildcard_match
     and not still_emitting
     and not is_first_key
     and not match_path.empty()
