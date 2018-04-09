@@ -54,7 +54,11 @@ public:
     Errback&& _errback
   );
 
-  // Callbacks must be public for access from static C
+  bool has_parse_state();
+
+protected:
+// Callbacks must be public for access from static C
+public:
   int on_json_parse_null();
   int on_json_parse_boolean(int boolean);
   int on_json_parse_number(const char* s, size_t l);

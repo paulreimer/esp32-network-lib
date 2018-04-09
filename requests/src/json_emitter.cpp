@@ -247,6 +247,12 @@ JsonEmitter::clear()
 }
 
 bool
+JsonEmitter::has_parse_state()
+{
+  return not current_path.empty();
+}
+
+bool
 JsonEmitter::parse(
   string_view chunk,
   Callback&& _callback,
