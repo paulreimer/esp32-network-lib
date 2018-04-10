@@ -58,8 +58,10 @@ table RequestIntent
   id:UUID;
   request:Request;
   to_pid:UUID;
-  object_path:string;
   desired_format:ResponseFilter = FullResponseBody;
+  object_path:string;
+  root_type:string;
+  schema_text:string;
   include_headers:bool = false;
 }
 
