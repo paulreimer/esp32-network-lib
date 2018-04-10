@@ -20,7 +20,7 @@ const ActorExecutionConfig& get_default_execution_config()
   if (default_execution_config == nullptr)
   {
     auto default_execution_config_offset = CreateActorExecutionConfig(default_execution_config_fbb);
-  default_execution_config_fbb.Finish(default_execution_config_offset);
+    default_execution_config_fbb.Finish(default_execution_config_offset);
     default_execution_config = flatbuffers::GetRoot<ActorExecutionConfig>(
       default_execution_config_fbb.GetBufferPointer()
     );
