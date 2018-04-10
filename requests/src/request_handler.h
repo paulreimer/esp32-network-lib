@@ -7,6 +7,7 @@
 #pragma once
 
 #include "json_emitter.h"
+#include "json_to_flatbuffers_converter.h"
 
 #include "curl/curl.h"
 
@@ -55,6 +56,7 @@ struct RequestHandler
 
 private:
   std::unique_ptr<JsonEmitter> json_path_emitter;
+  std::unique_ptr<JsonToFlatbuffersConverter> flatbuffers_path_emitter;
 
   string _req_url;
 };

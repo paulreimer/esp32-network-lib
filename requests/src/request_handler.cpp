@@ -29,10 +29,47 @@ RequestHandler::RequestHandler(RequestIntentT&& _request_intent)
 {
   if (request_intent.id)
   {
-    res.request_id.reset(new UUID{
-      request_intent.id->ab(),
-      request_intent.id->cd()
-    });
+    res.request_id.reset(
+      new UUID{request_intent.id->ab(), request_intent.id->cd()}
+    );
+  }
+
+  if (request_intent.to_pid)
+  {
+    switch (request_intent.desired_format)
+    {
+      case ResponseFilter::JsonPath:
+      {
+        if (not json_path_emitter)
+        {
+          json_path_emitter.reset(
+            new JsonEmitter{request_intent.object_path}
+          );
+        }
+        break;
+      }
+
+      case ResponseFilter::JsonPathAsFlatbuffers:
+      {
+        if (not flatbuffers_path_emitter)
+        {
+          flatbuffers_path_emitter.reset(
+            new JsonToFlatbuffersConverter{
+              request_intent.schema_text,
+              request_intent.root_type,
+              request_intent.object_path
+            }
+          );
+        }
+      }
+
+      case ResponseFilter::PartialResponseChunks:
+      case ResponseFilter::FullResponseBody:
+      default:
+      {
+        break;
+      }
+    }
   }
 }
 
@@ -80,75 +117,132 @@ auto RequestHandler::write_callback(string_view chunk)
 
       case ResponseFilter::JsonPath:
       {
-        if (not json_path_emitter)
+        if (json_path_emitter)
         {
-          json_path_emitter.reset(new JsonEmitter{request_intent.object_path});
-        }
-
-        // Check for magic prefix sent at the beginning of Google APIs responses
-        if (not json_path_emitter->has_parse_state())
-        {
-          auto prefix = string{")]}'\n"};
-          auto prefix_found = (chunk.compare(0, prefix.size(), prefix) == 0);
-          if (prefix_found)
+          // Check for magic prefix sent at the beginning of Google APIs responses
+          if (not json_path_emitter->has_parse_state())
           {
-            ESP_LOGI(
-              TAG,
-              "Removing security prefix ')]}'\\n' from Google APIs response"
-            );
+            auto prefix = string{")]}'\n"};
+            auto prefix_found = (chunk.compare(0, prefix.size(), prefix) == 0);
+            if (prefix_found)
+            {
+              ESP_LOGI(
+                TAG,
+                "Removing security prefix ')]}'\\n' from Google APIs response"
+              );
 
-            // If the prefix was found, skip it when parsing
-            chunk = chunk.substr(prefix.size());
+              // If the prefix was found, skip it when parsing
+              chunk = chunk.substr(prefix.size());
+            }
           }
+
+          json_path_emitter->parse(chunk,
+            [this]
+            (string_view parsed_chunk) -> PostCallbackAction
+            {
+              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
+
+              // Generate flatbuffer for nesting inside the parent Message object
+              flatbuffers::FlatBufferBuilder fbb;
+              fbb.Finish(Response::Pack(fbb, &res));
+
+              string_view payload{
+                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+                fbb.GetSize()
+              };
+
+              send(*(request_intent.to_pid), "chunk", payload);
+
+              return PostCallbackAction::ContinueProcessing;
+            },
+
+            [this]
+            (string_view parsed_chunk) -> PostCallbackAction
+            {
+              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
+
+              // Generate flatbuffer for nesting inside the parent Message object
+              flatbuffers::FlatBufferBuilder fbb;
+              fbb.Finish(Response::Pack(fbb, &res));
+
+              string_view payload{
+                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+                fbb.GetSize()
+              };
+
+              send(*(request_intent.to_pid), "error", payload);
+
+              return PostCallbackAction::ContinueProcessing;
+            }
+          );
         }
-
-        json_path_emitter->parse(chunk,
-          [this]
-          (string_view parsed_chunk) -> PostCallbackAction
-          {
-            res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
-
-            // Generate flatbuffer for nesting inside the parent Message object
-            flatbuffers::FlatBufferBuilder fbb;
-            fbb.Finish(Response::Pack(fbb, &res));
-
-            string_view payload{
-              reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-              fbb.GetSize()
-            };
-
-            send(*(request_intent.to_pid), "chunk", payload);
-
-            return PostCallbackAction::ContinueProcessing;
-          },
-
-          [this]
-          (string_view parsed_chunk) -> PostCallbackAction
-          {
-            res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
-
-            // Generate flatbuffer for nesting inside the parent Message object
-            flatbuffers::FlatBufferBuilder fbb;
-            fbb.Finish(Response::Pack(fbb, &res));
-
-            string_view payload{
-              reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-              fbb.GetSize()
-            };
-
-            send(*(request_intent.to_pid), "error", payload);
-
-            return PostCallbackAction::ContinueProcessing;
-          }
-        );
 
         break;
       }
 
       case ResponseFilter::JsonPathAsFlatbuffers:
       {
-        printf("Unsupported ResponseFilter::JsonPathAsFlatbuffers\n");
-        break;
+        if (flatbuffers_path_emitter)
+        {
+          // Check for magic prefix sent at the beginning of Google APIs responses
+          if (not flatbuffers_path_emitter->has_parse_state())
+          {
+            auto prefix = string{")]}'\n"};
+            auto prefix_found = (chunk.compare(0, prefix.size(), prefix) == 0);
+            if (prefix_found)
+            {
+              ESP_LOGI(
+                TAG,
+                "Removing security prefix ')]}'\\n' from Google APIs response"
+              );
+
+              // If the prefix was found, skip it when parsing
+              chunk = chunk.substr(prefix.size());
+            }
+          }
+
+          flatbuffers_path_emitter->parse(chunk,
+            [this]
+            (string_view parsed_chunk) -> PostCallbackAction
+            {
+              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
+
+              // Generate flatbuffer for nesting inside the parent Message object
+              flatbuffers::FlatBufferBuilder fbb;
+              fbb.Finish(Response::Pack(fbb, &res));
+
+              string_view payload{
+                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+                fbb.GetSize()
+              };
+
+              send(*(request_intent.to_pid), "chunk", payload);
+
+              return PostCallbackAction::ContinueProcessing;
+            },
+
+            [this]
+            (string_view parsed_chunk) -> PostCallbackAction
+            {
+              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
+
+              // Generate flatbuffer for nesting inside the parent Message object
+              flatbuffers::FlatBufferBuilder fbb;
+              fbb.Finish(Response::Pack(fbb, &res));
+
+              string_view payload{
+                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+                fbb.GetSize()
+              };
+
+              send(*(request_intent.to_pid), "error", payload);
+
+              return PostCallbackAction::ContinueProcessing;
+            }
+          );
+
+          break;
+        }
       }
     }
   }
