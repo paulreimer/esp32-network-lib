@@ -26,19 +26,22 @@ mbedtls_x509_crt cacert;
 
 constexpr char TAG[] = "RequestManager";
 
-size_t header_callback(char* buf, size_t size, size_t nitems, void* userdata)
+auto header_callback(char* buf, size_t size, size_t nitems, void* userdata)
+  -> size_t
 {
   auto header = string_view(buf, size*nitems);
   return static_cast<RequestHandler*>(userdata)->header_callback(header);
 }
 
-size_t writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
+auto writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
+  -> size_t
 {
   auto chunk = string_view(buf, size*nmemb);
   return static_cast<RequestHandler*>(userdata)->write_callback(chunk);
 }
 
-CURLcode sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
+auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
+  -> CURLcode
 {
   auto* conf = static_cast<mbedtls_ssl_config*>(ssl_ctx);
   return static_cast<RequestManager*>(userdata)->sslctx_callback(curl, conf);
@@ -67,8 +70,8 @@ RequestManager::~RequestManager()
   mbedtls_x509_crt_free(&cacert);
 }
 
-bool
-RequestManager::fetch(RequestIntentT&& _req_intent)
+auto RequestManager::fetch(RequestIntentT&& _req_intent)
+  -> bool
 {
   //const auto& inserted = requests.emplace(std::move(_req), std::move(_res));
   const auto& inserted = requests.emplace(
@@ -92,11 +95,10 @@ RequestManager::fetch(RequestIntentT&& _req_intent)
   return false;
 }
 
-bool
-RequestManager::send(
+auto RequestManager::send(
   HandleImpl* handle,
   RequestHandler& handler
-)
+) -> bool
 {
   auto* curl = handle;
   auto& req = *(handler.request_intent.request);
@@ -211,8 +213,8 @@ RequestManager::send(
   return true;
 }
 
-bool
-RequestManager::wait_all()
+auto RequestManager::wait_all()
+  -> bool
 {
   int inflight_count;
   bool any_done = false;
@@ -298,8 +300,8 @@ RequestManager::wait_all()
   return any_done;
 }
 
-bool
-RequestManager::add_cacert_pem(string_view cacert_pem)
+auto RequestManager::add_cacert_pem(string_view cacert_pem)
+  -> bool
 {
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
@@ -332,8 +334,8 @@ RequestManager::add_cacert_pem(string_view cacert_pem)
   return false;
 }
 
-bool
-RequestManager::add_cacert_der(string_view cacert_der)
+auto RequestManager::add_cacert_der(string_view cacert_der)
+  -> bool
 {
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
@@ -359,8 +361,8 @@ RequestManager::add_cacert_der(string_view cacert_der)
   return false;
 }
 
-CURLcode
-RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
+auto RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
+  -> CURLcode
 {
   // Default to fail
   CURLcode rv = CURLE_ABORTED_BY_CALLBACK;

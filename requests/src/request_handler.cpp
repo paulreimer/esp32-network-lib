@@ -44,8 +44,8 @@ RequestHandler::~RequestHandler()
   }
 }
 
-size_t
-RequestHandler::write_callback(string_view chunk)
+auto RequestHandler::write_callback(string_view chunk)
+  -> size_t
 {
   auto is_success_code = ((res.code > 0) and (res.code < 400));
 
@@ -156,8 +156,8 @@ RequestHandler::write_callback(string_view chunk)
   return chunk.size();
 }
 
-void
-RequestHandler::finish_callback()
+auto RequestHandler::finish_callback()
+  -> void
 {
   auto is_success_code = ((res.code > 0) and (res.code < 400));
 
@@ -185,8 +185,8 @@ RequestHandler::finish_callback()
   }
 }
 
-size_t
-RequestHandler::header_callback(string_view chunk)
+auto RequestHandler::header_callback(string_view chunk)
+  -> size_t
 {
   // Parse header for HTTP version and response code
   if (res.code < 0)

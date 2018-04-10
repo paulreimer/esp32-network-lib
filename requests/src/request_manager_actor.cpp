@@ -33,8 +33,7 @@ auto request_manager_behaviour(
   const Pid& self,
   StatePtr& state,
   const Message& message
-)
-  -> ResultUnion
+) -> ResultUnion
 {
   if (not state)
   {

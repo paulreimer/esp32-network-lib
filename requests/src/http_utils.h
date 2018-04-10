@@ -13,6 +13,7 @@
 
 namespace Requests {
 
-int parse_http_status_line(std::experimental::string_view chunk);
+auto parse_http_status_line(std::experimental::string_view chunk)
+  -> int;
 
 } // namespace Requests

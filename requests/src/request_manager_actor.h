@@ -14,7 +14,6 @@ auto request_manager_behaviour(
   const ActorModel::Pid& self,
   ActorModel::StatePtr& state,
   const ActorModel::Message& message
-)
-  -> ActorModel::ResultUnion;
+) -> ActorModel::ResultUnion;
 
 } // namespace Requests

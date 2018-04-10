@@ -37,19 +37,24 @@ public:
   ~RequestManager();
 
   // move-only
-  bool fetch(RequestIntentT&& _req_intent);
+  auto fetch(RequestIntentT&& _req_intent)
+    -> bool;
 
-  bool send(
+  auto send(
     HandleImpl* handle,
     RequestHandler& handler
-  );
+  ) -> bool;
 
-  bool wait_all();
+  auto wait_all()
+    -> bool;
 
-  bool add_cacert_pem(string_view cacert_pem);
-  bool add_cacert_der(string_view cacert_der);
+  auto add_cacert_pem(string_view cacert_pem)
+    -> bool;
+  auto add_cacert_der(string_view cacert_der)
+    -> bool;
 
-  CURLcode sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx);
+  auto sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
+    -> CURLcode;
 
 protected:
   using RequestMap = std::unordered_map<HandleImplPtr, RequestHandler>;

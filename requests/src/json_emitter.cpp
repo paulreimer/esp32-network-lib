@@ -65,11 +65,11 @@ yajl_callbacks json_parse_callbacks = {
   { return static_cast<JsonEmitter*>(ctx)->on_json_parse_end_array(); },
 };
 
-inline bool
-path_component_is_wildcard_map(
+inline
+auto path_component_is_wildcard_map(
   const JsonPathComponent& match,
   const JsonPathComponent& current
-)
+) -> bool
 {
   const JsonPathComponent wildcard_map_str("**");
 
@@ -80,11 +80,11 @@ path_component_is_wildcard_map(
   );
 }
 
-inline bool
-path_component_is_wildcard(
+inline
+auto path_component_is_wildcard(
   const JsonPathComponent& match,
   const JsonPathComponent& current
-)
+) -> bool
 {
   static const JsonPathComponent wildcard_str("*");
   static const JsonPathComponent wildcard_map_str("**");
@@ -101,11 +101,11 @@ path_component_is_wildcard(
   );
 }
 
-inline bool
-path_component_equality_or_wildcard(
+inline
+auto path_component_equality_or_wildcard(
   const JsonPathComponent& match,
   const JsonPathComponent& current
-)
+) -> bool
 {
   return (
     path_component_is_wildcard(match, current)
@@ -113,11 +113,11 @@ path_component_equality_or_wildcard(
   );
 }
 
-inline bool
-is_a_subpath(
+inline
+auto is_a_subpath(
   const JsonPath& match_path,
   const JsonPath& current_path
-)
+) -> bool
 {
   return (
     match_path.empty()
@@ -133,11 +133,11 @@ is_a_subpath(
   );
 }
 
-inline bool
-is_a_strict_subpath(
+inline
+auto is_a_strict_subpath(
   const JsonPath& match_path,
   const JsonPath& current_path
-)
+) -> bool
 {
   return (
     is_a_subpath(match_path, current_path)
@@ -145,11 +145,11 @@ is_a_strict_subpath(
   );
 }
 
-inline bool
-is_a_wildcard_subpath(
+inline
+auto is_a_wildcard_subpath(
   const JsonPath& match_path,
   const JsonPath& current_path
-)
+) -> bool
 {
   return (
     not current_path.empty()
@@ -158,11 +158,11 @@ is_a_wildcard_subpath(
   );
 }
 
-inline bool
-is_emitting_at_path(
+inline
+auto is_emitting_at_path(
   const JsonPath& match_path,
   const JsonPath& current_path
-)
+) -> bool
 {
   return (
     // Must be a subpath
@@ -176,11 +176,11 @@ is_emitting_at_path(
   );
 }
 
-inline bool
-apply_map_workaround(
+inline
+auto apply_map_workaround(
   const JsonPath& match_path,
   const JsonPath& current_path
-)
+) -> bool
 {
   return (
     is_a_subpath(match_path, current_path)
@@ -207,8 +207,8 @@ JsonEmitter::JsonEmitter(const JsonPath& _match_path)
   init();
 }
 
-bool
-JsonEmitter::init()
+auto JsonEmitter::init()
+  -> bool
 {
   auto* g = json_gen.get();
   yajl_gen_config(g, yajl_gen_beautify, 0);
@@ -220,8 +220,8 @@ JsonEmitter::init()
   return true;
 }
 
-bool
-JsonEmitter::reset()
+auto JsonEmitter::reset()
+  -> bool
 {
   json_gen = JsonGenPtr{
     yajl_gen_alloc(nullptr),
@@ -237,8 +237,8 @@ JsonEmitter::reset()
   return true;
 }
 
-bool
-JsonEmitter::clear()
+auto JsonEmitter::clear()
+  -> bool
 {
   json_gen.release();
   json_parser.release();
@@ -246,18 +246,18 @@ JsonEmitter::clear()
   return true;
 }
 
-bool
-JsonEmitter::has_parse_state()
+auto JsonEmitter::has_parse_state()
+  -> bool
 {
   return not current_path.empty();
 }
 
-bool
-JsonEmitter::parse(
+auto JsonEmitter::parse(
   string_view chunk,
   Callback&& _callback,
   Errback&& _errback
 )
+  -> bool
 {
   callback = _callback;
   errback = _errback;
@@ -274,8 +274,8 @@ JsonEmitter::parse(
   return ok;
 }
 
-bool
-JsonEmitter::emit()
+auto JsonEmitter::emit()
+  -> bool
 {
   auto* g = json_gen.get();
 
@@ -305,8 +305,8 @@ JsonEmitter::emit()
   return (not json_str.empty());
 }
 
-int
-JsonEmitter::on_json_parse_null()
+auto JsonEmitter::on_json_parse_null()
+  -> int
 {
   auto ok = true;
 
@@ -329,15 +329,15 @@ JsonEmitter::on_json_parse_null()
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_boolean(int boolean)
+auto JsonEmitter::on_json_parse_boolean(int b)
+  -> int
 {
   auto ok = true;
 
   if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
-    ok = (yajl_gen_status_ok == yajl_gen_bool(g, boolean));
+    ok = (yajl_gen_status_ok == yajl_gen_bool(g, b));
   }
 
   // Check if we are an item in an array
@@ -353,8 +353,8 @@ JsonEmitter::on_json_parse_boolean(int boolean)
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_number(const char* s, size_t l)
+auto JsonEmitter::on_json_parse_number(const char* s, size_t l)
+  -> int
 {
   auto ok = true;
 
@@ -377,15 +377,15 @@ JsonEmitter::on_json_parse_number(const char* s, size_t l)
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringLen)
+auto JsonEmitter::on_json_parse_string(const unsigned char* s, size_t l)
+  -> int
 {
   auto ok = true;
 
   if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
-    ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
+    ok = (yajl_gen_status_ok == yajl_gen_string(g, s, l));
   }
 
   else if (
@@ -393,7 +393,7 @@ JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringL
     and match_path.size() == 1
   )
   {
-    callback(string_view{reinterpret_cast<const char*>(stringVal), stringLen});
+    callback(string_view{reinterpret_cast<const char*>(s), l});
   }
 
   // Check if we are an item in an array
@@ -409,8 +409,8 @@ JsonEmitter::on_json_parse_string(const unsigned char* stringVal, size_t stringL
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t stringLen)
+auto JsonEmitter::on_json_parse_map_key(const unsigned char* s, size_t l)
+  -> int
 {
   auto ok = true;
 
@@ -456,7 +456,7 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
   }
 
   current_path.emplace_back(
-    string_view(reinterpret_cast<const char*>(stringVal), stringLen)
+    string_view(reinterpret_cast<const char*>(s), l)
   );
 
   if (is_emitting_at_path(match_path, current_path))
@@ -474,19 +474,19 @@ JsonEmitter::on_json_parse_map_key(const unsigned char* stringVal, size_t string
       // Begin a wrapper object
       ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
       ok = (yajl_gen_status_ok == yajl_gen_string(g, _name, name.size()));
-      ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, s, l));
       ok = (yajl_gen_status_ok == yajl_gen_string(g, _val, val.size()));
     }
     else {
-      ok = (yajl_gen_status_ok == yajl_gen_string(g, stringVal, stringLen));
+      ok = (yajl_gen_status_ok == yajl_gen_string(g, s, l));
     }
   }
 
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_start_map()
+auto JsonEmitter::on_json_parse_start_map()
+  -> int
 {
   auto ok = true;
 
@@ -511,8 +511,8 @@ JsonEmitter::on_json_parse_start_map()
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_end_map()
+auto JsonEmitter::on_json_parse_end_map()
+  -> int
 {
   auto ok = true;
 
@@ -537,8 +537,8 @@ JsonEmitter::on_json_parse_end_map()
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_start_array()
+auto JsonEmitter::on_json_parse_start_array()
+  -> int
 {
   auto ok = true;
 
@@ -563,8 +563,8 @@ JsonEmitter::on_json_parse_start_array()
   return ok;
 }
 
-int
-JsonEmitter::on_json_parse_end_array()
+auto JsonEmitter::on_json_parse_end_array()
+  -> int
 {
   auto ok = true;
 
@@ -590,8 +590,8 @@ JsonEmitter::on_json_parse_end_array()
   return ok;
 }
 
-JsonPath
-JsonEmitter::parse_json_path(string_view json_path_str)
+auto JsonEmitter::parse_json_path(string_view json_path_str)
+  -> JsonPath
 {
   JsonPath json_path;
 

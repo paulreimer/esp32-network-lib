@@ -46,9 +46,12 @@ struct RequestHandler
   curl_slist *slist = nullptr;
 
   // Must be public to be accessible from c-style callback
-  size_t header_callback(string_view chunk);
-  size_t write_callback(string_view chunk);
-  void finish_callback();
+  auto header_callback(string_view chunk)
+    -> size_t;
+  auto write_callback(string_view chunk)
+    -> size_t;
+  auto finish_callback()
+    -> void;
 
 private:
   std::unique_ptr<JsonEmitter> json_path_emitter;

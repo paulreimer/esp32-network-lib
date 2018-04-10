@@ -18,7 +18,8 @@ using string = std::string;
 
 // Extract the HTTP response code from a matching header
 // return 0 otherwise
-int parse_http_status_line(string_view chunk)
+auto parse_http_status_line(string_view chunk)
+  -> int
 {
   int code = 0;
 

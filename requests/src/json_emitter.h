@@ -44,39 +44,54 @@ public:
   JsonEmitter(const JsonPath& _match_path={});
   ~JsonEmitter() = default;
 
-  bool init();
-  bool clear();
-  bool reset();
+  auto init()
+    -> bool;
+  auto clear()
+    -> bool;
+  auto reset()
+    -> bool;
 
-  bool parse(
+  auto parse(
     string_view chunk,
     Callback&& _callback,
     Errback&& _errback
-  );
+  ) -> bool;
 
-  bool has_parse_state();
+  auto has_parse_state()
+    -> bool;
 
 protected:
 // Callbacks must be public for access from static C
 public:
-  int on_json_parse_null();
-  int on_json_parse_boolean(int boolean);
-  int on_json_parse_number(const char* s, size_t l);
-  int on_json_parse_string(const unsigned char* stringVal, size_t stringLen);
-  int on_json_parse_map_key(const unsigned char* stringVal, size_t stringLen);
-  int on_json_parse_start_map();
-  int on_json_parse_end_map();
-  int on_json_parse_start_array();
-  int on_json_parse_end_array();
+  auto on_json_parse_null()
+    -> int;
+  auto on_json_parse_boolean(int b)
+    -> int;
+  auto on_json_parse_number(const char* s, size_t l)
+    -> int;
+  auto on_json_parse_string(const unsigned char* s, size_t l)
+    -> int;
+  auto on_json_parse_map_key(const unsigned char* s, size_t l)
+    -> int;
+  auto on_json_parse_start_map()
+    -> int;
+  auto on_json_parse_end_map()
+    -> int;
+  auto on_json_parse_start_array()
+    -> int;
+  auto on_json_parse_end_array()
+    -> int;
 
 protected:
-  static JsonPath parse_json_path(string_view json_path_str);
+  static auto parse_json_path(string_view json_path_str)
+    -> JsonPath;
 
 public:
 
 private:
   // Convenience function to output JSON, then call the stored callback/errback
-  bool emit();
+  auto emit()
+    -> bool;
 
   // Emit JSON if path components are matched
   JsonPath match_path;

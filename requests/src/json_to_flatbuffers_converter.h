@@ -40,20 +40,21 @@ public:
 
   ~JsonToFlatbuffersConverter() = default;
 
-  bool reset()
+  auto reset()
+    -> bool
   {
     return json_emitter.reset();
   }
 
   template <typename NS_X_parse_json_as_root_T, typename NS_X_verify_as_root_T>
-  bool parse(
+  auto parse(
     string_view chunk,
     char* NS_X_identifier,
     NS_X_parse_json_as_root_T&& NS_X_parse_json_as_root,
     NS_X_verify_as_root_T&& NS_X_verify_as_root,
     Callback&& callback,
     Errback&& errback
-  )
+  ) -> bool
   {
     return json_emitter.parse(chunk,
       [&]
