@@ -35,7 +35,7 @@ public:
     UUIDEqualFunc
   >;
 
-  Mailbox();
+  explicit Mailbox(size_t _mailbox_size = 4096);
   ~Mailbox();
 
   auto send(const Message& message)
@@ -56,6 +56,7 @@ public:
   const Address address;
 
 private:
+  size_t mailbox_size;
   RingbufHandle_t impl;
 
 //static methods:

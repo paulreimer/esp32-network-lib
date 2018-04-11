@@ -60,6 +60,7 @@ table ActorExecutionConfig
 {
   task_prio:int = 5;
   task_stack_size:uint = 4096;
+  mailbox_size:uint = 4096;
 }
 
 root_type Message;

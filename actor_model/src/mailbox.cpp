@@ -14,9 +14,10 @@ using string_view = std::experimental::string_view;
 
 Mailbox::AddressRegistry Mailbox::address_registry;
 
-Mailbox::Mailbox()
+Mailbox::Mailbox(size_t _mailbox_size)
 : address(uuidgen())
-, impl{xRingbufferCreate(1024, RINGBUF_TYPE_NOSPLIT)}
+, mailbox_size(_mailbox_size)
+, impl{xRingbufferCreate(mailbox_size, RINGBUF_TYPE_NOSPLIT)}
 {
   address_registry.insert({address, this});
 }

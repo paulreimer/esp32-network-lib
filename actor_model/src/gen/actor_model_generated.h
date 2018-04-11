@@ -534,7 +534,8 @@ struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
   }
   enum {
     VT_TASK_PRIO = 4,
-    VT_TASK_STACK_SIZE = 6
+    VT_TASK_STACK_SIZE = 6,
+    VT_MAILBOX_SIZE = 8
   };
   int32_t task_prio() const {
     return GetField<int32_t>(VT_TASK_PRIO, 5);
@@ -548,10 +549,17 @@ struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
   bool mutate_task_stack_size(uint32_t _task_stack_size) {
     return SetField<uint32_t>(VT_TASK_STACK_SIZE, _task_stack_size, 4096);
   }
+  uint32_t mailbox_size() const {
+    return GetField<uint32_t>(VT_MAILBOX_SIZE, 4096);
+  }
+  bool mutate_mailbox_size(uint32_t _mailbox_size) {
+    return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 4096);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TASK_PRIO) &&
            VerifyField<uint32_t>(verifier, VT_TASK_STACK_SIZE) &&
+           VerifyField<uint32_t>(verifier, VT_MAILBOX_SIZE) &&
            verifier.EndTable();
   }
 };
@@ -564,6 +572,9 @@ struct ActorExecutionConfigBuilder {
   }
   void add_task_stack_size(uint32_t task_stack_size) {
     fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 4096);
+  }
+  void add_mailbox_size(uint32_t mailbox_size) {
+    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 4096);
   }
   explicit ActorExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -580,8 +591,10 @@ struct ActorExecutionConfigBuilder {
 inline flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t task_prio = 5,
-    uint32_t task_stack_size = 4096) {
+    uint32_t task_stack_size = 4096,
+    uint32_t mailbox_size = 4096) {
   ActorExecutionConfigBuilder builder_(_fbb);
+  builder_.add_mailbox_size(mailbox_size);
   builder_.add_task_stack_size(task_stack_size);
   builder_.add_task_prio(task_prio);
   return builder_.Finish();
@@ -766,14 +779,16 @@ inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable() {
 inline const flatbuffers::TypeTable *ActorExecutionConfigTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
   static const char * const names[] = {
     "task_prio",
-    "task_stack_size"
+    "task_stack_size",
+    "mailbox_size"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }

@@ -36,6 +36,7 @@ Actor::Actor(
 )
 : pid(_pid)
 , behaviour(_behaviour)
+, mailbox(_execution_config.mailbox_size())
 , current_node(_current_node)
 , execution_config(&_execution_config)
 , started(false)
