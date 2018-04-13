@@ -9,15 +9,16 @@
 #include "json_emitter.h"
 #include "json_to_flatbuffers_converter.h"
 
-#include "curl/curl.h"
-
 #include "requests_generated.h"
 
 #include <experimental/string_view>
 #include <string>
 #include <vector>
 
+#ifdef REQUESTS_USE_CURL
+#include "curl/curl.h"
 using curl_slist = struct curl_slist;
+#endif // REQUESTS_USE_CURL
 
 namespace Requests {
 
@@ -44,7 +45,9 @@ struct RequestHandler
   RequestIntentT request_intent;
   ResponseT res;
 
+#ifdef REQUESTS_USE_CURL
   curl_slist *slist = nullptr;
+#endif // REQUESTS_USE_CURL
 
   // Must be public to be accessible from c-style callback
   auto header_callback(string_view chunk)

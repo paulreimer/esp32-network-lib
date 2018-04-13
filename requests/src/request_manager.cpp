@@ -22,7 +22,9 @@ namespace Requests {
 using string_view = std::experimental::string_view;
 using string = std::string;
 
+#ifdef REQUESTS_USE_CURL
 mbedtls_x509_crt cacert;
+#endif // REQUESTS_USE_CURL
 
 constexpr char TAG[] = "RequestManager";
 
@@ -40,17 +42,22 @@ auto writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
   return static_cast<RequestHandler*>(userdata)->write_callback(chunk);
 }
 
+#ifdef REQUESTS_USE_CURL
 auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
   -> CURLcode
 {
   auto* conf = static_cast<mbedtls_ssl_config*>(ssl_ctx);
   return static_cast<RequestManager*>(userdata)->sslctx_callback(curl, conf);
 }
+#endif // REQUESTS_USE_CURL
 
 RequestManager::RequestManager()
 : requests{}
+#ifdef REQUESTS_USE_CURL
 , multi_handle(curl_multi_init(), curl_multi_cleanup)
+#endif // REQUESTS_USE_CURL
 {
+#ifdef REQUESTS_USE_CURL
   curl_global_init(CURL_GLOBAL_ALL);
 
   auto m = multi_handle.get();
@@ -63,11 +70,14 @@ RequestManager::RequestManager()
 
   // Attempt to pipeline and/or multiplex requests if possible
   //curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
+#endif // REQUESTS_USE_CURL
 }
 
 RequestManager::~RequestManager()
 {
+#ifdef REQUESTS_USE_CURL
   mbedtls_x509_crt_free(&cacert);
+#endif // REQUESTS_USE_CURL
 }
 
 auto RequestManager::fetch(RequestIntentT&& _req_intent)
@@ -76,8 +86,10 @@ auto RequestManager::fetch(RequestIntentT&& _req_intent)
   //const auto& inserted = requests.emplace(std::move(_req), std::move(_res));
   const auto& inserted = requests.emplace(
     std::move(HandleImplPtr{
+#ifdef REQUESTS_USE_CURL
       curl_easy_init(),
       curl_easy_cleanup
+#endif // REQUESTS_USE_CURL
     }),
     std::move(RequestHandler{
       std::move(_req_intent)
@@ -100,15 +112,8 @@ auto RequestManager::send(
   RequestHandler& handler
 ) -> bool
 {
-  auto* curl = handle;
   auto& req = *(handler.request_intent.request);
   auto& res = handler.res;
-
-  // Allocate CURL_ERROR_SIZE bytes of zero-initialized data
-  res.errbuf.resize(CURL_ERROR_SIZE, 0);
-
-  // Reset the c-string contents to zero-length, null-terminated
-  res.errbuf[0] = 0;
 
   handler._req_url = req.uri;
   if (not req.query.empty())
@@ -121,6 +126,14 @@ auto RequestManager::send(
     }
   }
 
+#ifdef REQUESTS_USE_CURL
+  // Allocate CURL_ERROR_SIZE bytes of zero-initialized data
+  res.errbuf.resize(CURL_ERROR_SIZE, 0);
+
+  // Reset the c-string contents to zero-length, null-terminated
+  res.errbuf[0] = 0;
+
+  auto* curl = handle;
   curl_easy_setopt(curl, CURLOPT_URL, handler._req_url.c_str());
 
   // Do not print out any updates to stdout
@@ -211,11 +224,15 @@ auto RequestManager::send(
   curl_multi_add_handle(multi_handle.get(), curl);
 
   return true;
+#endif // REQUESTS_USE_CURL
+
+  return false;
 }
 
 auto RequestManager::wait_all()
   -> bool
 {
+#ifdef REQUESTS_USE_CURL
   int inflight_count;
   bool any_done = false;
   int MAX_WAIT_MSECS = (5*1000);
@@ -298,11 +315,15 @@ auto RequestManager::wait_all()
   }
 
   return any_done;
+#endif // REQUESTS_USE_CURL
+
+  return false;
 }
 
 auto RequestManager::add_cacert_pem(string_view cacert_pem)
   -> bool
 {
+#ifdef REQUESTS_USE_CURL
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
 
@@ -330,6 +351,7 @@ auto RequestManager::add_cacert_pem(string_view cacert_pem)
   else {
     ESP_LOGE(TAG, "Expected a null terminated CA cert string");
   }
+#endif // REQUESTS_USE_CURL
 
   return false;
 }
@@ -337,6 +359,7 @@ auto RequestManager::add_cacert_pem(string_view cacert_pem)
 auto RequestManager::add_cacert_der(string_view cacert_der)
   -> bool
 {
+#ifdef REQUESTS_USE_CURL
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
 
@@ -357,10 +380,12 @@ auto RequestManager::add_cacert_der(string_view cacert_der)
       cacert_der.size(), cacert_der.data()
     );
   }
+#endif // REQUESTS_USE_CURL
 
   return false;
 }
 
+#ifdef REQUESTS_USE_CURL
 auto RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
   -> CURLcode
 {
@@ -383,5 +408,6 @@ auto RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
 
   return rv;
 }
+#endif // REQUESTS_USE_CURL
 
 } // namespace Requests

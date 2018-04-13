@@ -75,10 +75,12 @@ RequestHandler::RequestHandler(RequestIntentT&& _request_intent)
 
 RequestHandler::~RequestHandler()
 {
+#ifdef REQUESTS_USE_CURL
   if (slist)
   {
     curl_slist_free_all(slist);
   }
+#endif // REQUESTS_USE_CURL
 }
 
 auto RequestHandler::write_callback(string_view chunk)

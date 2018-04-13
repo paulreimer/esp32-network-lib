@@ -11,8 +11,10 @@
 
 #include "request_handler.h"
 
+#ifdef REQUESTS_USE_CURL
 #include "curl/curl.h"
 #include "curl/multi.h"
+#endif // REQUESTS_USE_CURL
 
 #include <experimental/string_view>
 
@@ -28,7 +30,9 @@ namespace Requests {
 class RequestManager
 {
 public:
+#ifdef REQUESTS_USE_CURL
   using HandleImpl = CURL;
+#endif // REQUESTS_USE_CURL
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
   using string_view = std::experimental::string_view;
@@ -53,15 +57,19 @@ public:
   auto add_cacert_der(string_view cacert_der)
     -> bool;
 
+#ifdef REQUESTS_USE_CURL
   auto sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
     -> CURLcode;
+#endif // REQUESTS_USE_CURL
 
 protected:
   using RequestMap = std::unordered_map<HandleImplPtr, RequestHandler>;
   RequestMap requests;
 
 private:
+#ifdef REQUESTS_USE_CURL
   std::unique_ptr<CURLM, CURLMcode(*)(CURLM*)> multi_handle;
+#endif // REQUESTS_USE_CURL
 };
 
 } // namespace Requests
