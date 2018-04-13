@@ -119,7 +119,9 @@ auto RequestHandler::write_callback(string_view chunk)
       {
         if (json_path_emitter)
         {
-          // Check for magic prefix sent at the beginning of Google APIs responses
+          auto json_chunk = chunk;
+
+          // Check for magic prefix sent at beginning of Google APIs responses
           if (not json_path_emitter->has_parse_state())
           {
             auto prefix = string{")]}'\n"};
@@ -128,15 +130,15 @@ auto RequestHandler::write_callback(string_view chunk)
             {
               ESP_LOGI(
                 TAG,
-                "Removing security prefix ')]}'\\n' from Google APIs response"
+                "Removing magic prefix ')]}'\\n' from Google APIs response"
               );
 
               // If the prefix was found, skip it when parsing
-              chunk = chunk.substr(prefix.size());
+              json_chunk = chunk.substr(prefix.size());
             }
           }
 
-          json_path_emitter->parse(chunk,
+          json_path_emitter->parse(json_chunk,
             [this]
             (string_view parsed_chunk) -> PostCallbackAction
             {
@@ -184,7 +186,9 @@ auto RequestHandler::write_callback(string_view chunk)
       {
         if (flatbuffers_path_emitter)
         {
-          // Check for magic prefix sent at the beginning of Google APIs responses
+          auto json_chunk = chunk;
+
+          // Check for magic prefix sent at beginning of Google APIs responses
           if (not flatbuffers_path_emitter->has_parse_state())
           {
             auto prefix = string{")]}'\n"};
@@ -193,15 +197,15 @@ auto RequestHandler::write_callback(string_view chunk)
             {
               ESP_LOGI(
                 TAG,
-                "Removing security prefix ')]}'\\n' from Google APIs response"
+                "Removing magic prefix ')]}'\\n' from Google APIs response"
               );
 
               // If the prefix was found, skip it when parsing
-              chunk = chunk.substr(prefix.size());
+              json_chunk = chunk.substr(prefix.size());
             }
           }
 
-          flatbuffers_path_emitter->parse(chunk,
+          flatbuffers_path_emitter->parse(json_chunk,
             [this]
             (string_view parsed_chunk) -> PostCallbackAction
             {
