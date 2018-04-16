@@ -107,11 +107,13 @@ RequestManager::RequestManager()
 
   auto m = multi_handle.get();
 
+#ifdef REQUESTS_MAX_CONNECTIONS
   // Set the maximum number of connections to keep in the cache
-  curl_multi_setopt(m, CURLMOPT_MAXCONNECTS, 2L);
+  curl_multi_setopt(m, CURLMOPT_MAXCONNECTS, REQUESTS_MAX_CONNECTIONS);
 
   // Set the maximum number of active connections (after which, block)
-  curl_multi_setopt(m, CURLMOPT_MAX_TOTAL_CONNECTIONS, 2L);
+  curl_multi_setopt(m, CURLMOPT_MAX_TOTAL_CONNECTIONS, REQUESTS_MAX_CONNECTIONS);
+#endif
 
   // Attempt to pipeline and/or multiplex requests if possible
   //curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
