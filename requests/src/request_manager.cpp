@@ -204,6 +204,9 @@ auto RequestManager::send(
   //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
   curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
+  // Waiting for pending connections to be established, to multiplex if possible
+  curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
+
   // Do not include headers in the response stream
   curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
   // Parse headers with a separate callback
