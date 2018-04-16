@@ -86,8 +86,6 @@ RequestHandler::~RequestHandler()
 auto RequestHandler::write_callback(string_view chunk)
   -> size_t
 {
-  auto is_success_code = ((res.code > 0) and (res.code < 400));
-
   if (request_intent.to_pid)
   {
     switch (request_intent.desired_format)
