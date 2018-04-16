@@ -375,8 +375,8 @@ auto RequestHandler::header_callback(string_view chunk)
       auto v = hdr.substr(delim_pos + delim.size());
 
       auto header = std::make_unique<HeaderPairT>();
-      header->first.assign(k.data(), k.size());
-      header->second.assign(v.data(), v.size());
+      header->k.assign(k.data(), k.size());
+      header->v.assign(v.data(), v.size());
       res.headers.emplace_back(std::move(header));
     }
   }

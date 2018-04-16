@@ -40,8 +40,8 @@ auto update_request(
 
 auto set_query_arg(
   auto& query,
-  std::experimental::string_view first,
-  std::experimental::string_view second
+  std::experimental::string_view k,
+  std::experimental::string_view v
 ) -> bool;
 
 } // namespace Requests

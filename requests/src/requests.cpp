@@ -47,16 +47,16 @@ auto update_request(
   for (const auto& arg : query)
   {
     auto query_arg = std::make_unique<QueryPairT>();
-    query_arg->first.assign(arg.first.data(), arg.first.size());
-    query_arg->second.assign(arg.second.data(), arg.second.size());
+    query_arg->k.assign(arg.first.data(), arg.first.size());
+    query_arg->v.assign(arg.second.data(), arg.second.size());
     req.query.emplace_back(std::move(query_arg));
   }
 
   for (const auto& hdr : headers)
   {
     auto header = std::make_unique<HeaderPairT>();
-    header->first.assign(hdr.first.data(), hdr.first.size());
-    header->second.assign(hdr.second.data(), hdr.second.size());
+    header->k.assign(hdr.first.data(), hdr.first.size());
+    header->v.assign(hdr.second.data(), hdr.second.size());
     req.headers.emplace_back(std::move(header));
   }
 
@@ -65,17 +65,17 @@ auto update_request(
 
 auto set_query_arg(
   auto& query,
-  string_view first,
-  string_view second
+  string_view k,
+  string_view v
 ) -> bool
 {
   auto updated_existing_arg = false;
 
   for (auto& arg : query)
   {
-    if (arg->first == first)
+    if (arg->k == k)
     {
-      arg->second.assign(second.data(), second.size());
+      arg->v.assign(v.data(), v.size());
       updated_existing_arg = true;
     }
   }
@@ -83,8 +83,8 @@ auto set_query_arg(
   if (not updated_existing_arg)
   {
     auto new_query_arg = std::make_unique<QueryPairT>();
-    new_query_arg->first.assign(first.data(), first.size());
-    new_query_arg->second.assign(second.data(), second.size());
+    new_query_arg->k.assign(k.data(), k.size());
+    new_query_arg->v.assign(v.data(), v.size());
 
     query.emplace_back(std::move(new_query_arg));
   }

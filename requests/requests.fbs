@@ -11,14 +11,14 @@ namespace Requests;
 
 table QueryPair
 {
-  first:string;
-  second:string;
+  k:string;
+  v:string;
 }
 
 table HeaderPair
 {
-  first:string;
-  second:string;
+  k:string;
+  v:string;
 }
 
 table Request

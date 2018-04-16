@@ -172,7 +172,7 @@ auto RequestManager::send(
     char delim = (req.uri.find_first_of('?') == string::npos)? '?' : '&';
     for (auto& arg : req.query)
     {
-      handler._req_url += delim + arg->first + '=' + arg->second;
+      handler._req_url += delim + arg->k + '=' + arg->v;
       delim = '&';
     }
   }
@@ -245,7 +245,7 @@ auto RequestManager::send(
   {
     for (auto& hdr : req.headers)
     {
-      string hdr_str(hdr->first + string(": ") + hdr->second);
+      string hdr_str(hdr->k + string(": ") + hdr->v);
       handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
@@ -369,10 +369,10 @@ auto RequestManager::send(
     for (auto& hdr : req.headers)
     {
       nva_vec.emplace_back(nghttp2_nv{
-        (uint8_t*)(hdr->first.data()),
-        (uint8_t*)(hdr->second.data()),
-        hdr->first.size(),
-        hdr->second.size(),
+        (uint8_t*)(hdr->k.data()),
+        (uint8_t*)(hdr->v.data()),
+        hdr->k.size(),
+        hdr->v.size(),
         flags
       });
     }
