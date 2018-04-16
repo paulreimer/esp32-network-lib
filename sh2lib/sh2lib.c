@@ -278,7 +278,7 @@ static int do_http2_connect(struct sh2lib_handle *hd)
     return 0;
 }
 
-int sh2lib_connect(struct sh2lib_handle *hd, const char *uri)
+int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, const unsigned char* cacert_pem_buf, size_t cacert_pem_bytes)
 {
     memset(hd, 0, sizeof(*hd));
 

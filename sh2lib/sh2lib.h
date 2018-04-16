@@ -101,7 +101,7 @@ typedef int (*sh2lib_putpost_data_cb_t)(struct sh2lib_handle *handle, char *data
  *             - ESP_OK if the connection was successful
  *             - ESP_FAIL if the connection fails
  */
-int sh2lib_connect(struct sh2lib_handle *hd, const char *uri);
+int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, const unsigned char* cacert_pem_buf, size_t cacert_pem_bytes);
 
 /**
  * @brief Free a sh2lib handle
