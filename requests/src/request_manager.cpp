@@ -201,8 +201,8 @@ auto RequestManager::send(
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
   // Attempt HTTP/2 for HTTPS URLs, fallback to HTTP/1.1 otherwise
-  //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
-  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+  //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
   // Waiting for pending connections to be established, to multiplex if possible
   curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
