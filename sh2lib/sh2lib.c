@@ -366,11 +366,12 @@ int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_
 
 int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    const nghttp2_nv nva[] = { SH2LIB_MAKE_NV(":method", "GET"),
-                               SH2LIB_MAKE_NV(":scheme", "https"),
-                               SH2LIB_MAKE_NV(":authority", hd->hostname),
-                               SH2LIB_MAKE_NV(":path", path),
-                             };
+    const nghttp2_nv nva[] = {
+      SH2LIB_MAKE_NV(":method", "GET", NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":scheme", "https", NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":authority", hd->hostname, NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":path", path, NGHTTP2_NV_FLAG_NONE),
+    };
     return sh2lib_do_get_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), recv_cb);
 }
 
@@ -403,11 +404,12 @@ int sh2lib_do_post(struct sh2lib_handle *hd, const char *path,
                    sh2lib_putpost_data_cb_t send_cb,
                    sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    const nghttp2_nv nva[] = { SH2LIB_MAKE_NV(":method", "POST"),
-                               SH2LIB_MAKE_NV(":scheme", "https"),
-                               SH2LIB_MAKE_NV(":authority", hd->hostname),
-                               SH2LIB_MAKE_NV(":path", path),
-                             };
+    const nghttp2_nv nva[] = {
+      SH2LIB_MAKE_NV(":method", "POST", NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":scheme", "https", NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":authority", hd->hostname, NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":path", path, NGHTTP2_NV_FLAG_NONE),
+    };
     return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), send_cb, recv_cb);
 }
 
@@ -415,11 +417,12 @@ int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
                   sh2lib_putpost_data_cb_t send_cb,
                   sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    const nghttp2_nv nva[] = { SH2LIB_MAKE_NV(":method", "PUT"),
-                               SH2LIB_MAKE_NV(":scheme", "https"),
-                               SH2LIB_MAKE_NV(":authority", hd->hostname),
-                               SH2LIB_MAKE_NV(":path", path),
-                             };
+    const nghttp2_nv nva[] = {
+      SH2LIB_MAKE_NV(":method", "PUT", NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":scheme", "https", NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":authority", hd->hostname, NGHTTP2_NV_FLAG_NONE),
+      SH2LIB_MAKE_NV(":path", path, NGHTTP2_NV_FLAG_NONE),
+    };
     return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), send_cb, recv_cb);
 }
 

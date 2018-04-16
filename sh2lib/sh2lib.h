@@ -198,10 +198,9 @@ int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
  */
 int sh2lib_execute(struct sh2lib_handle *hd);
 
-#define SH2LIB_MAKE_NV(NAME, VALUE)                                    \
-  {                                                                    \
-    (uint8_t *)NAME, (uint8_t *)VALUE, strlen(NAME), strlen(VALUE),    \
-        NGHTTP2_NV_FLAG_NONE                                           \
+#define SH2LIB_MAKE_NV(NAME, VALUE, FLAGS)                                    \
+  {                                                                           \
+    (uint8_t *)NAME, (uint8_t *)VALUE, strlen(NAME), strlen(VALUE), FLAGS     \
   }
 
 /**
