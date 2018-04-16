@@ -265,16 +265,29 @@ auto RequestHandler::finish_callback()
   -> void
 {
   auto is_success_code = ((res.code > 0) and (res.code < 400));
+  auto is_internal_failure = (res.code < 0);
 
   if (request_intent.to_pid)
   {
     auto type = is_success_code? "complete" : "error";
 
     // Clear the body for the final message
-    // If response has already been processed by streaming messages
-    if (request_intent.desired_format != ResponseFilter::FullResponseBody)
+    if (is_success_code)
     {
-      res.body.clear();
+      // If response has already been processed by streaming messages
+      if (request_intent.desired_format != ResponseFilter::FullResponseBody)
+      {
+        res.body.clear();
+      }
+    }
+    // Copy the contents of errbuf for an internal failure
+    else if (
+      is_internal_failure
+      and res.body.empty()
+      and not res.errbuf.empty()
+    )
+    {
+      res.body = res.errbuf.data();
     }
 
     // Generate flatbuffer for nesting inside the parent Message object
