@@ -63,6 +63,7 @@ table RequestIntent
   root_type:string;
   schema_text:string;
   include_headers:bool = false;
+  streaming:bool = false;
 }
 
 file_identifier "Req!";

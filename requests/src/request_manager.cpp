@@ -461,7 +461,7 @@ auto RequestManager::wait_all()
       auto& done_handle = msg->easy_handle;
 
       // Search for the matching handle
-      auto done_req_handler = std::find_if(requests.begin(), requests.end(),
+      auto done_req = std::find_if(requests.begin(), requests.end(),
         [done_handle]
         (const auto& req_res_pair) -> bool
         {
@@ -470,23 +470,13 @@ auto RequestManager::wait_all()
       );
 
       // If a matching request handle was found
-      if (done_req_handler != requests.end())
+      if (done_req != requests.end())
       {
         any_done = true;
-        auto& handler = done_req_handler->second;
+        auto& handler = done_req->second;
+        auto response_code = handler.res.code;
 
         handler.finish_callback();
-
-        // Remove the request handle from the multi handle
-        curl_multi_remove_handle(multi_handle.get(), done_handle);
-
-        // Reset request/response state
-        if (handler.slist)
-        {
-          // Free the list of headers used in the request
-          curl_slist_free_all(handler.slist);
-          handler.slist = nullptr;
-        }
 
         // Reset the previous response error code
         handler.res.code = -1;
@@ -497,9 +487,34 @@ auto RequestManager::wait_all()
         // Reset the c-string contents to zero-length, null-terminated
         handler.res.errbuf[0] = 0;
 
-        // Dispose handle (curl_multi may retain it in the connection cache)
-        // Cleanup, free request handle and RequestT/ResponseT objects
-        requests.erase(done_req_handler);
+        if (not handler.request_intent.streaming)
+        {
+          // Remove the request handle from the multi handle
+          curl_multi_remove_handle(multi_handle.get(), done_handle);
+
+          // Reset request/response state
+          if (handler.slist)
+          {
+            // Free the list of headers used in the request
+            curl_slist_free_all(handler.slist);
+            handler.slist = nullptr;
+          }
+
+          // Dispose handle (curl_multi may retain it in the connection cache)
+          // Cleanup, free request handle and RequestT/ResponseT objects
+          requests.erase(done_req);
+
+          if (response_code > 0)
+          {
+            ESP_LOGI(TAG, "Deleted completed request handle successfully");
+          }
+          else {
+            ESP_LOGW(TAG, "Deleted failed request handle successfully");
+          }
+        }
+        else {
+          ESP_LOGI(TAG, "Leaving completed request connection open for streaming");
+        }
       }
     }
   }
