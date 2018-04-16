@@ -4,29 +4,17 @@
  * All rights reserved.
  *
  */
-#include "request_manager.h"
-
 #include "request_manager_actor.h"
 
+#include "request_manager.h"
 #include "actor_model.h"
-#include "delay.h"
 
-#include <chrono>
-#include <string>
-
-#include "embedded_files.h"
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
+#include <memory>
 
 namespace Requests {
 
 using namespace ActorModel;
 
-using namespace std::chrono_literals;
-
-using string = std::string;
 using string_view = std::experimental::string_view;
 
 auto request_manager_behaviour(
@@ -71,7 +59,6 @@ auto request_manager_behaviour(
   }
 
   requests.wait_all();
-  delay(100ms);
 
   //return self;
   return Ok;
