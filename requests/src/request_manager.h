@@ -16,6 +16,12 @@
 #include "curl/multi.h"
 #endif // REQUESTS_USE_CURL
 
+#ifdef REQUESTS_USE_SH2LIB
+extern "C" {
+#include "sh2lib.h"
+}
+#endif // REQUESTS_USE_SH2LIB
+
 #include <experimental/string_view>
 
 #include <memory>
@@ -33,6 +39,9 @@ public:
 #ifdef REQUESTS_USE_CURL
   using HandleImpl = CURL;
 #endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+  using HandleImpl = sh2lib_handle;
+#endif // REQUESTS_USE_SH2LIB
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
   using string_view = std::experimental::string_view;

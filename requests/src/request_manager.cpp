@@ -15,6 +15,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <http_parser.h>
+
 #include "esp_log.h"
 
 namespace Requests {
@@ -28,6 +30,7 @@ mbedtls_x509_crt cacert;
 
 constexpr char TAG[] = "RequestManager";
 
+#ifdef REQUESTS_USE_CURL
 auto header_callback(char* buf, size_t size, size_t nitems, void* userdata)
   -> size_t
 {
@@ -42,7 +45,6 @@ auto writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
   return static_cast<RequestHandler*>(userdata)->write_callback(chunk);
 }
 
-#ifdef REQUESTS_USE_CURL
 auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
   -> CURLcode
 {
@@ -50,6 +52,49 @@ auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
   return static_cast<RequestManager*>(userdata)->sslctx_callback(curl, conf);
 }
 #endif // REQUESTS_USE_CURL
+
+#ifdef REQUESTS_USE_SH2LIB
+auto recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
+  -> int
+{
+  auto* userdata = handle->userdata;
+
+  int retval = 0;
+  if (len)
+  {
+    auto chunk = string_view(data, len);
+    retval = static_cast<RequestHandler*>(userdata)->write_callback(chunk);
+  }
+
+  if (flags == DATA_RECV_RST_STREAM)
+  {
+    static_cast<RequestHandler*>(userdata)->finish_callback();
+  }
+
+  return retval;
+}
+
+auto send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
+  -> int
+{
+  auto* userdata = handle->userdata;
+
+  int retval = 0;
+
+  auto send_chunk = static_cast<RequestHandler*>(userdata)->read_callback(len);
+  if (not send_chunk.empty())
+  {
+    memcpy(buf, send_chunk.data(), send_chunk.size());
+  }
+
+  if (send_chunk.size() < len)
+  {
+    (*data_flags) |= NGHTTP2_DATA_FLAG_EOF;
+  }
+
+  return send_chunk.size();
+}
+#endif // REQUESTS_USE_SH2LIB
 
 RequestManager::RequestManager()
 : requests{}
@@ -90,6 +135,10 @@ auto RequestManager::fetch(RequestIntentT&& _req_intent)
       curl_easy_init(),
       curl_easy_cleanup
 #endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+      new sh2lib_handle,
+      sh2lib_free
+#endif // REQUESTS_USE_SH2LIB
     }),
     std::move(RequestHandler{
       std::move(_req_intent)
@@ -226,15 +275,152 @@ auto RequestManager::send(
   return true;
 #endif // REQUESTS_USE_CURL
 
+#ifdef REQUESTS_USE_SH2LIB
+  auto* hd = handle;
+
+  handler.body_sent_byte_count = 0;
+
+  // Parse the requested host name, to see if it has changed
+  struct http_parser_url u;
+  http_parser_url_init(&u);
+  auto url_data = handler._req_url.data();
+  http_parser_parse_url(url_data, handler._req_url.size(), 0, &u);
+
+  auto hostname = string_view(
+    &url_data[u.field_data[UF_HOST].off],
+    u.field_data[UF_HOST].len
+  );
+
+  auto full_path_len = u.field_data[UF_PATH].len;
+
+  // Check for query, include the '?'
+  if (u.field_data[UF_QUERY].len)
+  {
+    full_path_len += 1 + u.field_data[UF_QUERY].len;
+  }
+  // Check for fragment, include the '#'
+  if (u.field_data[UF_FRAGMENT].len)
+  {
+    full_path_len += 1 + u.field_data[UF_FRAGMENT].len;
+  }
+
+  handler._path = string_view{
+    &url_data[u.field_data[UF_PATH].off],
+    full_path_len
+  };
+
+  // Initialize the HTTP/2 connection
+  if (
+    handler.connected_hostname != hostname
+    or not handler.connected
+  )
+  {
+    // Reset the current hostname
+    handler.connected_hostname.clear();
+
+    handler.connected = (
+      sh2lib_connect(
+        hd,
+        req.uri.c_str(),
+        nullptr,
+        0
+      ) == 0
+    );
+
+    if (handler.connected)
+    {
+      // Create pointer so handle callback can access handler methods
+      handle->userdata = &handler;
+
+      // Set the cached connected hostname
+      handler.connected_hostname.assign(
+        hostname.begin(),
+        hostname.end()
+      );
+    }
+  }
+
+  // Only proceed if we are connected
+  if (handler.connected)
+  {
+    uint8_t flags = {
+      NGHTTP2_NV_FLAG_NO_COPY_NAME
+      | NGHTTP2_NV_FLAG_NO_COPY_VALUE
+    };
+
+    std::vector<nghttp2_nv> nva_vec = {
+      SH2LIB_MAKE_NV(":method", req.method.c_str(), flags),
+      {
+        (uint8_t *)":path",
+        (uint8_t *)handler._path.data(),
+        strlen(":path"),
+        handler._path.size(),
+        flags
+      },
+      SH2LIB_MAKE_NV(":scheme", "https", flags),
+      SH2LIB_MAKE_NV(":authority", handler.connected_hostname.c_str(), flags),
+    };
+
+    for (auto& hdr : req.headers)
+    {
+      nva_vec.emplace_back(nghttp2_nv{
+        (uint8_t*)(hdr->first.data()),
+        (uint8_t*)(hdr->second.data()),
+        hdr->first.size(),
+        hdr->second.size(),
+        flags
+      });
+    }
+
+    // Make the request
+    if (req.method == "GET")
+    {
+      // Use GET (default)
+      auto retval = sh2lib_do_get_with_nv(
+        hd,
+        nva_vec.data(),
+        nva_vec.size(),
+        recv_cb
+      );
+    }
+    else {
+      // Add content length header with request body size
+      auto content_length = std::to_string(req.body.size());
+
+      nva_vec.emplace_back(nghttp2_nv{
+        (uint8_t*)"Content-Length",
+        (uint8_t*)content_length.data(),
+        strlen("Content-Length"),
+        content_length.size(),
+        flags
+      });
+
+      // Use a custom (user-supplied) HTTP method (e.g. PATCH)
+      auto retval = sh2lib_do_putpost_with_nv(
+        hd,
+        nva_vec.data(),
+        nva_vec.size(),
+        send_cb,
+        recv_cb
+      );
+    }
+  }
+  else {
+    ESP_LOGE(TAG, "%s %s: not connected", req.method.c_str(), req.uri.c_str());
+  }
+
+#endif // REQUESTS_USE_SH2LIB
+
   return false;
 }
 
 auto RequestManager::wait_all()
   -> bool
 {
+  bool any_done = false;
+
 #ifdef REQUESTS_USE_CURL
   int inflight_count;
-  bool any_done = false;
   int MAX_WAIT_MSECS = (5*1000);
 
   curl_multi_perform(multi_handle.get(), &inflight_count);
@@ -309,15 +495,37 @@ auto RequestManager::wait_all()
         // Dispose handle (curl_multi may retain it in the connection cache)
         // Cleanup, free request handle and RequestT/ResponseT objects
         requests.erase(done_req_handler);
-        ESP_LOGI(TAG, "Deleted completed request handle successfully");
       }
     }
   }
-
-  return any_done;
 #endif // REQUESTS_USE_CURL
 
-  return false;
+#ifdef REQUESTS_USE_SH2LIB
+  for (auto req_iter = begin(requests); req_iter != end(requests);)
+  {
+    auto& handle = req_iter->first;
+    auto& handler = req_iter->second;
+
+    if (handle)
+    {
+      auto* hd = handle.get();
+      auto ok = (sh2lib_execute(hd) >= 0);
+
+      if (handler.finished)
+      {
+        any_done = true;
+        req_iter = requests.erase(req_iter);
+        ESP_LOGI(TAG, "Deleted completed request handle successfully");
+        continue;
+      }
+    }
+
+    // Increment unless already handled
+    ++req_iter;
+  }
+#endif // REQUESTS_USE_SH2LIB
+
+  return any_done;
 }
 
 auto RequestManager::add_cacert_pem(string_view cacert_pem)

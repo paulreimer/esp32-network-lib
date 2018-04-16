@@ -253,7 +253,12 @@ auto RequestHandler::write_callback(string_view chunk)
     }
   }
 
+#ifdef REQUESTS_USE_CURL
   return chunk.size();
+#endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+  return 0;
+#endif // REQUESTS_USE_SH2LIB
 }
 
 auto RequestHandler::finish_callback()
@@ -283,7 +288,30 @@ auto RequestHandler::finish_callback()
 
     send(*(request_intent.to_pid), type, payload);
   }
+
+#ifdef REQUESTS_USE_SH2LIB
+  finished = true;
+#endif // REQUESTS_USE_SH2LIB
 }
+
+#ifdef REQUESTS_USE_SH2LIB
+auto RequestHandler::read_callback(size_t max_chunk_size)
+  -> string_view
+{
+  auto& req = request_intent.request;
+  auto req_body = string_view{req->body};
+
+  auto byte_count_remaining = (req_body.size() - body_sent_byte_count);
+  auto send_chunk = req_body.substr(
+    body_sent_byte_count,
+    std::min(byte_count_remaining, max_chunk_size)
+  );
+
+  body_sent_byte_count += send_chunk.size();
+
+  return send_chunk;
+}
+#endif // REQUESTS_USE_SH2LIB
 
 auto RequestHandler::header_callback(string_view chunk)
   -> size_t
@@ -301,7 +329,12 @@ auto RequestHandler::header_callback(string_view chunk)
       ESP_LOGI(tag, "%.*s", chunk.size(), chunk.data());
 
       // Do not attempt to parse this header any further
+#ifdef REQUESTS_USE_CURL
       return chunk.size();
+#endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+      return 0;
+#endif // REQUESTS_USE_SH2LIB
     }
   }
 
@@ -337,7 +370,12 @@ auto RequestHandler::header_callback(string_view chunk)
     }
   }
 
+#ifdef REQUESTS_USE_CURL
   return chunk.size();
+#endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+  return 0;
+#endif // REQUESTS_USE_SH2LIB
 }
 
 } // namespace Requests

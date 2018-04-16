@@ -49,6 +49,14 @@ struct RequestHandler
   curl_slist *slist = nullptr;
 #endif // REQUESTS_USE_CURL
 
+#ifdef REQUESTS_USE_SH2LIB
+  bool connected = false;
+  string connected_hostname;
+  bool finished = false;
+  int body_sent_byte_count = 0;
+  string_view _path;
+#endif // REQUESTS_USE_SH2LIB
+
   // Must be public to be accessible from c-style callback
   auto header_callback(string_view chunk)
     -> size_t;
@@ -56,6 +64,10 @@ struct RequestHandler
     -> size_t;
   auto finish_callback()
     -> void;
+#ifdef REQUESTS_USE_SH2LIB
+  auto read_callback(size_t max_chunk_size)
+    -> string_view;
+#endif
 
 private:
   std::unique_ptr<JsonEmitter> json_path_emitter;
