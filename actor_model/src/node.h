@@ -11,13 +11,14 @@
 
 #include "actor_model_generated.h"
 
+#include "delegate.hpp"
+
 #include <experimental/string_view>
 #include <unordered_map>
 
 namespace ActorModel {
 
-// Create an ActorExecutionConfig from default values in fbs schema
-const ActorExecutionConfig& get_default_execution_config();
+using ExecConfigCallback = delegate<void(ActorExecutionConfigBuilder&)>;
 
 class Actor;
 class Node
@@ -44,13 +45,13 @@ public:
 
   auto spawn(
     Behaviour&& _behaviour,
-    const ActorExecutionConfig& _execution_config = get_default_execution_config()
+    const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
 
   auto spawn_link(
     Behaviour&& _behaviour,
     const Pid& _initial_link_pid,
-    const ActorExecutionConfig& _execution_config = get_default_execution_config()
+    const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
 
   auto process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
@@ -80,8 +81,8 @@ public:
 protected:
   auto _spawn(
     Behaviour&& _behaviour,
-    const ActorExecutionConfig& _execution_config = get_default_execution_config(),
-    const MaybePid& _initial_link_pid = std::experimental::nullopt
+    const MaybePid& _initial_link_pid = std::experimental::nullopt,
+    const ExecConfigCallback&& _exec_config_callback = nullptr
   ) -> Pid;
 
   auto terminate(const Pid& pid)

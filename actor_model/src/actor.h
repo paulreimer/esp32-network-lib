@@ -89,7 +89,7 @@ protected:
   Actor(
     const Pid& _pid,
     Behaviour&& _behaviour,
-    const ActorExecutionConfig& _execution_config,
+    const ActorExecutionConfig& execution_config,
     const MaybePid& initial_link_pid = std::experimental::nullopt,
     const ProcessDictionary::AncestorList&& _ancestors = {},
     Node* _current_node = nullptr
@@ -128,7 +128,6 @@ protected:
   Node* current_node = nullptr;
 
 private:
-  const ActorExecutionConfig* execution_config = nullptr;
   TaskHandle_t impl = nullptr;
   bool started = false;
 

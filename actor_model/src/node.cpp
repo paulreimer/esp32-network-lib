@@ -11,59 +11,58 @@
 
 namespace ActorModel {
 
-// Create an ActorExecutionConfig from default values in fbs schema
-const ActorExecutionConfig& get_default_execution_config()
-{
-  static flatbuffers::FlatBufferBuilder default_execution_config_fbb;
-  static const ActorExecutionConfig* default_execution_config = nullptr;
-
-  if (default_execution_config == nullptr)
-  {
-    auto default_execution_config_offset = CreateActorExecutionConfig(default_execution_config_fbb);
-    default_execution_config_fbb.Finish(default_execution_config_offset);
-    default_execution_config = flatbuffers::GetRoot<ActorExecutionConfig>(
-      default_execution_config_fbb.GetBufferPointer()
-    );
-  }
-
-  return *(default_execution_config);
-}
-
 Node::Node()
 {
 }
 
 auto Node::spawn(
   Behaviour&& _behaviour,
-  const ActorExecutionConfig& _execution_config
+  const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   return _spawn(
     std::move(_behaviour),
-    _execution_config
+    std::experimental::nullopt,
+    std::move(_exec_config_callback)
   );
 }
 
 auto Node::spawn_link(
   Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
-  const ActorExecutionConfig& _execution_config
+  const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   return _spawn(
     std::move(_behaviour),
-    _execution_config,
-    _initial_link_pid
+    _initial_link_pid,
+    std::move(_exec_config_callback)
   );
 }
 
 auto Node::_spawn(
   Behaviour&& _behaviour,
-  const ActorExecutionConfig& _execution_config,
-  const MaybePid& _initial_link_pid
+  const MaybePid& _initial_link_pid,
+  const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   auto child_pid = uuidgen();
+
+  // Create an custom (larger) execution config for RequestManager actor
+  flatbuffers::FlatBufferBuilder execution_config_fbb;
+  {
+    ActorExecutionConfigBuilder builder(execution_config_fbb);
+    if (_exec_config_callback)
+    {
+      _exec_config_callback(builder);
+    }
+    execution_config_fbb.Finish(builder.Finish());
+  }
+  auto* execution_config = (
+    flatbuffers::GetRoot<ActorExecutionConfig>(
+      execution_config_fbb.GetBufferPointer()
+    )
+  );
 
   printf("Spawn Pid %s\n", get_uuid_str(child_pid).c_str());
   auto inserted = process_registry.emplace(
@@ -72,7 +71,7 @@ auto Node::_spawn(
       new Actor{
         child_pid,
         std::move(_behaviour),
-        _execution_config,
+        *(execution_config),
         _initial_link_pid
       }
     }

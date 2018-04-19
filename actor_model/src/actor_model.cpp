@@ -14,27 +14,27 @@ using string_view = std::experimental::string_view;
 
 auto spawn(
   Behaviour&& _behaviour,
-  const ActorExecutionConfig& _execution_config
+  const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   auto& node = Actor::get_default_node();
   return node.spawn(
     std::move(_behaviour),
-    _execution_config
+    std::move(_exec_config_callback)
   );
 }
 
 auto spawn_link(
   Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
-  const ActorExecutionConfig& _execution_config
+  const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   auto& node = Actor::get_default_node();
   return node.spawn_link(
     std::move(_behaviour),
     _initial_link_pid,
-    _execution_config
+    std::move(_exec_config_callback)
   );
 }
 

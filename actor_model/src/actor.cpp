@@ -29,16 +29,15 @@ void actor_task(void* user_data = nullptr);
 Actor::Actor(
   const Pid& _pid,
   Behaviour&& _behaviour,
-  const ActorExecutionConfig& _execution_config,
+  const ActorExecutionConfig& execution_config,
   const MaybePid& initial_link_pid,
   const Actor::ProcessDictionary::AncestorList&& _ancestors,
   Node* _current_node
 )
 : pid(_pid)
 , behaviour(_behaviour)
-, mailbox(_execution_config.mailbox_size())
+, mailbox(execution_config.mailbox_size())
 , current_node(_current_node)
-, execution_config(&_execution_config)
 , started(false)
 {
   // Setup re-usable return object
@@ -58,8 +57,8 @@ Actor::Actor(
 
   auto task_name = get_uuid_str(pid).c_str();
 
-  const auto task_prio = execution_config->task_prio();
-  const auto task_stack_size = execution_config->task_stack_size();
+  const auto task_prio = execution_config.task_prio();
+  const auto task_stack_size = execution_config.task_stack_size();
   auto* task_user_data = this;
 
   auto retval = xTaskCreate(
