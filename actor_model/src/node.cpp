@@ -223,7 +223,6 @@ auto Node::terminate(const Pid& pid)
   )
   {
     // Instantiate a one-time function object to do the equality check
-    auto compare_uuids = UUIDEqualFunc{};
     if (compare_uuids(i->second, pid))
     {
       i = named_process_registry.erase(i);
