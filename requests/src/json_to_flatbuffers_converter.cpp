@@ -21,6 +21,8 @@ JsonToFlatbuffersConverter::JsonToFlatbuffersConverter(
 )
 : json_emitter(_match_path)
 {
+  flatbuffers_parser.opts.skip_unexpected_fields_in_json = true;
+
   parser_loaded = flatbuffers_parser.Parse(_flatbuffers_schema_text.data());
   if (parser_loaded and not _flatbuffers_root_type.empty())
   {
