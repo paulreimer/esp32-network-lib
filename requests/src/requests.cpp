@@ -6,7 +6,11 @@
  */
 #include "requests.h"
 
+#include "uuid.h"
+
 namespace Requests {
+
+using namespace ActorModel;
 
 using string_view = std::experimental::string_view;
 
@@ -64,7 +68,7 @@ auto update_request(
 }
 
 auto set_query_arg(
-  auto& query,
+  std::vector<std::unique_ptr<QueryPairT>>& query,
   string_view k,
   string_view v
 ) -> bool
@@ -90,6 +94,53 @@ auto set_query_arg(
   }
 
   return updated_existing_arg;
+}
+
+auto set_header(
+  std::vector<std::unique_ptr<HeaderPairT>>& headers,
+  string_view k,
+  string_view v
+) -> bool
+{
+  auto updated_existing_header = false;
+
+  for (auto& arg : headers)
+  {
+    if (arg->k == k)
+    {
+      arg->v.assign(v.data(), v.size());
+      updated_existing_header = true;
+    }
+  }
+
+  if (not updated_existing_header)
+  {
+    auto new_header = std::make_unique<HeaderPairT>();
+    new_header->k.assign(k.data(), k.size());
+    new_header->v.assign(v.data(), v.size());
+
+    headers.emplace_back(std::move(new_header));
+  }
+
+  return updated_existing_header;
+}
+
+auto parse_request_intent(
+  std::experimental::string_view req_fb
+) -> RequestIntentT
+{
+  RequestIntentT parsed_request_intent;
+
+  // Unpack flatbuffer into C++ object
+  auto fb = flatbuffers::GetRoot<RequestIntent>(
+    req_fb.data()
+  );
+  fb->UnPackTo(&parsed_request_intent);
+
+  // Generate a random ID for this request intent
+  uuidgen(parsed_request_intent.id);
+
+  return parsed_request_intent;
 }
 
 } // namespace ActorModel
