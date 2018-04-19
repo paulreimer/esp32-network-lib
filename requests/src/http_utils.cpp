@@ -9,7 +9,8 @@
  */
 #include "http_utils.h"
 
-#include <string>
+#include <algorithm>
+#include <cstdio>
 
 namespace Requests {
 
@@ -70,6 +71,55 @@ auto parse_http_status_line(string_view chunk)
 
   // Return the parsed code, or 0 if failed
   return code;
+}
+
+auto is_char_url_safe(char c)
+  -> bool
+{
+  return (
+    isalnum(c)
+    or c == '~'
+    or c == '-'
+    or c == '.'
+    or c == '_'
+  );
+}
+
+auto urlencode(std::experimental::string_view raw_str)
+  -> std::string
+{
+  string encoded_str;
+
+  // Count the number of chars that will be encoded
+  auto unsafe_char_count = std::count_if(
+    raw_str.begin(),
+    raw_str.end(),
+    [](char c) { return not is_char_url_safe(c); }
+  );
+
+  if (unsafe_char_count == 0)
+  {
+    // Return the provided string as-is
+    encoded_str.assign(raw_str.begin(), raw_str.end());
+  }
+  else {
+    // Create a string with the correct encoded size
+    // Each unsafe char is represented with 3 bytes, so account for 2 new ones
+    auto encoded_str_len = (raw_str.size() + (unsafe_char_count * 2));
+    encoded_str.resize(encoded_str_len);
+
+    // Encode raw_str into encoded_str
+    auto write_offset = 0;
+    for (const auto& c : raw_str)
+    {
+      auto safe = is_char_url_safe(c);
+      auto tag = (safe? "%c" : "%%%02X");
+      auto written_count = sprintf(&encoded_str[write_offset], tag, c);
+      write_offset += written_count;
+    }
+  }
+
+  return encoded_str;
 }
 
 } // namespace Requests
