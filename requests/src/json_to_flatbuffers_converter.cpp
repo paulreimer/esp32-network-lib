@@ -82,7 +82,11 @@ auto JsonToFlatbuffersConverter::parse(
           ));
         }
         else {
-          ESP_LOGE("JsonToFlatbuffersConverter", "Invalid flatcc builder");
+          ESP_LOGE(
+            "JsonToFlatbuffersConverter",
+            "Invalid flatbuffer: %s",
+            flatbuffers_parser.error_.c_str()
+          );
         }
       }
 
