@@ -66,4 +66,6 @@ table RequestIntent
   streaming:bool = false;
 }
 
+root_type RequestIntent;
+file_extension "fb";
 file_identifier "Req!";
