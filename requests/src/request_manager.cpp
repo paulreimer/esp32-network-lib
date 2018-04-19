@@ -9,6 +9,8 @@
  */
 #include "request_manager.h"
 
+#include "http_utils.h"
+
 #include <algorithm>
 
 #include <cstdio>
@@ -172,7 +174,7 @@ auto RequestManager::send(
     char delim = (req.uri.find_first_of('?') == string::npos)? '?' : '&';
     for (auto& arg : req.query)
     {
-      handler._req_url += delim + arg->k + '=' + arg->v;
+      handler._req_url += delim + urlencode(arg->k) + '=' + urlencode(arg->v);
       delim = '&';
     }
   }
