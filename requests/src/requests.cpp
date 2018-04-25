@@ -8,6 +8,10 @@
 
 #include "uuid.h"
 
+#include "actor_model.h"
+
+#include <utility>
+
 namespace Requests {
 
 using namespace ActorModel;
@@ -17,8 +21,8 @@ using string_view = std::experimental::string_view;
 auto make_request(
   string_view method,
   string_view uri,
-  std::vector<std::pair<string_view, string_view>> query,
-  std::vector<std::pair<string_view, string_view>> headers,
+  const std::vector<std::pair<string_view, string_view>>& query,
+  const std::vector<std::pair<string_view, string_view>>& headers,
   string_view body
 ) -> RequestT
 {
@@ -127,20 +131,33 @@ auto set_header(
 
 auto parse_request_intent(
   std::experimental::string_view req_fb
-) -> RequestIntentT
+) -> std::unique_ptr<RequestIntentT>
 {
-  RequestIntentT parsed_request_intent;
-
-  // Unpack flatbuffer into C++ object
-  auto fb = flatbuffers::GetRoot<RequestIntent>(
-    req_fb.data()
-  );
-  fb->UnPackTo(&parsed_request_intent);
+  auto parsed_request_intent = UnPackRequestIntent(req_fb.data());
 
   // Generate a random ID for this request intent
-  uuidgen(parsed_request_intent.id);
+  uuidgen(parsed_request_intent->id);
 
   return parsed_request_intent;
 }
 
-} // namespace ActorModel
+auto send_request(
+  const Pid& to_pid,
+  const RequestIntentT& request_intent
+) -> bool
+{
+  // Generate flatbuffer for nesting inside the parent Message
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(RequestIntent::Pack(fbb, &request_intent));
+
+  // Pack the nested flatbuffer and assign it as the message payload
+  string_view request_payload{
+    reinterpret_cast<const char*>(fbb.GetBufferPointer()),
+    fbb.GetSize()
+  };
+
+  // Send the request intent message
+  return send(to_pid, "request", request_payload);
+}
+
+} // namespace Requests

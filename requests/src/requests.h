@@ -6,10 +6,13 @@
  */
 #pragma once
 
+#include "pid.h"
+
 #include "requests_generated.h"
 
-#include <experimental/string_view>
+#include <utility>
 #include <vector>
+#include <experimental/string_view>
 
 namespace Requests {
 
@@ -52,6 +55,11 @@ auto set_header(
 
 auto parse_request_intent(
   std::experimental::string_view req_fb
-) -> RequestIntentT;
+) -> std::unique_ptr<RequestIntentT>;
+
+auto send_request(
+  const ActorModel::Pid& to_pid,
+  const Requests::RequestIntentT& request_intent
+) -> bool;
 
 } // namespace Requests
