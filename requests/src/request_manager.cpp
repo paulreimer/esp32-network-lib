@@ -33,6 +33,17 @@ mbedtls_x509_crt cacert;
 constexpr char TAG[] = "RequestManager";
 
 #ifdef REQUESTS_USE_CURL
+// Declaration:
+auto header_callback(char* buf, size_t size, size_t nitems, void* userdata)
+  -> size_t;
+
+auto writefunction(char *buf, size_t size, size_t nmemb, void* userdata)
+  -> size_t;
+
+auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
+  -> CURLcode;
+
+// Implementation:
 auto header_callback(char* buf, size_t size, size_t nitems, void* userdata)
   -> size_t
 {
@@ -56,6 +67,14 @@ auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
 #endif // REQUESTS_USE_CURL
 
 #ifdef REQUESTS_USE_SH2LIB
+// Declaration:
+auto recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
+  -> int;
+
+auto send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
+  -> int;
+
+// Implementation:
 auto recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
   -> int
 {

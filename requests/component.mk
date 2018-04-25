@@ -12,15 +12,13 @@ COMPONENT_ADD_INCLUDEDIRS := \
 
 COMPONENT_PRIV_INCLUDEDIRS := \
 	lib \
-	lib/yajl \
-	lib/zlib
+	lib/yajl
 
 COMPONENT_SRCDIRS := \
 	src \
 	src/gen \
 	lib \
-	lib/yajl/src \
-	lib/zlib
+	lib/yajl/src
 
 src/json_emitter.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
 src/request_handler.o: $(COMPONENT_PATH)/src/gen/requests_generated.h

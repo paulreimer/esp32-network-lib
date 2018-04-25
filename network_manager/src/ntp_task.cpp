@@ -31,8 +31,28 @@ static char ntp_server[] = "pool.ntp.org";
 
 using namespace std::chrono_literals;
 
-bool
-is_time_set()
+using TimeZone = date::zoned_time<
+  std::chrono::system_clock::duration,
+  Posix::time_zone
+>;
+
+auto is_time_set()
+  -> bool;
+
+auto obtain_time()
+  -> bool;
+
+auto initialize_sntp()
+  -> bool;
+
+auto to_tm(TimeZone tp)
+  -> std::tm;
+
+auto format_time(TimeZone tp, const std::string& fmt)
+  -> std::string;
+
+auto is_time_set()
+  -> bool
 {
   auto now = std::time(nullptr);
   auto* timeinfo = std::localtime(&now);

@@ -19,12 +19,12 @@ namespace Requests {
 auto make_request(
   std::experimental::string_view method,
   std::experimental::string_view uri,
-  std::vector<
+  const std::vector<
     std::pair<std::experimental::string_view, std::experimental::string_view>
-  > query = {},
-  std::vector<
+  >& query = {},
+  const std::vector<
     std::pair<std::experimental::string_view, std::experimental::string_view>
-  > headers = {},
+  >& headers = {},
   std::experimental::string_view body = ""
 ) -> RequestT;
 
