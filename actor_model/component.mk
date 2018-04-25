@@ -5,7 +5,8 @@
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
 	src/gen \
-	lib/sole
+	lib/sole \
+	lib/simple_match/include
 
 COMPONENT_SRCDIRS := \
 	src
