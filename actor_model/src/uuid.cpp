@@ -10,7 +10,7 @@
 
 namespace ActorModel {
 
-auto UUIDHashFunc:: operator()(const UUID& uuid) const
+auto UUIDHashFunc::operator()(const UUID& uuid) const
   -> std::size_t
 {
   return (
