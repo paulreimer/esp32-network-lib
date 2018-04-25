@@ -11,18 +11,20 @@
 
 #include "actor_model_generated.h"
 
+#include <experimental/string_view>
+
 namespace ActorModel {
 
 // free functions bound to default node
 auto spawn(
   Behaviour&& _behaviour,
-  const ExecConfigCallback&& _exec_config_callback
+  const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
 auto spawn_link(
   Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
-  const ExecConfigCallback&& _exec_config_callback
+  const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
 auto process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
@@ -48,5 +50,25 @@ auto registered()
 
 auto whereis(std::experimental::string_view name)
   -> MaybePid;
+
+template<typename TableObjT, class /* SFINAE */ = typename TableObjT::TableType>
+auto matches(
+  const ActorModel::Message& message,
+  std::experimental::string_view type,
+  TableObjT& obj
+) -> bool
+{
+  if (message.type() and message.type()->str() == type)
+  {
+    auto fb = flatbuffers::GetRoot<typename TableObjT::TableType>(
+      message.payload()->data()
+    );
+    fb->UnPackTo(&obj);
+
+    return true;
+  }
+
+  return false;
+}
 
 } // namespace ActorModel
