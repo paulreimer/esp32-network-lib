@@ -1,0 +1,110 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * All rights reserved.
+ *
+ */
+
+namespace GViz;
+
+enum DatatableColumnType : byte
+{
+  boolean,
+  number,
+  string,
+  date,
+  datetime,
+  timeofday,
+  unknown,
+}
+
+table DatatableCell
+{
+  v: string;
+}
+
+table DatatableRow
+{
+  c: [DatatableCell];
+}
+
+table DatatableColumn
+{
+  id: string;
+  label: string (key);
+  pattern: string;
+  type: DatatableColumnType;
+
+  // Custom field to account for column name concatenation
+  prefix: string;
+}
+
+table Datatable
+{
+  rows: [DatatableRow];
+  cols: [DatatableColumn];
+}
+
+table DatatableResponse
+{
+  version: string;
+  reqId: string;
+  status: string;
+  sig: string;
+  table: Datatable;
+}
+
+enum QueryOption : byte
+{
+  defaults,
+  no_format,
+  no_values,
+}
+
+enum WhereClauseOp : byte
+{
+  Equals,
+  NotEquals,
+  GreaterThan,
+  GreaterThanOrEqualTo,
+  LessThan,
+  LessThanOrEqualTo,
+  IsNull,
+  IsNotNull,
+  Contains,
+  StartsWith,
+  EndsWith,
+  Matches,
+  Like,
+}
+
+enum WhereClauseJoinOp : byte
+{
+  And,
+  Or,
+  Not,
+}
+
+table WhereClause
+{
+  join_op: WhereClauseJoinOp;
+  column: DatatableColumn;
+  op: WhereClauseOp;
+  value: string;
+}
+
+table Query
+{
+  select:[DatatableColumn];
+  where:[WhereClause];
+  group_by:[DatatableColumn];
+  pivot:[DatatableColumn];
+  order_by:[DatatableColumn];
+  limit:uint;
+  offset:uint;
+  options:QueryOption;
+}
+
+root_type Query;
+file_identifier "gviz";
+file_extension "fb";
