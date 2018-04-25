@@ -26,8 +26,11 @@ using namespace std::chrono_literals;
 
 constexpr char TAG[] = "NetworkCheck";
 
-esp_err_t
-ping_result_callback(ping_target_id_t msg_type, esp_ping_found * pf)
+auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found * pf)
+  -> esp_err_t;
+
+auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found * pf)
+  -> esp_err_t
 {
   printf(
     "AvgTime:%.1fmS Sent:%d Rec:%d Err:%d min(mS):%d max(mS):%d ",
@@ -49,8 +52,8 @@ ping_result_callback(ping_target_id_t msg_type, esp_ping_found * pf)
   return ESP_OK;
 }
 
-void
-network_check_task(void* /* user_data */)
+auto network_check_task(void* /* user_data */)
+  -> void
 {
   auto ping_count = 10;
   auto ping_timeout = 1s;

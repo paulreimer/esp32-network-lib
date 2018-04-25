@@ -21,20 +21,20 @@ struct NetworkInterfaceDetails
   ip4_addr_t netmask;
 };
 
-EventBits_t
-wait_for_network(const EventBits_t bits, TickType_t ticks_to_wait);
+auto wait_for_network(const EventBits_t bits, TickType_t ticks_to_wait)
+  -> EventBits_t;
 
-EventBits_t
-set_network(const EventBits_t bits);
+auto set_network(const EventBits_t bits)
+  -> EventBits_t;
 
-EventBits_t
-reset_network(const EventBits_t bits);
+auto reset_network(const EventBits_t bits)
+  -> EventBits_t;
 
-NetworkInterfaceDetails
-get_network_details();
+auto get_network_details()
+  -> NetworkInterfaceDetails;
 
-int
-get_wifi_connection_rssi(size_t samples);
+auto get_wifi_connection_rssi(size_t samples)
+  -> int;
 
 // The event group allows multiple bits for each event,
 // but we only care about one event - are we connected

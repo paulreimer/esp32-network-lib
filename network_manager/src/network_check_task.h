@@ -9,4 +9,5 @@
  */
 #pragma once
 
-void network_check_task(void* user_data = nullptr);
+auto network_check_task(void* user_data = nullptr)
+  -> void;

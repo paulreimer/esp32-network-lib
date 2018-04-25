@@ -29,8 +29,11 @@ constexpr auto EXAMPLE_WIFI_PASS = CONFIG_WIFI_PASSWORD;
 
 NetworkInterfaceDetails wifi_network_details;
 
-esp_err_t
-event_handler(void* /* ctx */,  system_event_t* event)
+auto event_handler(void* /* ctx */,  system_event_t* event)
+  -> esp_err_t;
+
+auto event_handler(void* /* ctx */,  system_event_t* event)
+  -> esp_err_t
 {
   switch(event->event_id) {
     case SYSTEM_EVENT_STA_START:
@@ -60,14 +63,14 @@ event_handler(void* /* ctx */,  system_event_t* event)
   return ESP_OK;
 }
 
-NetworkInterfaceDetails
-get_network_details()
+auto get_network_details()
+  -> NetworkInterfaceDetails
 {
   return wifi_network_details;
 }
 
-void
-wifi_task(void* /* user_data */)
+auto wifi_task(void* /* user_data */)
+  -> void
 {
   tcpip_adapter_init();
 

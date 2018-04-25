@@ -40,8 +40,8 @@ is_time_set()
   return (timeinfo->tm_year >= (2016 - 1900));
 }
 
-bool
-obtain_time()
+auto obtain_time()
+  -> bool
 {
   // Wait for time to be set
   const int retry_count = 10;
@@ -60,8 +60,8 @@ obtain_time()
   return false;
 }
 
-bool
-initialize_sntp()
+auto initialize_sntp()
+  -> bool
 {
   ESP_LOGI(TAG, "Initializing NTP");
   sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -71,15 +71,10 @@ initialize_sntp()
   return true;
 }
 
-using TimeZone = date::zoned_time<
-  std::chrono::system_clock::duration,
-  Posix::time_zone
->;
-
 // from: https://github.com/HowardHinnant/date/wiki/Examples-and-Recipes
 // modified slightly
-std::tm
-to_tm(TimeZone tp)
+auto to_tm(TimeZone tp)
+  -> std::tm
 {
   using namespace date;
   using namespace std;
@@ -101,8 +96,8 @@ to_tm(TimeZone tp)
   return t;
 }
 
-std::string
-format_time(TimeZone tp, const std::string& fmt)
+auto format_time(TimeZone tp, const std::string& fmt)
+  -> std::string
 {
   // Create an empty buffer
   std::string buf(64, '\0');
@@ -124,8 +119,8 @@ format_time(TimeZone tp, const std::string& fmt)
   return buf;
 }
 
-void
-ntp_task(void* /* user_data */)
+auto ntp_task(void* /* user_data */)
+  -> void
 {
   if (is_time_set())
   {
