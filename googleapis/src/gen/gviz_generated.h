@@ -9,25 +9,18 @@
 namespace GViz {
 
 struct DatatableCell;
-struct DatatableCellT;
 
 struct DatatableRow;
-struct DatatableRowT;
 
 struct DatatableColumn;
-struct DatatableColumnT;
 
 struct Datatable;
-struct DatatableT;
 
 struct DatatableResponse;
-struct DatatableResponseT;
 
 struct WhereClause;
-struct WhereClauseT;
 
 struct Query;
-struct QueryT;
 
 inline const flatbuffers::TypeTable *DatatableCellTypeTable();
 
@@ -213,18 +206,7 @@ inline const char *EnumNameWhereClauseJoinOp(WhereClauseJoinOp e) {
   return EnumNamesWhereClauseJoinOp()[index];
 }
 
-struct DatatableCellT : public flatbuffers::NativeTable {
-  typedef DatatableCell TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.DatatableCellT";
-  }
-  std::string v;
-  DatatableCellT() {
-  }
-};
-
 struct DatatableCell FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef DatatableCellT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return DatatableCellTypeTable();
   }
@@ -246,9 +228,6 @@ struct DatatableCell FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(v()) &&
            verifier.EndTable();
   }
-  DatatableCellT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(DatatableCellT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<DatatableCell> Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableCellT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct DatatableCellBuilder {
@@ -285,20 +264,7 @@ inline flatbuffers::Offset<DatatableCell> CreateDatatableCellDirect(
       v ? _fbb.CreateString(v) : 0);
 }
 
-flatbuffers::Offset<DatatableCell> CreateDatatableCell(flatbuffers::FlatBufferBuilder &_fbb, const DatatableCellT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct DatatableRowT : public flatbuffers::NativeTable {
-  typedef DatatableRow TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.DatatableRowT";
-  }
-  std::vector<std::unique_ptr<DatatableCellT>> c;
-  DatatableRowT() {
-  }
-};
-
 struct DatatableRow FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef DatatableRowT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return DatatableRowTypeTable();
   }
@@ -321,9 +287,6 @@ struct DatatableRow FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfTables(c()) &&
            verifier.EndTable();
   }
-  DatatableRowT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(DatatableRowT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<DatatableRow> Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableRowT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct DatatableRowBuilder {
@@ -360,25 +323,7 @@ inline flatbuffers::Offset<DatatableRow> CreateDatatableRowDirect(
       c ? _fbb.CreateVector<flatbuffers::Offset<DatatableCell>>(*c) : 0);
 }
 
-flatbuffers::Offset<DatatableRow> CreateDatatableRow(flatbuffers::FlatBufferBuilder &_fbb, const DatatableRowT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct DatatableColumnT : public flatbuffers::NativeTable {
-  typedef DatatableColumn TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.DatatableColumnT";
-  }
-  std::string id;
-  std::string label;
-  std::string pattern;
-  DatatableColumnType type;
-  std::string prefix;
-  DatatableColumnT()
-      : type(DatatableColumnType::boolean) {
-  }
-};
-
 struct DatatableColumn FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef DatatableColumnT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return DatatableColumnTypeTable();
   }
@@ -441,9 +386,6 @@ struct DatatableColumn FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(prefix()) &&
            verifier.EndTable();
   }
-  DatatableColumnT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(DatatableColumnT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<DatatableColumn> Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableColumnT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct DatatableColumnBuilder {
@@ -509,21 +451,7 @@ inline flatbuffers::Offset<DatatableColumn> CreateDatatableColumnDirect(
       prefix ? _fbb.CreateString(prefix) : 0);
 }
 
-flatbuffers::Offset<DatatableColumn> CreateDatatableColumn(flatbuffers::FlatBufferBuilder &_fbb, const DatatableColumnT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct DatatableT : public flatbuffers::NativeTable {
-  typedef Datatable TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.DatatableT";
-  }
-  std::vector<std::unique_ptr<DatatableRowT>> rows;
-  std::vector<std::unique_ptr<DatatableColumnT>> cols;
-  DatatableT() {
-  }
-};
-
 struct Datatable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef DatatableT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return DatatableTypeTable();
   }
@@ -556,9 +484,6 @@ struct Datatable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfTables(cols()) &&
            verifier.EndTable();
   }
-  DatatableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(DatatableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Datatable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct DatatableBuilder {
@@ -602,24 +527,7 @@ inline flatbuffers::Offset<Datatable> CreateDatatableDirect(
       cols ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*cols) : 0);
 }
 
-flatbuffers::Offset<Datatable> CreateDatatable(flatbuffers::FlatBufferBuilder &_fbb, const DatatableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct DatatableResponseT : public flatbuffers::NativeTable {
-  typedef DatatableResponse TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.DatatableResponseT";
-  }
-  std::string version;
-  std::string reqId;
-  std::string status;
-  std::string sig;
-  std::unique_ptr<DatatableT> table;
-  DatatableResponseT() {
-  }
-};
-
 struct DatatableResponse FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef DatatableResponseT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return DatatableResponseTypeTable();
   }
@@ -677,9 +585,6 @@ struct DatatableResponse FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(table()) &&
            verifier.EndTable();
   }
-  DatatableResponseT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(DatatableResponseT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<DatatableResponse> Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableResponseT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct DatatableResponseBuilder {
@@ -744,25 +649,7 @@ inline flatbuffers::Offset<DatatableResponse> CreateDatatableResponseDirect(
       table);
 }
 
-flatbuffers::Offset<DatatableResponse> CreateDatatableResponse(flatbuffers::FlatBufferBuilder &_fbb, const DatatableResponseT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct WhereClauseT : public flatbuffers::NativeTable {
-  typedef WhereClause TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.WhereClauseT";
-  }
-  WhereClauseJoinOp join_op;
-  std::unique_ptr<DatatableColumnT> column;
-  WhereClauseOp op;
-  std::string value;
-  WhereClauseT()
-      : join_op(WhereClauseJoinOp::And),
-        op(WhereClauseOp::Equals) {
-  }
-};
-
 struct WhereClause FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef WhereClauseT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WhereClauseTypeTable();
   }
@@ -809,9 +696,6 @@ struct WhereClause FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(value()) &&
            verifier.EndTable();
   }
-  WhereClauseT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(WhereClauseT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<WhereClause> Pack(flatbuffers::FlatBufferBuilder &_fbb, const WhereClauseT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct WhereClauseBuilder {
@@ -869,30 +753,7 @@ inline flatbuffers::Offset<WhereClause> CreateWhereClauseDirect(
       value ? _fbb.CreateString(value) : 0);
 }
 
-flatbuffers::Offset<WhereClause> CreateWhereClause(flatbuffers::FlatBufferBuilder &_fbb, const WhereClauseT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct QueryT : public flatbuffers::NativeTable {
-  typedef Query TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "GViz.QueryT";
-  }
-  std::vector<std::unique_ptr<DatatableColumnT>> select;
-  std::vector<std::unique_ptr<WhereClauseT>> where;
-  std::vector<std::unique_ptr<DatatableColumnT>> group_by;
-  std::vector<std::unique_ptr<DatatableColumnT>> pivot;
-  std::vector<std::unique_ptr<DatatableColumnT>> order_by;
-  uint32_t limit;
-  uint32_t offset;
-  QueryOption options;
-  QueryT()
-      : limit(0),
-        offset(0),
-        options(QueryOption::defaults) {
-  }
-};
-
 struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef QueryT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return QueryTypeTable();
   }
@@ -979,9 +840,6 @@ struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int8_t>(verifier, VT_OPTIONS) &&
            verifier.EndTable();
   }
-  QueryT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(QueryT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Query> Pack(flatbuffers::FlatBufferBuilder &_fbb, const QueryT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct QueryBuilder {
@@ -1065,247 +923,6 @@ inline flatbuffers::Offset<Query> CreateQueryDirect(
       limit,
       offset,
       options);
-}
-
-flatbuffers::Offset<Query> CreateQuery(flatbuffers::FlatBufferBuilder &_fbb, const QueryT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-inline DatatableCellT *DatatableCell::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new DatatableCellT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void DatatableCell::UnPackTo(DatatableCellT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = v(); if (_e) _o->v = _e->str(); };
-}
-
-inline flatbuffers::Offset<DatatableCell> DatatableCell::Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableCellT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDatatableCell(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<DatatableCell> CreateDatatableCell(flatbuffers::FlatBufferBuilder &_fbb, const DatatableCellT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const DatatableCellT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _v = _o->v.empty() ? 0 : _fbb.CreateString(_o->v);
-  return GViz::CreateDatatableCell(
-      _fbb,
-      _v);
-}
-
-inline DatatableRowT *DatatableRow::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new DatatableRowT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void DatatableRow::UnPackTo(DatatableRowT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = c(); if (_e) { _o->c.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->c[_i] = std::unique_ptr<DatatableCellT>(_e->Get(_i)->UnPack(_resolver)); } } };
-}
-
-inline flatbuffers::Offset<DatatableRow> DatatableRow::Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableRowT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDatatableRow(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<DatatableRow> CreateDatatableRow(flatbuffers::FlatBufferBuilder &_fbb, const DatatableRowT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const DatatableRowT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _c = _o->c.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableCell>> (_o->c.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableCell(*__va->__fbb, __va->__o->c[i].get(), __va->__rehasher); }, &_va ) : 0;
-  return GViz::CreateDatatableRow(
-      _fbb,
-      _c);
-}
-
-inline DatatableColumnT *DatatableColumn::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new DatatableColumnT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void DatatableColumn::UnPackTo(DatatableColumnT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = id(); if (_e) _o->id = _e->str(); };
-  { auto _e = label(); if (_e) _o->label = _e->str(); };
-  { auto _e = pattern(); if (_e) _o->pattern = _e->str(); };
-  { auto _e = type(); _o->type = _e; };
-  { auto _e = prefix(); if (_e) _o->prefix = _e->str(); };
-}
-
-inline flatbuffers::Offset<DatatableColumn> DatatableColumn::Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableColumnT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDatatableColumn(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<DatatableColumn> CreateDatatableColumn(flatbuffers::FlatBufferBuilder &_fbb, const DatatableColumnT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const DatatableColumnT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _id = _o->id.empty() ? 0 : _fbb.CreateString(_o->id);
-  auto _label = _fbb.CreateString(_o->label);
-  auto _pattern = _o->pattern.empty() ? 0 : _fbb.CreateString(_o->pattern);
-  auto _type = _o->type;
-  auto _prefix = _o->prefix.empty() ? 0 : _fbb.CreateString(_o->prefix);
-  return GViz::CreateDatatableColumn(
-      _fbb,
-      _id,
-      _label,
-      _pattern,
-      _type,
-      _prefix);
-}
-
-inline DatatableT *Datatable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new DatatableT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Datatable::UnPackTo(DatatableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = rows(); if (_e) { _o->rows.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->rows[_i] = std::unique_ptr<DatatableRowT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = cols(); if (_e) { _o->cols.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->cols[_i] = std::unique_ptr<DatatableColumnT>(_e->Get(_i)->UnPack(_resolver)); } } };
-}
-
-inline flatbuffers::Offset<Datatable> Datatable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDatatable(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Datatable> CreateDatatable(flatbuffers::FlatBufferBuilder &_fbb, const DatatableT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const DatatableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _rows = _o->rows.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableRow>> (_o->rows.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableRow(*__va->__fbb, __va->__o->rows[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _cols = _o->cols.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>> (_o->cols.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableColumn(*__va->__fbb, __va->__o->cols[i].get(), __va->__rehasher); }, &_va ) : 0;
-  return GViz::CreateDatatable(
-      _fbb,
-      _rows,
-      _cols);
-}
-
-inline DatatableResponseT *DatatableResponse::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new DatatableResponseT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void DatatableResponse::UnPackTo(DatatableResponseT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = version(); if (_e) _o->version = _e->str(); };
-  { auto _e = reqId(); if (_e) _o->reqId = _e->str(); };
-  { auto _e = status(); if (_e) _o->status = _e->str(); };
-  { auto _e = sig(); if (_e) _o->sig = _e->str(); };
-  { auto _e = table(); if (_e) _o->table = std::unique_ptr<DatatableT>(_e->UnPack(_resolver)); };
-}
-
-inline flatbuffers::Offset<DatatableResponse> DatatableResponse::Pack(flatbuffers::FlatBufferBuilder &_fbb, const DatatableResponseT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDatatableResponse(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<DatatableResponse> CreateDatatableResponse(flatbuffers::FlatBufferBuilder &_fbb, const DatatableResponseT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const DatatableResponseT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _version = _o->version.empty() ? 0 : _fbb.CreateString(_o->version);
-  auto _reqId = _o->reqId.empty() ? 0 : _fbb.CreateString(_o->reqId);
-  auto _status = _o->status.empty() ? 0 : _fbb.CreateString(_o->status);
-  auto _sig = _o->sig.empty() ? 0 : _fbb.CreateString(_o->sig);
-  auto _table = _o->table ? CreateDatatable(_fbb, _o->table.get(), _rehasher) : 0;
-  return GViz::CreateDatatableResponse(
-      _fbb,
-      _version,
-      _reqId,
-      _status,
-      _sig,
-      _table);
-}
-
-inline WhereClauseT *WhereClause::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new WhereClauseT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void WhereClause::UnPackTo(WhereClauseT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = join_op(); _o->join_op = _e; };
-  { auto _e = column(); if (_e) _o->column = std::unique_ptr<DatatableColumnT>(_e->UnPack(_resolver)); };
-  { auto _e = op(); _o->op = _e; };
-  { auto _e = value(); if (_e) _o->value = _e->str(); };
-}
-
-inline flatbuffers::Offset<WhereClause> WhereClause::Pack(flatbuffers::FlatBufferBuilder &_fbb, const WhereClauseT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateWhereClause(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<WhereClause> CreateWhereClause(flatbuffers::FlatBufferBuilder &_fbb, const WhereClauseT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const WhereClauseT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _join_op = _o->join_op;
-  auto _column = _o->column ? CreateDatatableColumn(_fbb, _o->column.get(), _rehasher) : 0;
-  auto _op = _o->op;
-  auto _value = _o->value.empty() ? 0 : _fbb.CreateString(_o->value);
-  return GViz::CreateWhereClause(
-      _fbb,
-      _join_op,
-      _column,
-      _op,
-      _value);
-}
-
-inline QueryT *Query::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new QueryT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Query::UnPackTo(QueryT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = select(); if (_e) { _o->select.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->select[_i] = std::unique_ptr<DatatableColumnT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = where(); if (_e) { _o->where.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->where[_i] = std::unique_ptr<WhereClauseT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = group_by(); if (_e) { _o->group_by.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->group_by[_i] = std::unique_ptr<DatatableColumnT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = pivot(); if (_e) { _o->pivot.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->pivot[_i] = std::unique_ptr<DatatableColumnT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = order_by(); if (_e) { _o->order_by.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->order_by[_i] = std::unique_ptr<DatatableColumnT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = limit(); _o->limit = _e; };
-  { auto _e = offset(); _o->offset = _e; };
-  { auto _e = options(); _o->options = _e; };
-}
-
-inline flatbuffers::Offset<Query> Query::Pack(flatbuffers::FlatBufferBuilder &_fbb, const QueryT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateQuery(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Query> CreateQuery(flatbuffers::FlatBufferBuilder &_fbb, const QueryT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const QueryT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _select = _o->select.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>> (_o->select.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableColumn(*__va->__fbb, __va->__o->select[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _where = _o->where.size() ? _fbb.CreateVector<flatbuffers::Offset<WhereClause>> (_o->where.size(), [](size_t i, _VectorArgs *__va) { return CreateWhereClause(*__va->__fbb, __va->__o->where[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _group_by = _o->group_by.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>> (_o->group_by.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableColumn(*__va->__fbb, __va->__o->group_by[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _pivot = _o->pivot.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>> (_o->pivot.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableColumn(*__va->__fbb, __va->__o->pivot[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _order_by = _o->order_by.size() ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>> (_o->order_by.size(), [](size_t i, _VectorArgs *__va) { return CreateDatatableColumn(*__va->__fbb, __va->__o->order_by[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _limit = _o->limit;
-  auto _offset = _o->offset;
-  auto _options = _o->options;
-  return GViz::CreateQuery(
-      _fbb,
-      _select,
-      _where,
-      _group_by,
-      _pivot,
-      _order_by,
-      _limit,
-      _offset,
-      _options);
 }
 
 inline const flatbuffers::TypeTable *DatatableColumnTypeTypeTable() {
@@ -1613,12 +1230,6 @@ inline void FinishSizePrefixedQueryBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<GViz::Query> root) {
   fbb.FinishSizePrefixed(root, QueryIdentifier());
-}
-
-inline std::unique_ptr<QueryT> UnPackQuery(
-    const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return std::unique_ptr<QueryT>(GetQuery(buf)->UnPack(res));
 }
 
 }  // namespace GViz
