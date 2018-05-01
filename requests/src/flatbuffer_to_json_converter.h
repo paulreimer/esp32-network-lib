@@ -36,8 +36,8 @@ public:
   auto to_json(
     flatcc_builder_t builder,
     char* NS_X_identifier,
-    NS_X_print_json_as_root_T&& NS_X_print_json_as_root,
-    NS_X_verify_as_root_T&& NS_X_verify_as_root
+    const NS_X_print_json_as_root_T&& NS_X_print_json_as_root,
+    const NS_X_verify_as_root_T&& NS_X_verify_as_root
   ) -> string
   {
     string json_str;
@@ -75,10 +75,10 @@ public:
   template <typename NS_X_print_json_as_root_T, typename NS_X_verify_as_root_T>
   static
   auto to_json(
-    string_view chunk,
-    char* NS_X_identifier,
-    NS_X_print_json_as_root_T&& NS_X_print_json_as_root,
-    NS_X_verify_as_root_T&& NS_X_verify_as_root
+    const string_view chunk,
+    const char* NS_X_identifier,
+    const NS_X_print_json_as_root_T&& NS_X_print_json_as_root,
+    const NS_X_verify_as_root_T&& NS_X_verify_as_root
   ) -> string
   {
     string json_str;

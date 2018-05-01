@@ -14,7 +14,7 @@ using string_view = std::experimental::string_view;
 
 Mailbox::AddressRegistry Mailbox::address_registry;
 
-Mailbox::Mailbox(size_t _mailbox_size)
+Mailbox::Mailbox(const size_t _mailbox_size)
 : address(uuidgen())
 , mailbox_size(_mailbox_size)
 , impl{xRingbufferCreate(mailbox_size, RINGBUF_TYPE_NOSPLIT)}
@@ -90,7 +90,7 @@ auto Mailbox::send(const Message& message)
 }
 
 //TODO (@paulreimer): make this a non-blocking send (or allow custom timeout)
-auto Mailbox::send(string_view type, string_view payload)
+auto Mailbox::send(const string_view type, const string_view payload)
   -> bool
 {
   using std::chrono::microseconds;
@@ -204,7 +204,7 @@ auto Mailbox::receive_raw()
   return message;
 }
 
-auto Mailbox::release(string_view message)
+auto Mailbox::release(const string_view message)
   -> bool
 {
   if (impl)

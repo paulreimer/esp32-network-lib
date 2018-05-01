@@ -324,7 +324,7 @@ auto RequestHandler::read_callback(size_t max_chunk_size)
 }
 #endif // REQUESTS_USE_SH2LIB
 
-auto RequestHandler::header_callback(string_view chunk)
+auto RequestHandler::header_callback(const string_view chunk)
   -> size_t
 {
   // Parse header for HTTP version and response code

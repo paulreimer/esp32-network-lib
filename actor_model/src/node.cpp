@@ -16,7 +16,7 @@ Node::Node()
 }
 
 auto Node::spawn(
-  Behaviour&& _behaviour,
+  const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
@@ -28,7 +28,7 @@ auto Node::spawn(
 }
 
 auto Node::spawn_link(
-  Behaviour&& _behaviour,
+  const Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
@@ -41,7 +41,7 @@ auto Node::spawn_link(
 }
 
 auto Node::_spawn(
-  Behaviour&& _behaviour,
+  const Behaviour&& _behaviour,
   const MaybePid& _initial_link_pid,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
@@ -89,8 +89,11 @@ auto Node::_spawn(
   return child_pid;
 }
 
-auto Node::process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
-  -> bool
+auto Node::process_flag(
+  const Pid& pid,
+  const ProcessFlag flag,
+  const bool flag_setting
+) -> bool
 {
   const auto& process_iter = process_registry.find(pid);
   if (process_iter != process_registry.end())
@@ -119,7 +122,11 @@ auto Node::send(const Pid& pid, const Message& message)
   return false;
 }
 
-auto Node::send(const Pid& pid, string_view type, string_view payload)
+auto Node::send(
+  const Pid& pid,
+  const string_view type,
+  const string_view payload
+)
   -> bool
 {
   const auto& process_iter = process_registry.find(pid);
@@ -197,7 +204,7 @@ auto Node::signal(const Pid& pid, const Signal& sig)
   return false;
 }
 
-auto Node::register_name(string_view name, const Pid& pid)
+auto Node::register_name(const string_view name, const Pid& pid)
   -> bool
 {
   auto inserted = named_process_registry.emplace(string{name}, pid);
@@ -205,7 +212,7 @@ auto Node::register_name(string_view name, const Pid& pid)
   return inserted.second;
 }
 
-auto Node::unregister(string_view name)
+auto Node::unregister(const string_view name)
   -> bool
 {
   auto erased = named_process_registry.erase(string{name});
@@ -244,7 +251,7 @@ auto Node::registered()
   return named_process_registry;
 }
 
-auto Node::whereis(string_view name)
+auto Node::whereis(const string_view name)
   -> MaybePid
 {
   const auto& pid_iter = named_process_registry.find(string{name});

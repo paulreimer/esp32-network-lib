@@ -40,7 +40,7 @@ public:
   using JsonParserPtr = std::unique_ptr<yajl_handle_t, void(*)(yajl_handle_t*)>;
   using JsonGenPtr = std::unique_ptr<yajl_gen_t, void(*)(yajl_gen_t*)>;
 
-  JsonEmitter(string_view match_path_str);
+  JsonEmitter(const string_view match_path_str);
   JsonEmitter(const JsonPath& _match_path={});
   ~JsonEmitter() = default;
 
@@ -52,7 +52,7 @@ public:
     -> bool;
 
   auto parse(
-    string_view chunk,
+    const string_view chunk,
     Callback&& _callback,
     Errback&& _errback
   ) -> bool;
@@ -65,13 +65,13 @@ protected:
 public:
   auto on_json_parse_null()
     -> int;
-  auto on_json_parse_boolean(int b)
+  auto on_json_parse_boolean(const int b)
     -> int;
-  auto on_json_parse_number(const char* s, size_t l)
+  auto on_json_parse_number(const char* s, const size_t l)
     -> int;
-  auto on_json_parse_string(const unsigned char* s, size_t l)
+  auto on_json_parse_string(const unsigned char* s, const size_t l)
     -> int;
-  auto on_json_parse_map_key(const unsigned char* s, size_t l)
+  auto on_json_parse_map_key(const unsigned char* s, const size_t l)
     -> int;
   auto on_json_parse_start_map()
     -> int;
@@ -94,7 +94,7 @@ private:
     -> bool;
 
   // Emit JSON if path components are matched
-  JsonPath match_path;
+  const JsonPath match_path;
 
   // Input parsing state
   JsonPath current_path;

@@ -59,9 +59,9 @@ auto JsonToFlatbuffersConverter::has_parse_state()
 }
 
 auto JsonToFlatbuffersConverter::parse(
-  string_view chunk,
-  Callback&& callback,
-  Errback&& errback
+  const string_view chunk,
+  const Callback&& callback,
+  const Errback&& errback
 ) -> bool
 {
   return json_emitter.parse(chunk,

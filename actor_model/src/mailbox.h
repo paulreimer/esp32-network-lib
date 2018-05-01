@@ -35,13 +35,13 @@ public:
     UUIDEqualFunc
   >;
 
-  explicit Mailbox(size_t _mailbox_size = 4096);
+  explicit Mailbox(const size_t _mailbox_size = 4096);
   ~Mailbox();
 
   auto send(const Message& message)
     -> bool;
 
-  auto send(string_view type, string_view payload)
+  auto send(const string_view type, const string_view payload)
     -> bool;
 
   auto receive()
@@ -50,7 +50,7 @@ public:
   auto receive_raw()
     -> string_view;
 
-  auto release(string_view message)
+  auto release(const string_view message)
     -> bool;
 
   const Address address;
@@ -66,8 +66,8 @@ protected:
 
   static auto send(
     const Address& address,
-    string_view type,
-    string_view payload
+    const string_view type,
+    const string_view payload
   ) -> bool;
 
   static AddressRegistry address_registry;

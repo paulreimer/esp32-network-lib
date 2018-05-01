@@ -11,8 +11,8 @@ using string = std::string;
 
 auto get_column_from_label(
   const DatatableColumns* cols,
-  string_view match_name,
-  string_view prefix
+  const string_view match_name,
+  const string_view prefix
 ) -> const DatatableColumn*
 {
   constexpr char wildcard_delim = '*';

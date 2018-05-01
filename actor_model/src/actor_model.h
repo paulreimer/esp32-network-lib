@@ -17,44 +17,47 @@ namespace ActorModel {
 
 // free functions bound to default node
 auto spawn(
-  Behaviour&& _behaviour,
+  const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
 auto spawn_link(
-  Behaviour&& _behaviour,
+  const Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
-auto process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
-  -> bool;
+auto process_flag(
+  const Pid& pid,
+  const ProcessFlag flag,
+  const bool flag_setting
+) -> bool;
 
 auto send(const Pid& pid, const Message& message)
   -> bool;
 
 auto send(
   const Pid& pid,
-  std::experimental::string_view type,
-  std::experimental::string_view payload
+  const std::experimental::string_view type,
+  const std::experimental::string_view payload
 ) -> bool;
 
-auto register_name(std::experimental::string_view name, const Pid& pid)
+auto register_name(const std::experimental::string_view name, const Pid& pid)
   -> bool;
 
-auto unregister(std::experimental::string_view name)
+auto unregister(const std::experimental::string_view name)
   -> bool;
 
 auto registered()
   -> const Node::NamedProcessRegistry;
 
-auto whereis(std::experimental::string_view name)
+auto whereis(const std::experimental::string_view name)
   -> MaybePid;
 
 template<typename TableObjT, class /* SFINAE */ = typename TableObjT::TableType>
 auto matches(
   const ActorModel::Message& message,
-  std::experimental::string_view type,
+  const std::experimental::string_view type,
   TableObjT& obj
 ) -> bool
 {

@@ -44,43 +44,46 @@ public:
   Node();
 
   auto spawn(
-    Behaviour&& _behaviour,
+    const Behaviour&& _behaviour,
     const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
 
   auto spawn_link(
-    Behaviour&& _behaviour,
+    const Behaviour&& _behaviour,
     const Pid& _initial_link_pid,
     const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
 
-  auto process_flag(const Pid& pid, ProcessFlag flag, bool flag_setting)
-    -> bool;
+  auto process_flag(
+    const Pid& pid,
+    const ProcessFlag flag,
+    const bool flag_setting
+  ) -> bool;
 
   auto send(const Pid& pid, const Message& message)
     -> bool;
 
   auto send(
     const Pid& pid,
-    string_view type,
-    string_view payload
+    const string_view type,
+    const string_view payload
   ) -> bool;
 
-  auto register_name(string_view name, const Pid& pid)
+  auto register_name(const string_view name, const Pid& pid)
     -> bool;
 
-  auto unregister(string_view name)
+  auto unregister(const string_view name)
     -> bool;
 
   auto registered()
     -> const NamedProcessRegistry;
 
-  auto whereis(string_view name)
+  auto whereis(const string_view name)
     -> MaybePid;
 
 protected:
   auto _spawn(
-    Behaviour&& _behaviour,
+    const Behaviour&& _behaviour,
     const MaybePid& _initial_link_pid = std::experimental::nullopt,
     const ExecConfigCallback&& _exec_config_callback = nullptr
   ) -> Pid;

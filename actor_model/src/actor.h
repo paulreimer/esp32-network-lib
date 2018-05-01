@@ -72,13 +72,13 @@ public:
     -> ResultUnion;
 
   //TODO: these should not exist here, they should take a Pid:
-  auto exit(Reason exit_reason)
+  auto exit(const Reason exit_reason)
     -> bool;
-  auto exit(const Pid& pid2, Reason exit_reason)
+  auto exit(const Pid& pid2, const Reason exit_reason)
     -> bool;
   auto send(const Message& message)
     -> bool;
-  auto send(string_view type, string_view payload)
+  auto send(const string_view type, const string_view payload)
     -> bool;
   auto link(const Pid& pid2)
     -> bool;
@@ -88,17 +88,17 @@ public:
 protected:
   Actor(
     const Pid& _pid,
-    Behaviour&& _behaviour,
+    const Behaviour&& _behaviour,
     const ActorExecutionConfig& execution_config,
     const MaybePid& initial_link_pid = std::experimental::nullopt,
     const ProcessDictionary::AncestorList&& _ancestors = {},
-    Node* _current_node = nullptr
+    Node* const _current_node = nullptr
   );
 
-  auto process_flag(ProcessFlag flag, bool flag_setting)
+  auto process_flag(const ProcessFlag flag, const bool flag_setting)
     -> bool;
 
-  auto get_process_flag(ProcessFlag flag)
+  auto get_process_flag(const ProcessFlag flag)
     -> bool;
 
   auto get_current_node()
@@ -125,7 +125,7 @@ protected:
   const Signal* poison_pill = nullptr;
   flatbuf poison_pill_flatbuf;
 
-  Node* current_node = nullptr;
+  Node* const current_node = nullptr;
 
 private:
   TaskHandle_t impl = nullptr;

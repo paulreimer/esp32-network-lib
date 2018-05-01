@@ -50,9 +50,9 @@ public:
     -> bool;
 
   auto parse(
-    string_view chunk,
-    Callback&& callback,
-    Errback&& errback
+    const string_view chunk,
+    const Callback&& callback,
+    const Errback&& errback
   ) -> bool;
 
 protected:

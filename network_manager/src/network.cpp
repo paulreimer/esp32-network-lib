@@ -20,7 +20,7 @@ using namespace std::chrono_literals;
 // FreeRTOS event group to signal when we are connected & ready
 EventGroupHandle_t network_event_group;
 
-auto wait_for_network(const EventBits_t bits, TickType_t ticks_to_wait)
+auto wait_for_network(const EventBits_t bits, const TickType_t ticks_to_wait)
   -> EventBits_t
 {
   return xEventGroupWaitBits(
@@ -44,7 +44,7 @@ auto reset_network(const EventBits_t bits)
   return xEventGroupClearBits(network_event_group, bits);
 }
 
-auto get_wifi_connection_rssi(size_t samples)
+auto get_wifi_connection_rssi(const size_t samples)
   -> int
 {
   wifi_ap_record_t current_ap_info;

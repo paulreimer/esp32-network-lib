@@ -13,13 +13,18 @@
 namespace Requests {
 
 bool
-has_feature(auto features, auto feature_flag)
+has_feature(const auto features, const auto feature_flag)
 {
   return (features & feature_flag);
 }
 
 bool
-print_check_feature(auto TAG, auto features, auto feature_flag, auto feature_name)
+print_check_feature(
+  const auto TAG,
+  const auto features,
+  const auto feature_flag,
+  const auto feature_name
+)
 {
   auto supported = has_feature(features, feature_flag);
   ESP_LOGI(TAG, "- %s%s supported", feature_name, supported? "" : " NOT");

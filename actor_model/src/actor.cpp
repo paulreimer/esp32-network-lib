@@ -28,11 +28,11 @@ void actor_task(void* user_data = nullptr);
 
 Actor::Actor(
   const Pid& _pid,
-  Behaviour&& _behaviour,
+  const Behaviour&& _behaviour,
   const ActorExecutionConfig& execution_config,
   const MaybePid& initial_link_pid,
   const Actor::ProcessDictionary::AncestorList&& _ancestors,
-  Node* _current_node
+  Node* const _current_node
 )
 : pid(_pid)
 , behaviour(_behaviour)
@@ -95,7 +95,7 @@ Actor::~Actor()
   }
 }
 
-auto Actor::exit(Reason exit_reason)
+auto Actor::exit(const Reason exit_reason)
   -> bool
 {
   auto& node = get_current_node();
@@ -132,7 +132,7 @@ auto Actor::exit(Reason exit_reason)
 }
 
 // Send a signal as if the caller had exited, but do not affect the caller
-auto Actor::exit(const Pid& pid2, Reason exit_reason)
+auto Actor::exit(const Pid& pid2, const Reason exit_reason)
   -> bool
 {
   auto& node = get_current_node();
@@ -245,7 +245,7 @@ auto Actor::send(const Message& message)
   return did_send;
 }
 
-auto Actor::send(string_view type, string_view payload)
+auto Actor::send(const string_view type, const string_view payload)
   -> bool
 {
   auto did_send = mailbox.send(type, payload);
@@ -308,7 +308,7 @@ auto Actor::unlink(const Pid& pid2)
   return false;
 }
 
-auto Actor::process_flag(ProcessFlag flag, bool flag_setting)
+auto Actor::process_flag(const ProcessFlag flag, const bool flag_setting)
   -> bool
 {
   auto inserted = process_flags.emplace(flag, flag_setting);
@@ -316,7 +316,7 @@ auto Actor::process_flag(ProcessFlag flag, bool flag_setting)
   return inserted.second;
 }
 
-auto Actor::get_process_flag(ProcessFlag flag)
+auto Actor::get_process_flag(const ProcessFlag flag)
   -> bool
 {
   const auto& process_flag_iter = process_flags.find(flag);

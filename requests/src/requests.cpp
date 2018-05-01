@@ -19,11 +19,11 @@ using namespace ActorModel;
 using string_view = std::experimental::string_view;
 
 auto make_request(
-  string_view method,
-  string_view uri,
+  const string_view method,
+  const string_view uri,
   const std::vector<std::pair<string_view, string_view>>& query,
   const std::vector<std::pair<string_view, string_view>>& headers,
-  string_view body
+  const string_view body
 ) -> RequestT
 {
   RequestT req{};
@@ -42,11 +42,11 @@ auto make_request(
 
 auto update_request(
   RequestT& req,
-  string_view method,
-  string_view uri,
-  std::vector<std::pair<string_view, string_view>> query,
-  std::vector<std::pair<string_view, string_view>> headers,
-  string_view body
+  const string_view method,
+  const string_view uri,
+  const std::vector<std::pair<string_view, string_view>>& query,
+  const std::vector<std::pair<string_view, string_view>>& headers,
+  const string_view body
 ) -> void
 {
   req.method.assign(method.data(), method.size());
@@ -73,8 +73,8 @@ auto update_request(
 
 auto set_query_arg(
   std::vector<std::unique_ptr<QueryPairT>>& query,
-  string_view k,
-  string_view v
+  const string_view k,
+  const string_view v
 ) -> bool
 {
   auto updated_existing_arg = false;
@@ -102,8 +102,8 @@ auto set_query_arg(
 
 auto set_header(
   std::vector<std::unique_ptr<HeaderPairT>>& headers,
-  string_view k,
-  string_view v
+  const string_view k,
+  const string_view v
 ) -> bool
 {
   auto updated_existing_header = false;
@@ -130,7 +130,7 @@ auto set_header(
 }
 
 auto parse_request_intent(
-  std::experimental::string_view req_fb
+  const std::experimental::string_view req_fb
 ) -> std::unique_ptr<RequestIntentT>
 {
   auto parsed_request_intent = UnPackRequestIntent(req_fb.data());

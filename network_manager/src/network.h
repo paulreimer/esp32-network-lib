@@ -21,7 +21,7 @@ struct NetworkInterfaceDetails
   ip4_addr_t netmask;
 };
 
-auto wait_for_network(const EventBits_t bits, TickType_t ticks_to_wait)
+auto wait_for_network(const EventBits_t bits, const TickType_t ticks_to_wait)
   -> EventBits_t;
 
 auto set_network(const EventBits_t bits)
@@ -33,7 +33,7 @@ auto reset_network(const EventBits_t bits)
 auto get_network_details()
   -> NetworkInterfaceDetails;
 
-auto get_wifi_connection_rssi(size_t samples)
+auto get_wifi_connection_rssi(const size_t samples)
   -> int;
 
 // The event group allows multiple bits for each event,

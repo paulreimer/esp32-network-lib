@@ -19,7 +19,7 @@ using string = std::string;
 
 // Extract the HTTP response code from a matching header
 // return 0 otherwise
-auto parse_http_status_line(string_view chunk)
+auto parse_http_status_line(const string_view chunk)
   -> int
 {
   int code = 0;
@@ -73,7 +73,7 @@ auto parse_http_status_line(string_view chunk)
   return code;
 }
 
-auto is_char_url_safe(char c)
+auto is_char_url_safe(const char c)
   -> bool
 {
   return (
@@ -85,7 +85,7 @@ auto is_char_url_safe(char c)
   );
 }
 
-auto urlencode(std::experimental::string_view raw_str)
+auto urlencode(const std::experimental::string_view raw_str)
   -> std::string
 {
   string encoded_str;

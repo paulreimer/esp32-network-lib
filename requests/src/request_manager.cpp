@@ -605,7 +605,7 @@ auto RequestManager::add_cacert_pem(string_view cacert_pem)
   return false;
 }
 
-auto RequestManager::add_cacert_der(string_view cacert_der)
+auto RequestManager::add_cacert_der(const string_view cacert_der)
   -> bool
 {
 #ifdef REQUESTS_USE_CURL

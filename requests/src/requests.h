@@ -17,44 +17,44 @@
 namespace Requests {
 
 auto make_request(
-  std::experimental::string_view method,
-  std::experimental::string_view uri,
+  const std::experimental::string_view method,
+  const std::experimental::string_view uri,
   const std::vector<
     std::pair<std::experimental::string_view, std::experimental::string_view>
   >& query = {},
   const std::vector<
     std::pair<std::experimental::string_view, std::experimental::string_view>
   >& headers = {},
-  std::experimental::string_view body = ""
+  const std::experimental::string_view body = ""
 ) -> RequestT;
 
 auto update_request(
   RequestT& req,
-  std::experimental::string_view method,
-  std::experimental::string_view uri,
-  std::vector<
+  const std::experimental::string_view method,
+  const std::experimental::string_view uri,
+  const std::vector<
     std::pair<std::experimental::string_view, std::experimental::string_view>
-  > query = {},
-  std::vector<
+  >& query = {},
+  const std::vector<
     std::pair<std::experimental::string_view, std::experimental::string_view>
-  > headers = {},
-  std::experimental::string_view body = ""
+  >& headers = {},
+  const std::experimental::string_view body = ""
 ) -> void;
 
 auto set_query_arg(
   std::vector<std::unique_ptr<QueryPairT>>& query,
-  std::experimental::string_view k,
-  std::experimental::string_view v
+  const std::experimental::string_view k,
+  const std::experimental::string_view v
 ) -> bool;
 
 auto set_header(
   std::vector<std::unique_ptr<HeaderPairT>>& headers,
-  std::experimental::string_view k,
-  std::experimental::string_view v
+  const std::experimental::string_view k,
+  const std::experimental::string_view v
 ) -> bool;
 
 auto parse_request_intent(
-  std::experimental::string_view req_fb
+  const std::experimental::string_view req_fb
 ) -> std::unique_ptr<RequestIntentT>;
 
 auto send_request(

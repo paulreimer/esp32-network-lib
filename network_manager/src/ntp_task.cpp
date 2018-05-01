@@ -45,10 +45,10 @@ auto obtain_time()
 auto initialize_sntp()
   -> bool;
 
-auto to_tm(TimeZone tp)
+auto to_tm(const TimeZone tp)
   -> std::tm;
 
-auto format_time(TimeZone tp, const std::string& fmt)
+auto format_time(const TimeZone tp, const std::string& fmt)
   -> std::string;
 
 auto is_time_set()
@@ -93,7 +93,7 @@ auto initialize_sntp()
 
 // from: https://github.com/HowardHinnant/date/wiki/Examples-and-Recipes
 // modified slightly
-auto to_tm(TimeZone tp)
+auto to_tm(const TimeZone tp)
   -> std::tm
 {
   using namespace date;
@@ -116,7 +116,7 @@ auto to_tm(TimeZone tp)
   return t;
 }
 
-auto format_time(TimeZone tp, const std::string& fmt)
+auto format_time(const TimeZone tp, const std::string& fmt)
   -> std::string
 {
   // Create an empty buffer

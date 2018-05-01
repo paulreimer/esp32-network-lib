@@ -191,7 +191,7 @@ auto apply_map_workaround(
   );
 }
 
-JsonEmitter::JsonEmitter(string_view match_path_str)
+JsonEmitter::JsonEmitter(const string_view match_path_str)
 : match_path(parse_json_path(match_path_str))
 , json_parser{yajl_alloc(&json_parse_callbacks, nullptr, this), yajl_free}
 , json_gen{yajl_gen_alloc(nullptr), yajl_gen_free}
@@ -253,7 +253,7 @@ auto JsonEmitter::has_parse_state()
 }
 
 auto JsonEmitter::parse(
-  string_view chunk,
+  const string_view chunk,
   Callback&& _callback,
   Errback&& _errback
 )
@@ -329,7 +329,7 @@ auto JsonEmitter::on_json_parse_null()
   return ok;
 }
 
-auto JsonEmitter::on_json_parse_boolean(int b)
+auto JsonEmitter::on_json_parse_boolean(const int b)
   -> int
 {
   auto ok = true;
@@ -377,7 +377,7 @@ auto JsonEmitter::on_json_parse_number(const char* s, size_t l)
   return ok;
 }
 
-auto JsonEmitter::on_json_parse_string(const unsigned char* s, size_t l)
+auto JsonEmitter::on_json_parse_string(const unsigned char* s, const size_t l)
   -> int
 {
   auto ok = true;
@@ -409,7 +409,7 @@ auto JsonEmitter::on_json_parse_string(const unsigned char* s, size_t l)
   return ok;
 }
 
-auto JsonEmitter::on_json_parse_map_key(const unsigned char* s, size_t l)
+auto JsonEmitter::on_json_parse_map_key(const unsigned char* s, const size_t l)
   -> int
 {
   auto ok = true;
@@ -590,22 +590,23 @@ auto JsonEmitter::on_json_parse_end_array()
   return ok;
 }
 
-auto JsonEmitter::parse_json_path(string_view json_path_str)
+auto JsonEmitter::parse_json_path(const string_view json_path_str)
   -> JsonPath
 {
   JsonPath json_path;
 
+  auto unparsed_json_path_str = json_path_str;
   // Check for initial key
-  auto delim_pos = json_path_str.find_first_of(".[");
+  auto delim_pos = unparsed_json_path_str.find_first_of(".[");
   while (delim_pos != string::npos)
   {
-    delim_pos = json_path_str.find_first_of(".[");
-    auto is_array_delim = (json_path_str.at(delim_pos) == '[');
+    delim_pos = unparsed_json_path_str.find_first_of(".[");
+    auto is_array_delim = (unparsed_json_path_str.at(delim_pos) == '[');
 
     // Handle '[?]', possibly with string key
     if (is_array_delim)
     {
-      auto next_char = json_path_str.at(delim_pos+1);
+      auto next_char = unparsed_json_path_str.at(delim_pos+1);
       auto is_string_key = (
         next_char == '\''
         or next_char == '"'
@@ -613,10 +614,13 @@ auto JsonEmitter::parse_json_path(string_view json_path_str)
 
       auto end_delim = is_string_key? next_char : ']';
       int key_start_pos = is_string_key? delim_pos+2 : delim_pos+1;
-      int key_end_pos = json_path_str.find_first_of(end_delim, key_start_pos);
+      int key_end_pos = unparsed_json_path_str.find_first_of(
+        end_delim,
+        key_start_pos
+      );
       auto final_char = is_string_key? key_end_pos+1 : key_end_pos;
 
-      auto key = json_path_str.substr(
+      auto key = unparsed_json_path_str.substr(
         key_start_pos,
         key_end_pos - key_start_pos
       );
@@ -632,15 +636,21 @@ auto JsonEmitter::parse_json_path(string_view json_path_str)
         json_path.emplace_back(index);
       }
 
-      json_path_str = json_path_str.substr(final_char+1, string::npos);
+      unparsed_json_path_str = unparsed_json_path_str.substr(
+        final_char+1,
+        string::npos
+      );
     }
 
     // Handle '.?'
     else {
       auto key_start_pos = delim_pos+1;
-      auto key_end_pos = json_path_str.find_first_of(".[", key_start_pos);
+      auto key_end_pos = unparsed_json_path_str.find_first_of(
+        ".[",
+        key_start_pos
+      );
 
-      auto key = json_path_str.substr(
+      auto key = unparsed_json_path_str.substr(
         key_start_pos,
         key_end_pos - key_start_pos
       );
@@ -651,7 +661,10 @@ auto JsonEmitter::parse_json_path(string_view json_path_str)
       // Continuing parsing the rest of the path, if any
       if (key_end_pos != string::npos)
       {
-        json_path_str = json_path_str.substr(key_end_pos, string::npos);
+        unparsed_json_path_str = unparsed_json_path_str.substr(
+          key_end_pos,
+          string::npos
+        );
       }
       // Exit the loop if no delimiters found
       else {
