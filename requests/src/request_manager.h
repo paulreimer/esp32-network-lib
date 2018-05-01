@@ -58,8 +58,11 @@ public:
     RequestHandler& handler
   ) -> bool;
 
+  auto wait_any()
+    -> size_t;
+
   auto wait_all()
-    -> bool;
+    -> size_t;
 
   auto add_cacert_pem(string_view cacert_pem)
     -> bool;

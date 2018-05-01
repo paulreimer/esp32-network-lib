@@ -440,36 +440,33 @@ auto RequestManager::send(
   return false;
 }
 
-auto RequestManager::wait_all()
-  -> bool
+auto RequestManager::wait_any()
+  -> size_t
 {
-  bool any_done = false;
-
 #ifdef REQUESTS_USE_CURL
   int inflight_count;
   int MAX_WAIT_MSECS = (5*1000);
 
+  // Do a bit of work, if any, before waiting
   curl_multi_perform(multi_handle.get(), &inflight_count);
 
-  do {
-    int numfds = 0;
-    int res = curl_multi_wait(
-      multi_handle.get(),
-      nullptr,
-      0,
-      MAX_WAIT_MSECS,
-      &numfds
-    );
+  int numfds = 0;
+  int res = curl_multi_wait(
+    multi_handle.get(),
+    nullptr,
+    0,
+    MAX_WAIT_MSECS,
+    &numfds
+  );
 
-    if (res != CURLM_OK)
-    {
-      ESP_LOGE(TAG, "error: curl_multi_wait() returned %d", res);
-      return false;
-    }
-
-    curl_multi_perform(multi_handle.get(), &inflight_count);
+  if (res != CURLM_OK)
+  {
+    ESP_LOGE(TAG, "error: curl_multi_wait() returned %d", res);
+    return false;
   }
-  while (inflight_count > 0);
+
+  // Perform the work that after waiting
+  curl_multi_perform(multi_handle.get(), &inflight_count);
 
   int msgs_left;
   CURLMsg* msg = nullptr;
@@ -493,7 +490,6 @@ auto RequestManager::wait_all()
       // If a matching request handle was found
       if (done_req != requests.end())
       {
-        any_done = true;
         auto& handler = done_req->second;
         auto response_code = handler.res.code;
 
@@ -554,7 +550,6 @@ auto RequestManager::wait_all()
 
       if (handler.finished)
       {
-        any_done = true;
         req_iter = requests.erase(req_iter);
         ESP_LOGI(TAG, "Deleted completed request handle successfully");
         continue;
@@ -566,7 +561,16 @@ auto RequestManager::wait_all()
   }
 #endif // REQUESTS_USE_SH2LIB
 
-  return any_done;
+  return requests.size();
+}
+
+auto RequestManager::wait_all()
+  -> size_t
+{
+  while (wait_any())
+  {}
+
+  return requests.size();
 }
 
 auto RequestManager::add_cacert_pem(string_view cacert_pem)

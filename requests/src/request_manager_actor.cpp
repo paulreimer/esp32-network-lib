@@ -58,7 +58,13 @@ auto request_manager_behaviour(
     }
   }
 
-  requests.wait_all();
+  auto requests_remaining = requests.wait_any();
+
+  if (requests_remaining > 0)
+  {
+    // Re-trigger ourselves with an arbitrary message
+    send(self, "tick", "");
+  }
 
   //return self;
   return Ok;
