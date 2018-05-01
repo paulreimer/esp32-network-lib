@@ -60,6 +60,29 @@ auto registered()
 auto whereis(const std::experimental::string_view name)
   -> MaybePid;
 
+template<typename TableT>
+auto matches(
+  const ActorModel::Message& message,
+  const std::experimental::string_view type,
+  const TableT*& ptr
+) -> bool
+{
+  if (message.type() and message.type()->str() == type)
+  {
+    auto fb = flatbuffers::GetRoot<TableT>(
+      message.payload()->data()
+    );
+
+    if (fb)
+    {
+      ptr = fb;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 template<typename TableObjT, class /* SFINAE */ = typename TableObjT::TableType>
 auto matches(
   const ActorModel::Message& message,
