@@ -7,5 +7,5 @@
 auto get_free_heap_size()
   -> size_t;
 
-auto heap_check(std::experimental::string_view msg)
+auto heap_check(const std::experimental::string_view msg)
   -> void;

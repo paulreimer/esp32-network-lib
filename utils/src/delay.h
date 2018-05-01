@@ -6,7 +6,7 @@
 #include "freertos/task.h"
 
 inline TickType_t
-timeout(auto duration)
+timeout(const auto duration)
 {
   return (
     std::chrono::milliseconds(duration).count()
@@ -15,7 +15,7 @@ timeout(auto duration)
 }
 
 inline void
-delay(auto duration)
+delay(const auto duration)
 {
   vTaskDelay(timeout(duration));
 }
