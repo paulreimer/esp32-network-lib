@@ -83,7 +83,7 @@ RequestHandler::~RequestHandler()
 #endif // REQUESTS_USE_CURL
 }
 
-auto RequestHandler::write_callback(string_view chunk)
+auto RequestHandler::write_callback(const string_view chunk)
   -> size_t
 {
   if (request_intent.to_pid)
@@ -306,7 +306,7 @@ auto RequestHandler::finish_callback()
 }
 
 #ifdef REQUESTS_USE_SH2LIB
-auto RequestHandler::read_callback(size_t max_chunk_size)
+auto RequestHandler::read_callback(const size_t max_chunk_size)
   -> string_view
 {
   auto& req = request_intent.request;

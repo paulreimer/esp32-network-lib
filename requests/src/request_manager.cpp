@@ -573,7 +573,7 @@ auto RequestManager::wait_all()
   return requests.size();
 }
 
-auto RequestManager::add_cacert_pem(string_view cacert_pem)
+auto RequestManager::add_cacert_pem(const string_view cacert_pem)
   -> bool
 {
 #ifdef REQUESTS_USE_CURL

@@ -64,9 +64,9 @@ public:
   auto wait_all()
     -> size_t;
 
-  auto add_cacert_pem(string_view cacert_pem)
+  auto add_cacert_pem(const string_view cacert_pem)
     -> bool;
-  auto add_cacert_der(string_view cacert_der)
+  auto add_cacert_der(const string_view cacert_der)
     -> bool;
 
 #ifdef REQUESTS_USE_CURL
