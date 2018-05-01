@@ -42,6 +42,12 @@ auto send(
   const std::experimental::string_view payload
 ) -> bool;
 
+auto send(
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const flatbuffers::DetachedBuffer& flatbuf_payload
+) -> bool;
+
 auto register_name(const std::experimental::string_view name, const Pid& pid)
   -> bool;
 

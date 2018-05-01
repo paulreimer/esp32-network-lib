@@ -9,6 +9,7 @@
 namespace ActorModel {
 
 using string_view = std::experimental::string_view;
+using DetachedBuffer = flatbuffers::DetachedBuffer;
 
 // free functions bound to default node
 
@@ -59,6 +60,21 @@ auto send(const Pid& pid, const string_view type, const string_view payload)
   -> bool
 {
   auto& node = Actor::get_default_node();
+  return node.send(pid, type, payload);
+}
+
+auto send(
+  const Pid& pid,
+  const string_view type,
+  const DetachedBuffer& flatbuf_payload
+)
+  -> bool
+{
+  auto& node = Actor::get_default_node();
+  auto payload = string_view(
+    reinterpret_cast<const char*>(flatbuf_payload.data()),
+    flatbuf_payload.size()
+  );
   return node.send(pid, type, payload);
 }
 
