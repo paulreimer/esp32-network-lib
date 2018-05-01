@@ -17,8 +17,8 @@ using WhereClauses = flatbuffers::Vector<
 
 auto get_column_from_label(
   const DatatableColumns* cols,
-  std::experimental::string_view match_label,
-  std::experimental::string_view prefix = ""
+  const std::experimental::string_view match_label,
+  const std::experimental::string_view prefix = ""
 ) -> const GViz::DatatableColumn*;
 
 auto mutate_value(
