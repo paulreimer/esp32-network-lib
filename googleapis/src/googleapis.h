@@ -21,6 +21,11 @@ auto get_column_from_label(
   std::experimental::string_view prefix = ""
 ) -> const GViz::DatatableColumn*;
 
+auto mutate_value(
+  const std::experimental::string_view from_value,
+  flatbuffers::String* to_value
+) -> bool;
+
 auto update_column(
   const DatatableColumns* from_cols,
   GViz::DatatableColumn* to_col

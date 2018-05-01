@@ -73,6 +73,32 @@ auto get_column_from_label(
   return col;
 }
 
+auto mutate_value(
+  const std::experimental::string_view from_value,
+  flatbuffers::String* to_value
+) -> bool
+{
+  bool did_update = false;
+  // Overwrite the contents of existing buffer
+  memset(
+    to_value->data(),
+    //0x00,
+    ' ',
+    to_value->size()
+  );
+
+  // Copy the column id
+  strncpy(
+    to_value->data(),
+    from_value.data(),
+    std::min(from_value.size(), to_value->size())
+  );
+
+  did_update = true;
+
+  return did_update;
+}
+
 auto update_column(
   const DatatableColumns* from_cols,
   DatatableColumn* to_col
@@ -109,21 +135,11 @@ auto update_column(
     // Update column id
     if (from_col->id()->size() > 0)
     {
-      // Overwrite the contents of existing buffer
-      memset(
-        to_col->mutable_id()->data(),
-        ' ',
-        to_col->id()->size()
-      );
-
-      // Copy the column id
-      strncpy(
-        to_col->mutable_id()->data(),
+      auto from_value = string_view{
         from_col->id()->data(),
-        std::min(from_col->id()->size(), to_col->id()->size())
-      );
-
-      did_update = true;
+        from_col->id()->size()
+      };
+      did_update = mutate_value(from_value, to_col->mutable_id());
     }
 
     // Update column type
