@@ -6,16 +6,10 @@
  */
 #include "actor.h"
 
-#include "delay.h"
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include <chrono>
-
 #include "esp_log.h"
-
-using namespace std::chrono_literals;
 
 namespace ActorModel {
 
