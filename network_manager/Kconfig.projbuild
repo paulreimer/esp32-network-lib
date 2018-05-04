@@ -1,13 +1,13 @@
-menu "Example Configuration"
+menu "Wifi Configuration"
 
 config WIFI_SSID
-    string "WiFi SSID"
+    string "Wifi SSID"
 	default "myssid"
 	help
 		SSID (network name) for the example to connect to.
 
 config WIFI_PASSWORD
-    string "WiFi Password"
+    string "Wifi Password"
 	default "myssid"
 	help
 		WiFi password (WPA or WPA2) for the example to use.
