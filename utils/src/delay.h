@@ -6,11 +6,11 @@
 #include "freertos/task.h"
 
 inline TickType_t
-timeout(const auto duration)
+timeout(const auto duration, const TickType_t time_base = portTICK_RATE_MS)
 {
   return (
     std::chrono::milliseconds(duration).count()
-    / portTICK_RATE_MS
+    / time_base
   );
 }
 
