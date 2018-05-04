@@ -39,7 +39,7 @@ auto send(const Pid& pid, const Message& message)
 auto send(
   const Pid& pid,
   const std::experimental::string_view type,
-  const std::experimental::string_view payload
+  const std::experimental::string_view payload = ""
 ) -> bool;
 
 auto send(
