@@ -313,7 +313,10 @@ auto JsonEmitter::on_json_parse_null()
   if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
-    ok = (yajl_gen_status_ok == yajl_gen_null(g));
+    //TODO: null is proper behaviour, but not accepted by flatbuffers parsing
+    //ok = (yajl_gen_status_ok == yajl_gen_null(g));
+    ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
+    ok = (yajl_gen_status_ok == yajl_gen_map_close(g));
   }
 
   // Check if we are an item in an array
