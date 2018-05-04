@@ -77,6 +77,7 @@ auto obtain_time()
   }
 
   ESP_LOGW(TAG, "Failed to set system time from NTP");
+  throw std::runtime_error("Failed to set system time from NTP");
   return false;
 }
 
