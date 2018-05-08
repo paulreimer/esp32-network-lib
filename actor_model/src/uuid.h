@@ -41,7 +41,13 @@ auto uuidgen()
 auto uuidgen(std::unique_ptr<UUID>& uuid_ptr)
   -> void;
 
+auto uuidgen(UUID* uuid_ptr)
+  -> void;
+
 auto update_uuid(std::unique_ptr<UUID>& uuid_ptr, const UUID& uuid)
+  -> void;
+
+auto update_uuid(UUID* uuid_ptr, const UUID& uuid)
   -> void;
 
 auto get_uuid_str(const UUID& uuid)

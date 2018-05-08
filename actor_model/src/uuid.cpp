@@ -67,6 +67,17 @@ auto uuidgen(std::unique_ptr<UUID>& uuid_ptr)
   });
 }
 
+auto uuidgen(UUID* uuid_ptr)
+  -> void
+{
+  if (uuid_ptr)
+  {
+    auto _uuid = sole::uuid4();
+    uuid_ptr->mutate_ab(_uuid.ab);
+    uuid_ptr->mutate_cd(_uuid.cd);
+  }
+}
+
 auto update_uuid(std::unique_ptr<UUID>& uuid_ptr, const UUID& uuid)
   -> void
 {
@@ -74,6 +85,16 @@ auto update_uuid(std::unique_ptr<UUID>& uuid_ptr, const UUID& uuid)
     uuid.ab(),
     uuid.cd()
   });
+}
+
+auto update_uuid(UUID* uuid_ptr, const UUID& uuid)
+  -> void
+{
+  if (uuid_ptr)
+  {
+    uuid_ptr->mutate_ab(uuid.ab());
+    uuid_ptr->mutate_cd(uuid.cd());
+  }
 }
 
 auto get_uuid_str(const UUID& uuid)
