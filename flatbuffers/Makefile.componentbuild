@@ -4,8 +4,11 @@ $(COMPILING_COMPONENT_PATH)/src/gen/%_generated.h: $(COMPILING_COMPONENT_PATH)/%
 	flatc --cpp -o $(@D) \
 		--scoped-enums \
 		--gen-mutable \
-		--gen-object-api \
 		--gen-name-strings \
 		--reflect-types \
 		--reflect-names \
+		$^
+
+$(COMPILING_COMPONENT_PATH)/src/gen/%.bfbs: $(COMPILING_COMPONENT_PATH)/%.fbs
+	flatc --schema -b -o $(@D) \
 		$^
