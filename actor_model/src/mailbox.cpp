@@ -44,10 +44,7 @@ auto Mailbox::send(const Message& message)
   // Serialize and send
   flatbuffers::FlatBufferBuilder fbb;
 
-  auto type_str = fbb.CreateString(
-    message.type()->data(),
-    message.type()->size()
-  );
+  auto type_str = fbb.CreateString(message.type()->string_view());
 
   // Allow for custom alignment values for the nested payload bytes
   if (message.payload_alignment())
@@ -112,7 +109,7 @@ auto Mailbox::send(const string_view type, const string_view payload)
   // Serialize and send
   flatbuffers::FlatBufferBuilder fbb;
 
-  auto type_str = fbb.CreateString(type.data(), type.size());
+  auto type_str = fbb.CreateString(type);
 
   // Allow for custom alignment values for the nested payload bytes
   if (payload_alignment)

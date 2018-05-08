@@ -98,10 +98,7 @@ auto Actor::exit(const Reason exit_reason)
   // So it can be sent to each linked process
   flatbuffers::FlatBufferBuilder fbb;
 
-  auto exit_reason_str = fbb.CreateString(
-    exit_reason.data(),
-    exit_reason.size()
-  );
+  auto exit_reason_str = fbb.CreateString(exit_reason);
 
   auto poison_pill_offset = CreateSignal(
     fbb,
@@ -133,10 +130,7 @@ auto Actor::exit(const Pid& pid2, const Reason exit_reason)
 
   flatbuffers::FlatBufferBuilder fbb;
 
-  auto exit_reason_str = fbb.CreateString(
-    exit_reason.data(),
-    exit_reason.size()
-  );
+  auto exit_reason_str = fbb.CreateString(exit_reason);
 
   auto exit_signal_offset = CreateSignal(
     fbb,

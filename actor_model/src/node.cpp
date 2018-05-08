@@ -162,7 +162,7 @@ auto Node::signal(const Pid& pid, const Signal& sig)
       // Exit signal of type KILL is the only exception, it should really kill
       if (
         process.get_process_flag(ProcessFlag::trap_exit)
-        and sig.reason()->str() != "KILL"
+        and sig.reason()->string_view() != "KILL"
       )
       {
         // Convert signal exit reason to message with EXIT type

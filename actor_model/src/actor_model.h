@@ -67,7 +67,7 @@ auto matches(
   const TableT*& ptr
 ) -> bool
 {
-  if (message.type() and message.type()->str() == type)
+  if (message.type() and message.type()->string_view() == type)
   {
     auto fb = flatbuffers::GetRoot<TableT>(
       message.payload()->data()
@@ -90,7 +90,7 @@ auto matches(
   TableObjT& obj
 ) -> bool
 {
-  if (message.type() and message.type()->str() == type)
+  if (message.type() and message.type()->string_view() == type)
   {
     auto fb = flatbuffers::GetRoot<typename TableObjT::TableType>(
       message.payload()->data()
