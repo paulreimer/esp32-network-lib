@@ -111,7 +111,7 @@ auto update_column(
     to_col
     and to_col->id()
     and to_col->id()->size() > 0
-    and to_col->id()->str().find_first_not_of('?') == std::string::npos
+    and to_col->id()->string_view().find_first_not_of('?') == std::string::npos
     and to_col->label()
   )
   {
