@@ -16,7 +16,7 @@
 
 namespace Requests {
 
-using namespace ActorModel;
+using ActorModel::uuidgen;
 
 using string = std::string;
 using string_view = std::experimental::string_view;

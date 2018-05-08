@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 
-using namespace GViz;
-
 namespace googleapis {
+
+using namespace GViz;
 
 using string_view = std::experimental::string_view;
 using string = std::string;
