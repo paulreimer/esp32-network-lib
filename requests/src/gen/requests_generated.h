@@ -11,19 +11,14 @@
 namespace Requests {
 
 struct QueryPair;
-struct QueryPairT;
 
 struct HeaderPair;
-struct HeaderPairT;
 
 struct Request;
-struct RequestT;
 
 struct Response;
-struct ResponseT;
 
 struct RequestIntent;
-struct RequestIntentT;
 
 inline const flatbuffers::TypeTable *QueryPairTypeTable();
 
@@ -99,19 +94,7 @@ inline const char *EnumNameResponseFilter(ResponseFilter e) {
   return EnumNamesResponseFilter()[index];
 }
 
-struct QueryPairT : public flatbuffers::NativeTable {
-  typedef QueryPair TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "Requests.QueryPairT";
-  }
-  std::string k;
-  std::string v;
-  QueryPairT() {
-  }
-};
-
 struct QueryPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef QueryPairT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return QueryPairTypeTable();
   }
@@ -142,9 +125,6 @@ struct QueryPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(v()) &&
            verifier.EndTable();
   }
-  QueryPairT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(QueryPairT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<QueryPair> Pack(flatbuffers::FlatBufferBuilder &_fbb, const QueryPairT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct QueryPairBuilder {
@@ -188,21 +168,7 @@ inline flatbuffers::Offset<QueryPair> CreateQueryPairDirect(
       v ? _fbb.CreateString(v) : 0);
 }
 
-flatbuffers::Offset<QueryPair> CreateQueryPair(flatbuffers::FlatBufferBuilder &_fbb, const QueryPairT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct HeaderPairT : public flatbuffers::NativeTable {
-  typedef HeaderPair TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "Requests.HeaderPairT";
-  }
-  std::string k;
-  std::string v;
-  HeaderPairT() {
-  }
-};
-
 struct HeaderPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef HeaderPairT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return HeaderPairTypeTable();
   }
@@ -233,9 +199,6 @@ struct HeaderPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(v()) &&
            verifier.EndTable();
   }
-  HeaderPairT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(HeaderPairT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<HeaderPair> Pack(flatbuffers::FlatBufferBuilder &_fbb, const HeaderPairT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct HeaderPairBuilder {
@@ -279,24 +242,7 @@ inline flatbuffers::Offset<HeaderPair> CreateHeaderPairDirect(
       v ? _fbb.CreateString(v) : 0);
 }
 
-flatbuffers::Offset<HeaderPair> CreateHeaderPair(flatbuffers::FlatBufferBuilder &_fbb, const HeaderPairT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct RequestT : public flatbuffers::NativeTable {
-  typedef Request TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "Requests.RequestT";
-  }
-  std::string method;
-  std::string uri;
-  std::string body;
-  std::vector<std::unique_ptr<QueryPairT>> query;
-  std::vector<std::unique_ptr<HeaderPairT>> headers;
-  RequestT() {
-  }
-};
-
 struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef RequestT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RequestTypeTable();
   }
@@ -356,9 +302,6 @@ struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfTables(headers()) &&
            verifier.EndTable();
   }
-  RequestT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(RequestT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Request> Pack(flatbuffers::FlatBufferBuilder &_fbb, const RequestT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct RequestBuilder {
@@ -423,25 +366,7 @@ inline flatbuffers::Offset<Request> CreateRequestDirect(
       headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0);
 }
 
-flatbuffers::Offset<Request> CreateRequest(flatbuffers::FlatBufferBuilder &_fbb, const RequestT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct ResponseT : public flatbuffers::NativeTable {
-  typedef Response TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "Requests.ResponseT";
-  }
-  int16_t code;
-  std::vector<std::unique_ptr<HeaderPairT>> headers;
-  std::string body;
-  std::string errbuf;
-  std::unique_ptr<UUID> request_id;
-  ResponseT()
-      : code(-1) {
-  }
-};
-
 struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef ResponseT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ResponseTypeTable();
   }
@@ -498,9 +423,6 @@ struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<UUID>(verifier, VT_REQUEST_ID) &&
            verifier.EndTable();
   }
-  ResponseT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ResponseT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<Response> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ResponseT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct ResponseBuilder {
@@ -565,31 +487,7 @@ inline flatbuffers::Offset<Response> CreateResponseDirect(
       request_id);
 }
 
-flatbuffers::Offset<Response> CreateResponse(flatbuffers::FlatBufferBuilder &_fbb, const ResponseT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct RequestIntentT : public flatbuffers::NativeTable {
-  typedef RequestIntent TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "Requests.RequestIntentT";
-  }
-  std::unique_ptr<UUID> id;
-  std::unique_ptr<RequestT> request;
-  std::unique_ptr<UUID> to_pid;
-  ResponseFilter desired_format;
-  std::string object_path;
-  std::string root_type;
-  std::string schema_text;
-  bool include_headers;
-  bool streaming;
-  RequestIntentT()
-      : desired_format(ResponseFilter::FullResponseBody),
-        include_headers(false),
-        streaming(false) {
-  }
-};
-
 struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef RequestIntentT NativeTableType;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RequestIntentTypeTable();
   }
@@ -678,9 +576,6 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_STREAMING) &&
            verifier.EndTable();
   }
-  RequestIntentT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(RequestIntentT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<RequestIntent> Pack(flatbuffers::FlatBufferBuilder &_fbb, const RequestIntentT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct RequestIntentBuilder {
@@ -771,192 +666,6 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
       schema_text ? _fbb.CreateString(schema_text) : 0,
       include_headers,
       streaming);
-}
-
-flatbuffers::Offset<RequestIntent> CreateRequestIntent(flatbuffers::FlatBufferBuilder &_fbb, const RequestIntentT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-inline QueryPairT *QueryPair::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new QueryPairT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void QueryPair::UnPackTo(QueryPairT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = k(); if (_e) _o->k = _e->str(); };
-  { auto _e = v(); if (_e) _o->v = _e->str(); };
-}
-
-inline flatbuffers::Offset<QueryPair> QueryPair::Pack(flatbuffers::FlatBufferBuilder &_fbb, const QueryPairT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateQueryPair(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<QueryPair> CreateQueryPair(flatbuffers::FlatBufferBuilder &_fbb, const QueryPairT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const QueryPairT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _k = _o->k.empty() ? 0 : _fbb.CreateString(_o->k);
-  auto _v = _o->v.empty() ? 0 : _fbb.CreateString(_o->v);
-  return Requests::CreateQueryPair(
-      _fbb,
-      _k,
-      _v);
-}
-
-inline HeaderPairT *HeaderPair::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new HeaderPairT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void HeaderPair::UnPackTo(HeaderPairT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = k(); if (_e) _o->k = _e->str(); };
-  { auto _e = v(); if (_e) _o->v = _e->str(); };
-}
-
-inline flatbuffers::Offset<HeaderPair> HeaderPair::Pack(flatbuffers::FlatBufferBuilder &_fbb, const HeaderPairT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateHeaderPair(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<HeaderPair> CreateHeaderPair(flatbuffers::FlatBufferBuilder &_fbb, const HeaderPairT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const HeaderPairT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _k = _o->k.empty() ? 0 : _fbb.CreateString(_o->k);
-  auto _v = _o->v.empty() ? 0 : _fbb.CreateString(_o->v);
-  return Requests::CreateHeaderPair(
-      _fbb,
-      _k,
-      _v);
-}
-
-inline RequestT *Request::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new RequestT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Request::UnPackTo(RequestT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = method(); if (_e) _o->method = _e->str(); };
-  { auto _e = uri(); if (_e) _o->uri = _e->str(); };
-  { auto _e = body(); if (_e) _o->body = _e->str(); };
-  { auto _e = query(); if (_e) { _o->query.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->query[_i] = std::unique_ptr<QueryPairT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = headers(); if (_e) { _o->headers.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->headers[_i] = std::unique_ptr<HeaderPairT>(_e->Get(_i)->UnPack(_resolver)); } } };
-}
-
-inline flatbuffers::Offset<Request> Request::Pack(flatbuffers::FlatBufferBuilder &_fbb, const RequestT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateRequest(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Request> CreateRequest(flatbuffers::FlatBufferBuilder &_fbb, const RequestT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const RequestT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _method = _o->method.empty() ? 0 : _fbb.CreateString(_o->method);
-  auto _uri = _o->uri.empty() ? 0 : _fbb.CreateString(_o->uri);
-  auto _body = _o->body.empty() ? 0 : _fbb.CreateString(_o->body);
-  auto _query = _o->query.size() ? _fbb.CreateVector<flatbuffers::Offset<QueryPair>> (_o->query.size(), [](size_t i, _VectorArgs *__va) { return CreateQueryPair(*__va->__fbb, __va->__o->query[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _headers = _o->headers.size() ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>> (_o->headers.size(), [](size_t i, _VectorArgs *__va) { return CreateHeaderPair(*__va->__fbb, __va->__o->headers[i].get(), __va->__rehasher); }, &_va ) : 0;
-  return Requests::CreateRequest(
-      _fbb,
-      _method,
-      _uri,
-      _body,
-      _query,
-      _headers);
-}
-
-inline ResponseT *Response::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ResponseT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void Response::UnPackTo(ResponseT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = code(); _o->code = _e; };
-  { auto _e = headers(); if (_e) { _o->headers.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->headers[_i] = std::unique_ptr<HeaderPairT>(_e->Get(_i)->UnPack(_resolver)); } } };
-  { auto _e = body(); if (_e) _o->body = _e->str(); };
-  { auto _e = errbuf(); if (_e) _o->errbuf = _e->str(); };
-  { auto _e = request_id(); if (_e) _o->request_id = std::unique_ptr<UUID>(new UUID(*_e)); };
-}
-
-inline flatbuffers::Offset<Response> Response::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ResponseT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateResponse(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<Response> CreateResponse(flatbuffers::FlatBufferBuilder &_fbb, const ResponseT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ResponseT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _code = _o->code;
-  auto _headers = _o->headers.size() ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>> (_o->headers.size(), [](size_t i, _VectorArgs *__va) { return CreateHeaderPair(*__va->__fbb, __va->__o->headers[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _body = _o->body.empty() ? 0 : _fbb.CreateString(_o->body);
-  auto _errbuf = _o->errbuf.empty() ? 0 : _fbb.CreateString(_o->errbuf);
-  auto _request_id = _o->request_id ? _o->request_id.get() : 0;
-  return Requests::CreateResponse(
-      _fbb,
-      _code,
-      _headers,
-      _body,
-      _errbuf,
-      _request_id);
-}
-
-inline RequestIntentT *RequestIntent::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new RequestIntentT();
-  UnPackTo(_o, _resolver);
-  return _o;
-}
-
-inline void RequestIntent::UnPackTo(RequestIntentT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = id(); if (_e) _o->id = std::unique_ptr<UUID>(new UUID(*_e)); };
-  { auto _e = request(); if (_e) _o->request = std::unique_ptr<RequestT>(_e->UnPack(_resolver)); };
-  { auto _e = to_pid(); if (_e) _o->to_pid = std::unique_ptr<UUID>(new UUID(*_e)); };
-  { auto _e = desired_format(); _o->desired_format = _e; };
-  { auto _e = object_path(); if (_e) _o->object_path = _e->str(); };
-  { auto _e = root_type(); if (_e) _o->root_type = _e->str(); };
-  { auto _e = schema_text(); if (_e) _o->schema_text = _e->str(); };
-  { auto _e = include_headers(); _o->include_headers = _e; };
-  { auto _e = streaming(); _o->streaming = _e; };
-}
-
-inline flatbuffers::Offset<RequestIntent> RequestIntent::Pack(flatbuffers::FlatBufferBuilder &_fbb, const RequestIntentT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateRequestIntent(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<RequestIntent> CreateRequestIntent(flatbuffers::FlatBufferBuilder &_fbb, const RequestIntentT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const RequestIntentT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _id = _o->id ? _o->id.get() : 0;
-  auto _request = _o->request ? CreateRequest(_fbb, _o->request.get(), _rehasher) : 0;
-  auto _to_pid = _o->to_pid ? _o->to_pid.get() : 0;
-  auto _desired_format = _o->desired_format;
-  auto _object_path = _o->object_path.empty() ? 0 : _fbb.CreateString(_o->object_path);
-  auto _root_type = _o->root_type.empty() ? 0 : _fbb.CreateString(_o->root_type);
-  auto _schema_text = _o->schema_text.empty() ? 0 : _fbb.CreateString(_o->schema_text);
-  auto _include_headers = _o->include_headers;
-  auto _streaming = _o->streaming;
-  return Requests::CreateRequestIntent(
-      _fbb,
-      _id,
-      _request,
-      _to_pid,
-      _desired_format,
-      _object_path,
-      _root_type,
-      _schema_text,
-      _include_headers,
-      _streaming);
 }
 
 inline const flatbuffers::TypeTable *PostCallbackActionTypeTable() {
@@ -1158,12 +867,6 @@ inline void FinishSizePrefixedRequestIntentBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<Requests::RequestIntent> root) {
   fbb.FinishSizePrefixed(root, RequestIntentIdentifier());
-}
-
-inline std::unique_ptr<RequestIntentT> UnPackRequestIntent(
-    const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return std::unique_ptr<RequestIntentT>(GetRequestIntent(buf)->UnPack(res));
 }
 
 }  // namespace Requests
