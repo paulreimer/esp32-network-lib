@@ -76,7 +76,6 @@ template<typename T> size_t IntToDigitCount(T t) {
 
 template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
   size_t string_width = IntToDigitCount(t);
-
   if (precision) {
     string_width += (precision + 1); // Count the dot for floating point numbers
   }
@@ -106,8 +105,7 @@ template<typename T> std::string NumToString(T t) {
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
   auto v = static_cast<long long>(t);
-  auto s = NumToStringImplWrapper(v, "%.*lld");
-  return s;
+  return NumToStringImplWrapper(v, "%.*lld");
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
 // Avoid char types used as character data.
@@ -174,8 +172,7 @@ inline std::string IntToStringHex(int i, int xdigits) {
      << i;
   return ss.str();
 #else // FLATBUFFERS_PREFER_PRINTF
-  auto s = NumToStringImplWrapper(i, "%.*X", xdigits);
-  return s;
+  return NumToStringImplWrapper(i, "%.*X", xdigits);
 #endif // FLATBUFFERS_PREFER_PRINTF
 }
 
@@ -351,7 +348,7 @@ inline std::string AbsolutePath(const std::string &filepath) {
 // Convert a unicode code point into a UTF-8 representation by appending it
 // to a string. Returns the number of bytes generated.
 inline int ToUTF8(uint32_t ucc, std::string *out) {
-  assert(!(ucc & 0x80000000));  // Top bit can't be set.
+  FLATBUFFERS_ASSERT(!(ucc & 0x80000000));  // Top bit can't be set.
   // 6 possible encodings: http://en.wikipedia.org/wiki/UTF-8
   for (int i = 0; i < 6; i++) {
     // Max bits this encoding can represent.
@@ -369,7 +366,7 @@ inline int ToUTF8(uint32_t ucc, std::string *out) {
       return i + 1;  // Return the number of bytes added.
     }
   }
-  assert(0);  // Impossible to arrive here.
+  FLATBUFFERS_ASSERT(0);  // Impossible to arrive here.
   return -1;
 }
 
@@ -450,7 +447,7 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 #endif // !FLATBUFFERS_PREFER_PRINTF
 
 inline bool EscapeString(const char *s, size_t length, std::string *_text,
-                         bool allow_non_utf8) {
+                         bool allow_non_utf8, bool natural_utf8) {
   std::string &text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < length; i++) {
@@ -490,7 +487,10 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
               return false;
             }
           } else {
-            if (ucc <= 0xFFFF) {
+            if (natural_utf8) {
+              // utf8 points to past all utf-8 bytes parsed
+              text.append(s + i, static_cast<size_t>(utf8 - s - i));
+            } else if (ucc <= 0xFFFF) {
               // Parses as Unicode within JSON's \uXXXX range, so use that.
               text += "\\u";
               text += IntToStringHex(ucc, 4);

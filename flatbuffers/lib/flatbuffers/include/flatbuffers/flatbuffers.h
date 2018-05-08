@@ -33,7 +33,8 @@ template<typename T> struct Offset {
 inline void EndianCheck() {
   int endiantest = 1;
   // If this fails, see FLATBUFFERS_LITTLEENDIAN above.
-  assert(*reinterpret_cast<char *>(&endiantest) == FLATBUFFERS_LITTLEENDIAN);
+  FLATBUFFERS_ASSERT(*reinterpret_cast<char *>(&endiantest) ==
+                     FLATBUFFERS_LITTLEENDIAN);
   (void)endiantest;
 }
 
@@ -194,7 +195,7 @@ template<typename T> class Vector {
   typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
 
   return_type Get(uoffset_t i) const {
-    assert(i < size());
+    FLATBUFFERS_ASSERT(i < size());
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -232,7 +233,7 @@ template<typename T> class Vector {
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
   void Mutate(uoffset_t i, const T &val) {
-    assert(i < size());
+    FLATBUFFERS_ASSERT(i < size());
     WriteScalar(data() + i, val);
   }
 
@@ -240,15 +241,15 @@ template<typename T> class Vector {
   // "val" points to the new table/string, as you can obtain from
   // e.g. reflection::AddFlatBuffer().
   void MutateOffset(uoffset_t i, const uint8_t *val) {
-    assert(i < size());
-    assert(sizeof(T) == sizeof(uoffset_t));
+    FLATBUFFERS_ASSERT(i < size());
+    static_assert(sizeof(T) == sizeof(uoffset_t), "Unrelated types");
     WriteScalar(data() + i,
                 static_cast<uoffset_t>(val - (Data() + i * sizeof(uoffset_t))));
   }
 
   // Get a mutable pointer to tables/strings inside this vector.
   mutable_return_type GetMutableObject(uoffset_t i) const {
-    assert(i < size());
+    FLATBUFFERS_ASSERT(i < size());
     return const_cast<mutable_return_type>(IndirectHelper<T>::Read(Data(), i));
   }
 
@@ -342,6 +343,11 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
   std::string str() const { return std::string(c_str(), Length()); }
+#ifdef FLATBUFFERS_STRING_VIEW
+  FLATBUFFERS_STRING_VIEW string_view() const {
+    return FLATBUFFERS_STRING_VIEW(c_str(), Length());
+  }
+#endif // FLATBUFFERS_STRING_VIEW
 
   bool operator<(const String &o) const {
     return strcmp(c_str(), o.c_str()) < 0;
@@ -368,7 +374,7 @@ class Allocator {
   virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
                                        size_t new_size, size_t in_use_back,
                                        size_t in_use_front) {
-    assert(new_size > old_size);  // vector_downward only grows
+    FLATBUFFERS_ASSERT(new_size > old_size);  // vector_downward only grows
     uint8_t *new_p = allocate(new_size);
     memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
                     in_use_front);
@@ -428,7 +434,7 @@ class DetachedBuffer {
         reserved_(reserved),
         cur_(cur),
         size_(sz) {
-    assert(allocator_);
+    FLATBUFFERS_ASSERT(allocator_);
   }
 
   DetachedBuffer(DetachedBuffer &&other)
@@ -499,7 +505,7 @@ class DetachedBuffer {
 
   inline void destroy() {
     if (buf_) {
-      assert(allocator_);
+      FLATBUFFERS_ASSERT(allocator_);
       allocator_->deallocate(buf_, reserved_);
     }
     if (own_allocator_ && allocator_) { delete allocator_; }
@@ -537,12 +543,12 @@ class vector_downward {
         buf_(nullptr),
         cur_(nullptr),
         scratch_(nullptr) {
-    assert(allocator_);
+    FLATBUFFERS_ASSERT(allocator_);
   }
 
   ~vector_downward() {
     if (buf_) {
-      assert(allocator_);
+      FLATBUFFERS_ASSERT(allocator_);
       allocator_->deallocate(buf_, reserved_);
     }
     if (own_allocator_ && allocator_) { delete allocator_; }
@@ -550,7 +556,7 @@ class vector_downward {
 
   void reset() {
     if (buf_) {
-      assert(allocator_);
+      FLATBUFFERS_ASSERT(allocator_);
       allocator_->deallocate(buf_, reserved_);
       buf_ = nullptr;
     }
@@ -583,11 +589,11 @@ class vector_downward {
   }
 
   size_t ensure_space(size_t len) {
-    assert(cur_ >= scratch_ && scratch_ >= buf_);
+    FLATBUFFERS_ASSERT(cur_ >= scratch_ && scratch_ >= buf_);
     if (len > static_cast<size_t>(cur_ - scratch_)) { reallocate(len); }
     // Beyond this, signed offsets may not have enough range:
     // (FlatBuffers > 2GB not supported).
-    assert(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
+    FLATBUFFERS_ASSERT(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
     return len;
   }
 
@@ -609,17 +615,17 @@ class vector_downward {
   size_t capacity() const { return reserved_; }
 
   uint8_t *data() const {
-    assert(cur_);
+    FLATBUFFERS_ASSERT(cur_);
     return cur_;
   }
 
   uint8_t *scratch_data() const {
-    assert(buf_);
+    FLATBUFFERS_ASSERT(buf_);
     return buf_;
   }
 
   uint8_t *scratch_end() const {
-    assert(scratch_);
+    FLATBUFFERS_ASSERT(scratch_);
     return scratch_;
   }
 
@@ -671,7 +677,7 @@ class vector_downward {
   uint8_t *scratch_;  // Points to the end of the scratchpad in use.
 
   void reallocate(size_t len) {
-    assert(allocator_);
+    FLATBUFFERS_ASSERT(allocator_);
     auto old_reserved = reserved_;
     auto old_size = size();
     auto old_scratch_size = scratch_size();
@@ -815,7 +821,7 @@ class FlatBufferBuilder {
     // FlatBufferBuilder::Finish with your root table.
     // If you really need to access an unfinished buffer, call
     // GetCurrentBufferPointer instead.
-    assert(finished);
+    FLATBUFFERS_ASSERT(finished);
   }
   /// @endcond
 
@@ -908,7 +914,7 @@ class FlatBufferBuilder {
     // Align to ensure GetSize() below is correct.
     Align(sizeof(uoffset_t));
     // Offset must refer to something already in buffer.
-    assert(off && off <= GetSize());
+    FLATBUFFERS_ASSERT(off && off <= GetSize());
     return GetSize() - off + static_cast<uoffset_t>(sizeof(uoffset_t));
   }
 
@@ -921,9 +927,9 @@ class FlatBufferBuilder {
     // Ignoring this assert may appear to work in simple cases, but the reason
     // it is here is that storing objects in-line may cause vtable offsets
     // to not fit anymore. It also leads to vtable duplication.
-    assert(!nested);
+    FLATBUFFERS_ASSERT(!nested);
     // If you hit this, fields were added outside the scope of a table.
-    assert(!num_field_loc);
+    FLATBUFFERS_ASSERT(!num_field_loc);
   }
 
   // From generated code (or from the parser), we call StartTable/EndTable
@@ -939,7 +945,7 @@ class FlatBufferBuilder {
   // resulting vtable offset.
   uoffset_t EndTable(uoffset_t start) {
     // If you get this assert, a corresponding StartTable wasn't called.
-    assert(nested);
+    FLATBUFFERS_ASSERT(nested);
     // Write the vtable offset, which is the start of any Table.
     // We fill it's value later.
     auto vtableoffsetloc = PushElement<soffset_t>(0);
@@ -953,7 +959,8 @@ class FlatBufferBuilder {
                    FieldIndexToOffset(0));
     buf_.fill_big(max_voffset_);
     auto table_object_size = vtableoffsetloc - start;
-    assert(table_object_size < 0x10000);  // Vtable use 16bit offsets.
+    // Vtable use 16bit offsets.
+    FLATBUFFERS_ASSERT(table_object_size < 0x10000);
     WriteScalar<voffset_t>(buf_.data() + sizeof(voffset_t),
                            static_cast<voffset_t>(table_object_size));
     WriteScalar<voffset_t>(buf_.data(), max_voffset_);
@@ -963,7 +970,8 @@ class FlatBufferBuilder {
       auto field_location = reinterpret_cast<FieldLoc *>(it);
       auto pos = static_cast<voffset_t>(vtableoffsetloc - field_location->off);
       // If this asserts, it means you've set a field twice.
-      assert(!ReadScalar<voffset_t>(buf_.data() + field_location->id));
+      FLATBUFFERS_ASSERT(
+          !ReadScalar<voffset_t>(buf_.data() + field_location->id));
       WriteScalar<voffset_t>(buf_.data() + field_location->id, pos);
     }
     ClearOffsets();
@@ -1011,7 +1019,7 @@ class FlatBufferBuilder {
     auto vtable_ptr = table_ptr - ReadScalar<soffset_t>(table_ptr);
     bool ok = ReadScalar<voffset_t>(vtable_ptr + field) != 0;
     // If this fails, the caller will show what field needs to be set.
-    assert(ok);
+    FLATBUFFERS_ASSERT(ok);
     (void)ok;
   }
 
@@ -1073,6 +1081,15 @@ class FlatBufferBuilder {
   Offset<String> CreateString(const std::string &str) {
     return CreateString(str.c_str(), str.length());
   }
+
+#ifdef FLATBUFFERS_STRING_VIEW
+  /// @brief Store a string in the buffer, which can contain any binary data.
+  /// @param[in] str A const string_view to copy in to the buffer.
+  /// @return Returns the offset in the buffer where the string starts.
+  Offset<String> CreateString(FLATBUFFERS_STRING_VIEW str) {
+    return CreateString(str.data(), str.size());
+  }
+#endif // FLATBUFFERS_STRING_VIEW
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
@@ -1143,7 +1160,7 @@ class FlatBufferBuilder {
 
   /// @cond FLATBUFFERS_INTERNAL
   uoffset_t EndVector(size_t len) {
-    assert(nested);  // Hit if no corresponding StartVector.
+    FLATBUFFERS_ASSERT(nested);  // Hit if no corresponding StartVector.
     nested = false;
     return PushElement(static_cast<uoffset_t>(len));
   }
@@ -1559,7 +1576,7 @@ class FlatBufferBuilder {
                  (file_identifier ? kFileIdentifierLength : 0),
              minalign_);
     if (file_identifier) {
-      assert(strlen(file_identifier) == kFileIdentifierLength);
+      FLATBUFFERS_ASSERT(strlen(file_identifier) == kFileIdentifierLength);
       PushBytes(reinterpret_cast<const uint8_t *>(file_identifier),
                 kFileIdentifierLength);
     }
@@ -1698,7 +1715,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool Check(bool ok) const {
     // clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
-      assert(ok);
+      FLATBUFFERS_ASSERT(ok);
     #endif
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       if (!ok)
@@ -2066,7 +2083,7 @@ inline const uint8_t *GetBufferStartFromRootPointer(const void *root) {
   // or the buffer is corrupt.
   // Assert, because calling this function with bad data may cause reads
   // outside of buffer boundaries.
-  assert(false);
+  FLATBUFFERS_ASSERT(false);
   return nullptr;
 }
 
