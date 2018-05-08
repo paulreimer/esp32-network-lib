@@ -15,6 +15,8 @@
 
 namespace ActorModel {
 
+using MessageFlatbuffer = flatbuffers::DetachedBuffer;
+
 // free functions bound to default node
 auto spawn(
   const Behaviour&& _behaviour,
@@ -45,7 +47,13 @@ auto send(
 auto send(
   const Pid& pid,
   const std::experimental::string_view type,
-  const flatbuffers::DetachedBuffer& flatbuf_payload
+  const std::vector<uint8_t>& payload_vec
+) -> bool;
+
+auto send(
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const MessageFlatbuffer& payload_flatbuffer
 ) -> bool;
 
 auto register_name(const std::experimental::string_view name, const Pid& pid)

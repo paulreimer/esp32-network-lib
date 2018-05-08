@@ -9,7 +9,6 @@
 namespace ActorModel {
 
 using string_view = std::experimental::string_view;
-using DetachedBuffer = flatbuffers::DetachedBuffer;
 
 // free functions bound to default node
 
@@ -56,8 +55,11 @@ auto send(const Pid& pid, const Message& message)
   return node.send(pid, message);
 }
 
-auto send(const Pid& pid, const string_view type, const string_view payload)
-  -> bool
+auto send(
+  const Pid& pid,
+  const string_view type,
+  const string_view payload
+) -> bool
 {
   auto& node = Actor::get_default_node();
   return node.send(pid, type, payload);
@@ -66,14 +68,28 @@ auto send(const Pid& pid, const string_view type, const string_view payload)
 auto send(
   const Pid& pid,
   const string_view type,
-  const DetachedBuffer& flatbuf_payload
-)
-  -> bool
+  const std::vector<uint8_t>& payload_vec
+) -> bool
+{
+  auto& node = Actor::get_default_node();
+  const auto payload = string_view{
+    reinterpret_cast<const char*>(payload_vec.data()),
+    payload_vec.size()
+  };
+
+  return node.send(pid, type, payload);
+}
+
+auto send(
+  const Pid& pid,
+  const string_view type,
+  const MessageFlatbuffer& payload_flatbuffer
+) -> bool
 {
   auto& node = Actor::get_default_node();
   auto payload = string_view(
-    reinterpret_cast<const char*>(flatbuf_payload.data()),
-    flatbuf_payload.size()
+    reinterpret_cast<const char*>(payload_flatbuffer.data()),
+    payload_flatbuffer.size()
   );
   return node.send(pid, type, payload);
 }
