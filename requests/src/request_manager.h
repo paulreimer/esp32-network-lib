@@ -49,9 +49,9 @@ public:
   RequestManager();
   ~RequestManager();
 
-  // move-only
-  auto fetch(RequestIntentT&& _req_intent)
-    -> bool;
+  auto fetch(
+    const RequestIntentFlatbufferRef& _request_intent_buf_ref
+  ) -> bool;
 
   auto send(
     HandleImpl* handle,

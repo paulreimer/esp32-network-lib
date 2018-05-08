@@ -26,6 +26,8 @@ namespace Requests {
 using string_view = std::experimental::string_view;
 using string = std::string;
 
+using namespace ActorModel;
+
 #ifdef REQUESTS_USE_CURL
 mbedtls_x509_crt cacert;
 #endif // REQUESTS_USE_CURL
@@ -148,10 +150,13 @@ RequestManager::~RequestManager()
 #endif // REQUESTS_USE_CURL
 }
 
-auto RequestManager::fetch(RequestIntentT&& _req_intent)
-  -> bool
+auto RequestManager::fetch(
+  const RequestIntentFlatbufferRef& _request_intent_buf_ref
+) -> bool
 {
-  //const auto& inserted = requests.emplace(std::move(_req), std::move(_res));
+  const auto _request_intent = _request_intent_buf_ref.GetRoot();
+  auto request_intent_id = _request_intent->id();
+
   const auto& inserted = requests.emplace(
     std::move(HandleImplPtr{
 #ifdef REQUESTS_USE_CURL
@@ -164,7 +169,7 @@ auto RequestManager::fetch(RequestIntentT&& _req_intent)
 #endif // REQUESTS_USE_SH2LIB
     }),
     std::move(RequestHandler{
-      std::move(_req_intent)
+      _request_intent_buf_ref
     })
   );
 
@@ -184,26 +189,28 @@ auto RequestManager::send(
   RequestHandler& handler
 ) -> bool
 {
-  auto& req = *(handler.request_intent.request);
-  auto& res = handler.res;
+  const auto& req = handler.request_intent->request();
 
-  handler._req_url = req.uri;
-  if (not req.query.empty())
+  auto uri_str = req->uri()->string_view();
+  handler._req_url.assign(uri_str.begin(), uri_str.end());
+
+  if (req->query() and req->query()->size() > 0)
   {
-    char delim = (req.uri.find_first_of('?') == string::npos)? '?' : '&';
-    for (auto& arg : req.query)
+    char delim = (handler._req_url.find_first_of('?') == string::npos)? '?' : '&';
+    for (auto arg_idx = 0; arg_idx < req->query()->size(); ++arg_idx)
     {
-      handler._req_url += delim + urlencode(arg->k) + '=' + urlencode(arg->v);
+      const auto* arg = req->query()->Get(arg_idx);
+      handler._req_url += delim + urlencode(arg->k()->string_view()) + '=' + urlencode(arg->v()->string_view());
       delim = '&';
     }
   }
 
 #ifdef REQUESTS_USE_CURL
   // Allocate CURL_ERROR_SIZE bytes of zero-initialized data
-  res.errbuf.resize(CURL_ERROR_SIZE, 0);
+  handler.errbuf.resize(CURL_ERROR_SIZE, 0);
 
   // Reset the c-string contents to zero-length, null-terminated
-  res.errbuf[0] = 0;
+  handler.errbuf[0] = 0;
 
   auto* curl = handle;
   curl_easy_setopt(curl, CURLOPT_URL, handler._req_url.c_str());
@@ -218,7 +225,7 @@ auto RequestManager::send(
   curl_easy_setopt(curl, CURLOPT_PRIVATE, &handler);
 
   // Provide a buffer for curl to store error strings in
-  curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, res.errbuf.data());
+  curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, handler.errbuf.data());
 
   // Follow redirects (3xx responses) until the actual URL is found
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -262,40 +269,41 @@ auto RequestManager::send(
     handler.slist = nullptr;
   }
 
-  if (not req.headers.empty())
+  if (req->headers() and req->headers()->size() > 0)
   {
-    for (auto& hdr : req.headers)
+    for (auto hdr_idx = 0; hdr_idx < req->headers()->size(); ++hdr_idx)
     {
-      string hdr_str(hdr->k + string(": ") + hdr->v);
+      const auto* hdr = req->headers()->Get(hdr_idx);
+      string hdr_str(hdr->k()->str() + string(": ") + hdr->v()->str());
       handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, handler.slist);
   }
 
-  if (req.method == "GET")
+  if (req->method()->string_view() == "GET")
   {
     // Use GET (default)
   }
-  else if (req.method == "POST")
+  else if (req->method()->string_view() == "POST")
   {
     // Use POST
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
   }
   else {
     // Use a custom (user-supplied) HTTP method (e.g. PATCH)
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, req.method.c_str());
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, req->method()->c_str());
   }
 
   // Set the POST body data, if the request specifies a body
-  if (not req.body.empty())
+  if (req->body() and req->body()->size() > 0)
   {
     // Specify the length of the post body
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, req.body.size());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, req->body()->size());
     // Specify a pointer to the data of the post body, do not delete it
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.data());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req->body()->data());
   }
 
-  ESP_LOGI(TAG, "%s %s", req.method.c_str(), req.uri.c_str());
+  ESP_LOGI(TAG, "%s %s", req->method()->c_str(), req->uri()->c_str());
   curl_multi_add_handle(multi_handle.get(), curl);
 
   return true;
@@ -347,7 +355,7 @@ auto RequestManager::send(
     handler.connected = (
       sh2lib_connect(
         hd,
-        req.uri.c_str(),
+        req->uri()->c_str(),
         nullptr,
         0
       ) == 0
@@ -375,7 +383,7 @@ auto RequestManager::send(
     };
 
     std::vector<nghttp2_nv> nva_vec = {
-      SH2LIB_MAKE_NV(":method", req.method.c_str(), flags),
+      SH2LIB_MAKE_NV(":method", req->method()->c_str(), flags),
       {
         (uint8_t *)":path",
         (uint8_t *)handler._path.data(),
@@ -387,19 +395,20 @@ auto RequestManager::send(
       SH2LIB_MAKE_NV(":authority", handler.connected_hostname.c_str(), flags),
     };
 
-    for (auto& hdr : req.headers)
+    for (auto hdr_idx = 0; hdr_idx < req->headers()->size(); ++hdr_idx)
     {
+      const auto* hdr = req->headers()->Get(hdr_idx);
       nva_vec.emplace_back(nghttp2_nv{
-        (uint8_t*)(hdr->k.data()),
-        (uint8_t*)(hdr->v.data()),
-        hdr->k.size(),
-        hdr->v.size(),
+        (uint8_t*)(hdr->k()->data()),
+        (uint8_t*)(hdr->v()->data()),
+        hdr->k()->size(),
+        hdr->v()->size(),
         flags
       });
     }
 
     // Make the request
-    if (req.method == "GET")
+    if (req->method()->string_view() == "GET")
     {
       // Use GET (default)
       auto retval = sh2lib_do_get_with_nv(
@@ -411,7 +420,7 @@ auto RequestManager::send(
     }
     else {
       // Add content length header with request body size
-      auto content_length = std::to_string(req.body.size());
+      auto content_length = std::to_string(req->body()->size());
 
       nva_vec.emplace_back(nghttp2_nv{
         (uint8_t*)"Content-Length",
@@ -432,7 +441,7 @@ auto RequestManager::send(
     }
   }
   else {
-    ESP_LOGE(TAG, "%s %s: not connected", req.method.c_str(), req.uri.c_str());
+    ESP_LOGE(TAG, "%s %s: not connected", req->method()->c_str(), req->uri()->c_str());
   }
 
 #endif // REQUESTS_USE_SH2LIB
@@ -451,7 +460,7 @@ auto RequestManager::wait_any()
   curl_multi_perform(multi_handle.get(), &inflight_count);
 
   int numfds = 0;
-  int res = curl_multi_wait(
+  int ret = curl_multi_wait(
     multi_handle.get(),
     nullptr,
     0,
@@ -459,9 +468,9 @@ auto RequestManager::wait_any()
     &numfds
   );
 
-  if (res != CURLM_OK)
+  if (ret != CURLM_OK)
   {
-    ESP_LOGE(TAG, "error: curl_multi_wait() returned %d", res);
+    ESP_LOGE(TAG, "error: curl_multi_wait() returned %d", ret);
     return false;
   }
 
@@ -481,9 +490,9 @@ auto RequestManager::wait_any()
       // Search for the matching handle
       auto done_req = std::find_if(requests.begin(), requests.end(),
         [done_handle]
-        (const auto& req_res_pair) -> bool
+        (const auto& handler_iter) -> bool
         {
-          return (req_res_pair.first.get() == done_handle);
+          return (handler_iter.first.get() == done_handle);
         }
       );
 
@@ -491,20 +500,20 @@ auto RequestManager::wait_any()
       if (done_req != requests.end())
       {
         auto& handler = done_req->second;
-        auto response_code = handler.res.code;
+        auto response_code = handler.response_code;
 
         handler.finish_callback();
 
         // Reset the previous response error code
-        handler.res.code = -1;
+        handler.response_code = -1;
 
         // Clear the list of headers used in the response
-        handler.res.headers.clear();
+        //handler.response_headers.clear();
 
         // Reset the c-string contents to zero-length, null-terminated
-        handler.res.errbuf[0] = 0;
+        handler.errbuf[0] = 0;
 
-        if (not handler.request_intent.streaming)
+        if (not handler.request_intent->streaming())
         {
           // Remove the request handle from the multi handle
           curl_multi_remove_handle(multi_handle.get(), done_handle);

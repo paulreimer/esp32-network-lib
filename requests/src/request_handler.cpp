@@ -24,26 +24,33 @@ using string = std::string;
 
 using ActorModel::send;
 
-RequestHandler::RequestHandler(RequestIntentT&& _request_intent)
-: request_intent(std::move(_request_intent))
+RequestHandler::RequestHandler(
+  const RequestIntentFlatbufferRef& _request_intent_buf_ref
+)
 {
-  if (request_intent.id)
-  {
-    res.request_id.reset(
-      new UUID{request_intent.id->ab(), request_intent.id->cd()}
-    );
-  }
+  // Copy buffer into mutable / resizing buffer
+  request_intent_mutable_buf = MutableRequestIntentFlatbuffer(
+    _request_intent_buf_ref.buf,
+    _request_intent_buf_ref.buf + _request_intent_buf_ref.len
+  );
 
-  if (request_intent.to_pid)
+  request_intent = flatbuffers::GetRoot<RequestIntent>(
+    request_intent_mutable_buf.data()
+  );
+
+  if (request_intent->to_pid())
   {
-    switch (request_intent.desired_format)
+    switch (request_intent->desired_format())
     {
       case ResponseFilter::JsonPath:
       {
-        if (not json_path_emitter)
+        if (
+          request_intent->object_path()
+          and not json_path_emitter
+        )
         {
           json_path_emitter.reset(
-            new JsonEmitter{request_intent.object_path}
+            new JsonEmitter{request_intent->object_path()->string_view()}
           );
         }
         break;
@@ -51,13 +58,18 @@ RequestHandler::RequestHandler(RequestIntentT&& _request_intent)
 
       case ResponseFilter::JsonPathAsFlatbuffers:
       {
-        if (not flatbuffers_path_emitter)
+        if (
+          request_intent->schema_text()
+          and request_intent->root_type()
+          and request_intent->object_path()
+          and not flatbuffers_path_emitter
+        )
         {
           flatbuffers_path_emitter.reset(
             new JsonToFlatbuffersConverter{
-              request_intent.schema_text,
-              request_intent.root_type,
-              request_intent.object_path
+              request_intent->schema_text()->string_view(),
+              request_intent->root_type()->string_view(),
+              request_intent->object_path()->string_view()
             }
           );
         }
@@ -86,31 +98,22 @@ RequestHandler::~RequestHandler()
 auto RequestHandler::write_callback(const string_view chunk)
   -> size_t
 {
-  if (request_intent.to_pid)
+  if (request_intent->to_pid())
   {
-    switch (request_intent.desired_format)
+    switch (request_intent->desired_format())
     {
       case ResponseFilter::FullResponseBody:
       {
-        res.body.append(chunk.data(), chunk.size());
+        response_body.append(chunk.data(), chunk.size());
+
         break;
       }
 
       case ResponseFilter::PartialResponseChunks:
       default:
       {
-        res.body.assign(chunk.begin(), chunk.end());
-
-        // Generate flatbuffer for nesting inside the parent Message object
-        flatbuffers::FlatBufferBuilder fbb;
-        fbb.Finish(Response::Pack(fbb, &res));
-
-        string_view payload{
-          reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-          fbb.GetSize()
-        };
-
-        send(*(request_intent.to_pid), "chunk", payload);
+        auto partial_response = create_partial_response(chunk);
+        send(*(request_intent->to_pid()), "chunk", partial_response);
 
         break;
       }
@@ -142,18 +145,8 @@ auto RequestHandler::write_callback(const string_view chunk)
             [this]
             (string_view parsed_chunk) -> PostCallbackAction
             {
-              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
-
-              // Generate flatbuffer for nesting inside the parent Message object
-              flatbuffers::FlatBufferBuilder fbb;
-              fbb.Finish(Response::Pack(fbb, &res));
-
-              string_view payload{
-                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-                fbb.GetSize()
-              };
-
-              send(*(request_intent.to_pid), "chunk", payload);
+              auto partial_response = create_partial_response(parsed_chunk);
+              send(*(request_intent->to_pid()), "chunk", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             },
@@ -161,18 +154,9 @@ auto RequestHandler::write_callback(const string_view chunk)
             [this]
             (string_view parsed_chunk) -> PostCallbackAction
             {
-              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
-
               // Generate flatbuffer for nesting inside the parent Message object
-              flatbuffers::FlatBufferBuilder fbb;
-              fbb.Finish(Response::Pack(fbb, &res));
-
-              string_view payload{
-                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-                fbb.GetSize()
-              };
-
-              send(*(request_intent.to_pid), "error", payload);
+              auto partial_response = create_partial_response(parsed_chunk);
+              send(*(request_intent->to_pid()), "error", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             }
@@ -209,18 +193,8 @@ auto RequestHandler::write_callback(const string_view chunk)
             [this]
             (string_view parsed_chunk) -> PostCallbackAction
             {
-              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
-
-              // Generate flatbuffer for nesting inside the parent Message object
-              flatbuffers::FlatBufferBuilder fbb;
-              fbb.Finish(Response::Pack(fbb, &res));
-
-              string_view payload{
-                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-                fbb.GetSize()
-              };
-
-              send(*(request_intent.to_pid), "chunk", payload);
+              auto partial_response = create_partial_response(parsed_chunk);
+              send(*(request_intent->to_pid()), "chunk", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             },
@@ -228,18 +202,8 @@ auto RequestHandler::write_callback(const string_view chunk)
             [this]
             (string_view parsed_chunk) -> PostCallbackAction
             {
-              res.body.assign(parsed_chunk.begin(), parsed_chunk.end());
-
-              // Generate flatbuffer for nesting inside the parent Message object
-              flatbuffers::FlatBufferBuilder fbb;
-              fbb.Finish(Response::Pack(fbb, &res));
-
-              string_view payload{
-                reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-                fbb.GetSize()
-              };
-
-              send(*(request_intent.to_pid), "error", payload);
+              auto partial_response = create_partial_response(parsed_chunk);
+              send(*(request_intent->to_pid()), "error", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             }
@@ -262,10 +226,10 @@ auto RequestHandler::write_callback(const string_view chunk)
 auto RequestHandler::finish_callback()
   -> void
 {
-  auto is_success_code = ((res.code > 0) and (res.code < 400));
-  auto is_internal_failure = (res.code < 0);
+  auto is_success_code = ((response_code > 0) and (response_code < 400));
+  auto is_internal_failure = (response_code < 0);
 
-  if (request_intent.to_pid)
+  if (request_intent->to_pid())
   {
     auto type = is_success_code? "complete" : "error";
 
@@ -273,31 +237,23 @@ auto RequestHandler::finish_callback()
     if (is_success_code)
     {
       // If response has already been processed by streaming messages
-      if (request_intent.desired_format != ResponseFilter::FullResponseBody)
+      if (request_intent->desired_format() != ResponseFilter::FullResponseBody)
       {
-        res.body.clear();
+        response_body.clear();
       }
     }
     // Copy the contents of errbuf for an internal failure
     else if (
       is_internal_failure
-      and res.body.empty()
-      and not res.errbuf.empty()
+      and response_body.empty()
+      and not errbuf.empty()
     )
     {
-      res.body = res.errbuf.data();
+      response_body = errbuf.data();
     }
 
-    // Generate flatbuffer for nesting inside the parent Message object
-    flatbuffers::FlatBufferBuilder fbb;
-    fbb.Finish(Response::Pack(fbb, &res));
-
-    string_view payload{
-      reinterpret_cast<const char*>(fbb.GetBufferPointer()),
-      fbb.GetSize()
-    };
-
-    send(*(request_intent.to_pid), type, payload);
+    auto partial_response = create_partial_response(response_body);
+    send(*(request_intent->to_pid()), type, partial_response);
   }
 
 #ifdef REQUESTS_USE_SH2LIB
@@ -309,8 +265,8 @@ auto RequestHandler::finish_callback()
 auto RequestHandler::read_callback(const size_t max_chunk_size)
   -> string_view
 {
-  auto& req = request_intent.request;
-  auto req_body = string_view{req->body};
+  auto& req = request_intent->request();
+  auto req_body = req->body()->string_view();
 
   auto byte_count_remaining = (req_body.size() - body_sent_byte_count);
   auto send_chunk = req_body.substr(
@@ -328,15 +284,15 @@ auto RequestHandler::header_callback(const string_view chunk)
   -> size_t
 {
   // Parse header for HTTP version and response code
-  if (res.code < 0)
+  if (response_code < 0)
   {
     auto _code = parse_http_status_line(chunk);
     if (_code)
     {
       // Assign the parsed status code to this response object
-      res.code = _code;
+      response_code = _code;
 
-      const auto& tag = request_intent.request->uri.c_str();
+      const auto& tag = request_intent->request()->uri()->c_str();
       ESP_LOGI(tag, "%.*s", chunk.size(), chunk.data());
 
       // Do not attempt to parse this header any further
@@ -350,7 +306,7 @@ auto RequestHandler::header_callback(const string_view chunk)
   }
 
   // Only parse response headers if they were requested
-  if (request_intent.include_headers)
+  if (request_intent->include_headers())
   {
     // Detect trailing CR and/or LF (popped in reverse-order)
     auto len = chunk.size();
@@ -374,10 +330,16 @@ auto RequestHandler::header_callback(const string_view chunk)
       auto k = hdr.substr(0, delim_pos);
       auto v = hdr.substr(delim_pos + delim.size());
 
-      auto header = std::make_unique<HeaderPairT>();
-      header->k.assign(k.data(), k.size());
-      header->v.assign(v.data(), v.size());
-      res.headers.emplace_back(std::move(header));
+      flatbuffers::FlatBufferBuilder fbb;
+      fbb.Finish(
+        CreateHeaderPair(
+          fbb,
+          fbb.CreateString(k),
+          fbb.CreateString(v)
+        )
+      );
+
+      send(*(request_intent->to_pid()), "headers", fbb.Release());
     }
   }
 
@@ -387,6 +349,24 @@ auto RequestHandler::header_callback(const string_view chunk)
 #ifdef REQUESTS_USE_SH2LIB
   return 0;
 #endif // REQUESTS_USE_SH2LIB
+}
+
+auto RequestHandler::create_partial_response(const string_view chunk)
+  -> ResponseFlatbuffer
+{
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(
+    CreateResponse(
+      fbb,
+      response_code,
+      0, // headers
+      fbb.CreateString(chunk), // body
+      0, // errbuf
+      request_intent->id()
+    )
+  );
+
+  return fbb.Release();
 }
 
 } // namespace Requests

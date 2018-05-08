@@ -6,10 +6,10 @@
  */
 #pragma once
 
+#include "requests.h"
+
 #include "json_emitter.h"
 #include "json_to_flatbuffers_converter.h"
-
-#include "requests_generated.h"
 
 #include <experimental/string_view>
 #include <string>
@@ -22,6 +22,8 @@ using curl_slist = struct curl_slist;
 
 namespace Requests {
 
+using ResponseFlatbuffer = flatbuffers::DetachedBuffer;
+
 class RequestManager;
 
 struct RequestHandler
@@ -33,7 +35,9 @@ struct RequestHandler
 
   using flatbuf = std::vector<uint8_t>;
 
-  RequestHandler(RequestIntentT&& _request_intent);
+  RequestHandler(
+    const RequestIntentFlatbufferRef& _request_intent_buf_ref
+  );
   ~RequestHandler();
 
   // Move-only class with default move behaviour
@@ -42,8 +46,13 @@ struct RequestHandler
   RequestHandler(const RequestHandler&) = delete;
   RequestHandler& operator= (const RequestHandler&) = delete;
 
-  RequestIntentT request_intent;
-  ResponseT res;
+  const RequestIntent* request_intent = nullptr;
+  MutableRequestIntentFlatbuffer request_intent_mutable_buf;
+
+  string errbuf;
+  short response_code = -1;
+  // Only used for ResponseFilter::FullResponseBody:
+  string response_body;
 
 #ifdef REQUESTS_USE_CURL
   curl_slist *slist = nullptr;

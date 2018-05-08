@@ -30,7 +30,7 @@ auto request_manager_behaviour(
 
   auto& requests = *(std::static_pointer_cast<RequestManager>(state));
 
-  if (message.type()->str() == "add_cacert_der")
+  if (message.type()->string_view() == "add_cacert_der")
   {
     requests.add_cacert_der(string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
@@ -38,7 +38,7 @@ auto request_manager_behaviour(
     });
   }
 
-  else if (message.type()->str() == "add_cacert_pem")
+  else if (message.type()->string_view() == "add_cacert_pem")
   {
     requests.add_cacert_pem(string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
@@ -46,15 +46,19 @@ auto request_manager_behaviour(
     });
   }
 
-  else if (message.type()->str() == "request")
+  else if (message.type()->string_view() == "request")
   {
-    auto request_intent = RequestIntentT{};
-    auto fb = flatbuffers::GetRoot<RequestIntent>(message.payload()->data());
-    fb->UnPackTo(&request_intent);
+    auto request_intent = flatbuffers::GetRoot<RequestIntent>(
+      message.payload()->data()
+    );
 
-    if (request_intent.request)
+    if (request_intent and request_intent->request())
     {
-      requests.fetch(std::move(request_intent));
+      const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
+        const_cast<uint8_t*>(message.payload()->data()),
+        message.payload()->size()
+      };
+      requests.fetch(request_intent_buf_ref);
     }
   }
 
