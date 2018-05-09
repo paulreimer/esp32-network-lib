@@ -40,6 +40,12 @@ auto compare_uuids(
   const std::unique_ptr<UUID>& rhs
 ) -> bool;
 
+auto uuid_valid(const UUID* uuid)
+  -> bool;
+
+auto uuid_valid(const UUID& uuid)
+  -> bool;
+
 auto uuidgen()
   -> UUID;
 

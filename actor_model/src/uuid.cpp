@@ -60,6 +60,18 @@ auto compare_uuids(
   );
 }
 
+auto uuid_valid(const UUID* uuid)
+  -> bool
+{
+  return (uuid and uuid_valid(*(uuid)));
+}
+
+auto uuid_valid(const UUID& uuid)
+  -> bool
+{
+  return (uuid.ab() or uuid.cd());
+}
+
 auto uuidgen()
   -> UUID
 {
