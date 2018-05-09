@@ -30,23 +30,27 @@ auto request_manager_behaviour(
 
   auto& requests = *(std::static_pointer_cast<RequestManager>(state));
 
-  if (message.type()->string_view() == "add_cacert_der")
+  if (matches(message, "add_cacert_der"))
   {
     requests.add_cacert_der(string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
       message.payload()->size()
     });
+
+    return Ok;
   }
 
-  else if (message.type()->string_view() == "add_cacert_pem")
+  else if (matches(message, "add_cacert_pem"))
   {
     requests.add_cacert_pem(string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
       message.payload()->size()
     });
+
+    return Ok;
   }
 
-  else if (message.type()->string_view() == "request")
+  else if (matches(message, "request"))
   {
     auto request_intent = flatbuffers::GetRoot<RequestIntent>(
       message.payload()->data()
@@ -59,19 +63,27 @@ auto request_manager_behaviour(
         message.payload()->size()
       };
       requests.fetch(request_intent_buf_ref);
+
+      // Begin ticking on next message
+      send(self, "tick", "");
     }
+
+    return Ok;
   }
 
-  auto requests_remaining = requests.wait_any();
+  else {
+    auto requests_remaining = requests.wait_any();
 
-  if (requests_remaining > 0)
-  {
-    // Re-trigger ourselves with an arbitrary message
-    send(self, "tick", "");
+    if (requests_remaining > 0)
+    {
+      // Re-trigger ourselves with an arbitrary message
+      send(self, "tick", "");
+    }
+
+    return Ok;
   }
 
-  //return self;
-  return Ok;
+  return Unhandled;
 }
 
 } // namespace Requests
