@@ -21,6 +21,10 @@ using ActorModel::uuidgen;
 using string = std::string;
 using string_view = std::experimental::string_view;
 
+using ActorModel::compare_uuids;
+using ActorModel::update_uuid;
+using ActorModel::uuid_valid;
+
 using RequestIntentFields = flatbuffers::Vector<
   flatbuffers::Offset<reflection::Field>
 >;
@@ -319,8 +323,23 @@ auto set_request_body(
   return updated_existing_body;
 }
 
+auto matches(
+  const ActorModel::Message& message,
+  const std::experimental::string_view type,
+  const Response*& response,
+  const UUID& request_intent_id
+) -> bool
+{
+  return (
+    ActorModel::matches(message, type, response)
+    and response->request_id()
+    and compare_uuids(*(response->request_id()), request_intent_id)
+  );
+}
+
 auto parse_request_intent(
-  const std::experimental::string_view req_fb
+  const std::experimental::string_view req_fb,
+  const ActorModel::Pid& to_pid
 ) -> MutableRequestIntentFlatbuffer
 {
   MutableRequestIntentFlatbuffer parsed_request_intent_mutable_buf{
@@ -335,7 +354,23 @@ auto parse_request_intent(
   // Generate a random ID for this request intent
   uuidgen(parsed_request_intent->mutable_id());
 
+  if (uuid_valid(to_pid))
+  {
+    update_uuid(parsed_request_intent->mutable_to_pid(), to_pid);
+  }
+
   return parsed_request_intent_mutable_buf;
+}
+
+auto get_request_intent_id(
+  const MutableRequestIntentFlatbuffer& request_intent_mutable_buf
+) -> const UUID
+{
+  const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+    request_intent_mutable_buf.data()
+  );
+
+  return (*(request_intent->id()));
 }
 
 } // namespace Requests
