@@ -35,7 +35,7 @@ public:
     UUIDEqualFunc
   >;
 
-  explicit Mailbox(const size_t _mailbox_size = 4096);
+  explicit Mailbox(const size_t _mailbox_size = 2048);
   ~Mailbox();
 
   auto send(const Message& message)

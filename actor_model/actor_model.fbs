@@ -59,8 +59,8 @@ table SupervisorFlags
 table ActorExecutionConfig
 {
   task_prio:int = 5;
-  task_stack_size:uint = 4096;
-  mailbox_size:uint = 4096;
+  task_stack_size:uint = 2560;
+  mailbox_size:uint = 2048;
 }
 
 root_type Message;
