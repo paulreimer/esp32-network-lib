@@ -68,14 +68,24 @@ auto registered()
 auto whereis(const std::experimental::string_view name)
   -> MaybePid;
 
+inline
+auto matches(
+  const ActorModel::Message& message,
+  const std::experimental::string_view type
+) -> bool
+{
+  return (message.type() and message.type()->string_view() == type);
+}
+
 template<typename TableT>
+inline
 auto matches(
   const ActorModel::Message& message,
   const std::experimental::string_view type,
   const TableT*& ptr
 ) -> bool
 {
-  if (message.type() and message.type()->string_view() == type)
+  if (matches(message, type))
   {
     auto fb = flatbuffers::GetRoot<TableT>(
       message.payload()->data()
@@ -92,13 +102,14 @@ auto matches(
 }
 
 template<typename TableObjT, class /* SFINAE */ = typename TableObjT::TableType>
+inline
 auto matches(
   const ActorModel::Message& message,
   const std::experimental::string_view type,
   TableObjT& obj
 ) -> bool
 {
-  if (message.type() and message.type()->string_view() == type)
+  if (matches(message, type))
   {
     auto fb = flatbuffers::GetRoot<typename TableObjT::TableType>(
       message.payload()->data()
