@@ -26,6 +26,18 @@ auto UUIDEqualFunc::operator()(const UUID& lhs, const UUID& rhs) const
 }
 
 auto compare_uuids(
+  const UUID* lhs,
+  const UUID* rhs
+) -> bool
+{
+  return (
+    (lhs and rhs)
+    and (lhs->ab() == rhs->ab())
+    and (lhs->cd() == rhs->cd())
+  );
+}
+
+auto compare_uuids(
   const UUID& lhs,
   const UUID& rhs
 ) -> bool

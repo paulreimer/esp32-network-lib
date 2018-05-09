@@ -26,6 +26,11 @@ struct UUIDEqualFunc
 };
 
 auto compare_uuids(
+  const UUID* lhs,
+  const UUID* rhs
+) -> bool;
+
+auto compare_uuids(
   const UUID& lhs,
   const UUID& rhs
 ) -> bool;
