@@ -33,7 +33,6 @@ table Message
 
 table Ok
 {
-  _:string;
 }
 
 table Error
@@ -41,7 +40,11 @@ table Error
   reason:string;
 }
 
-union Result { Ok, Error }
+table Unhandled
+{
+}
+
+union Result { Ok, Error, Unhandled }
 
 table Signal
 {

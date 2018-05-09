@@ -34,10 +34,9 @@ Actor::Actor(
 , current_node(_current_node)
 , started(false)
 {
-  // Setup re-usable return object
+  // Setup re-usable return objects
   Ok.type = Result::Ok;
-
-  // Setup re-usable return object
+  Unhandled.type = Result::Unhandled;
   Done.type = Result::Error;
 
   dictionary.ancestors = _ancestors;

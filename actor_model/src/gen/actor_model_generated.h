@@ -16,6 +16,8 @@ struct Ok;
 
 struct Error;
 
+struct Unhandled;
+
 struct Signal;
 
 struct SupervisorFlags;
@@ -27,6 +29,8 @@ inline const flatbuffers::TypeTable *MessageTypeTable();
 inline const flatbuffers::TypeTable *OkTypeTable();
 
 inline const flatbuffers::TypeTable *ErrorTypeTable();
+
+inline const flatbuffers::TypeTable *UnhandledTypeTable();
 
 inline const flatbuffers::TypeTable *SignalTypeTable();
 
@@ -99,15 +103,17 @@ enum class Result : uint8_t {
   NONE = 0,
   Ok = 1,
   Error = 2,
+  Unhandled = 3,
   MIN = NONE,
-  MAX = Error
+  MAX = Unhandled
 };
 
-inline const Result (&EnumValuesResult())[3] {
+inline const Result (&EnumValuesResult())[4] {
   static const Result values[] = {
     Result::NONE,
     Result::Ok,
-    Result::Error
+    Result::Error,
+    Result::Unhandled
   };
   return values;
 }
@@ -117,6 +123,7 @@ inline const char * const *EnumNamesResult() {
     "NONE",
     "Ok",
     "Error",
+    "Unhandled",
     nullptr
   };
   return names;
@@ -137,6 +144,10 @@ template<> struct ResultTraits<Ok> {
 
 template<> struct ResultTraits<Error> {
   static const Result enum_value = Result::Error;
+};
+
+template<> struct ResultTraits<Unhandled> {
+  static const Result enum_value = Result::Unhandled;
 };
 
 bool VerifyResult(flatbuffers::Verifier &verifier, const void *obj, Result type);
@@ -268,19 +279,8 @@ struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Ok";
   }
-  enum {
-    VT__ = 4
-  };
-  const flatbuffers::String *_() const {
-    return GetPointer<const flatbuffers::String *>(VT__);
-  }
-  flatbuffers::String *mutable__() {
-    return GetPointer<flatbuffers::String *>(VT__);
-  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT__) &&
-           verifier.Verify(_()) &&
            verifier.EndTable();
   }
 };
@@ -288,9 +288,6 @@ struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct OkBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add__(flatbuffers::Offset<flatbuffers::String> _) {
-    fbb_.AddOffset(Ok::VT__, _);
-  }
   explicit OkBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -304,19 +301,9 @@ struct OkBuilder {
 };
 
 inline flatbuffers::Offset<Ok> CreateOk(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> _ = 0) {
+    flatbuffers::FlatBufferBuilder &_fbb) {
   OkBuilder builder_(_fbb);
-  builder_.add__(_);
   return builder_.Finish();
-}
-
-inline flatbuffers::Offset<Ok> CreateOkDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const char *_ = nullptr) {
-  return ActorModel::CreateOk(
-      _fbb,
-      _ ? _fbb.CreateString(_) : 0);
 }
 
 struct Error FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -375,6 +362,40 @@ inline flatbuffers::Offset<Error> CreateErrorDirect(
   return ActorModel::CreateError(
       _fbb,
       reason ? _fbb.CreateString(reason) : 0);
+}
+
+struct Unhandled FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return UnhandledTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "ActorModel.Unhandled";
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct UnhandledBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  explicit UnhandledBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  UnhandledBuilder &operator=(const UnhandledBuilder &);
+  flatbuffers::Offset<Unhandled> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Unhandled>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Unhandled> CreateUnhandled(
+    flatbuffers::FlatBufferBuilder &_fbb) {
+  UnhandledBuilder builder_(_fbb);
+  return builder_.Finish();
 }
 
 struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -544,16 +565,16 @@ struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
     return SetField<int32_t>(VT_TASK_PRIO, _task_prio, 5);
   }
   uint32_t task_stack_size() const {
-    return GetField<uint32_t>(VT_TASK_STACK_SIZE, 4096);
+    return GetField<uint32_t>(VT_TASK_STACK_SIZE, 2560);
   }
   bool mutate_task_stack_size(uint32_t _task_stack_size) {
-    return SetField<uint32_t>(VT_TASK_STACK_SIZE, _task_stack_size, 4096);
+    return SetField<uint32_t>(VT_TASK_STACK_SIZE, _task_stack_size, 2560);
   }
   uint32_t mailbox_size() const {
-    return GetField<uint32_t>(VT_MAILBOX_SIZE, 4096);
+    return GetField<uint32_t>(VT_MAILBOX_SIZE, 2048);
   }
   bool mutate_mailbox_size(uint32_t _mailbox_size) {
-    return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 4096);
+    return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 2048);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -571,10 +592,10 @@ struct ActorExecutionConfigBuilder {
     fbb_.AddElement<int32_t>(ActorExecutionConfig::VT_TASK_PRIO, task_prio, 5);
   }
   void add_task_stack_size(uint32_t task_stack_size) {
-    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 4096);
+    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 2560);
   }
   void add_mailbox_size(uint32_t mailbox_size) {
-    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 4096);
+    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 2048);
   }
   explicit ActorExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -591,8 +612,8 @@ struct ActorExecutionConfigBuilder {
 inline flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t task_prio = 5,
-    uint32_t task_stack_size = 4096,
-    uint32_t mailbox_size = 4096) {
+    uint32_t task_stack_size = 2560,
+    uint32_t mailbox_size = 2048) {
   ActorExecutionConfigBuilder builder_(_fbb);
   builder_.add_mailbox_size(mailbox_size);
   builder_.add_task_stack_size(task_stack_size);
@@ -611,6 +632,10 @@ inline bool VerifyResult(flatbuffers::Verifier &verifier, const void *obj, Resul
     }
     case Result::Error: {
       auto ptr = reinterpret_cast<const Error *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Result::Unhandled: {
+      auto ptr = reinterpret_cast<const Unhandled *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return false;
@@ -671,19 +696,22 @@ inline const flatbuffers::TypeTable *ResultTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
-    { flatbuffers::ET_SEQUENCE, 0, 1 }
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     OkTypeTable,
-    ErrorTypeTable
+    ErrorTypeTable,
+    UnhandledTypeTable
   };
   static const char * const names[] = {
     "NONE",
     "Ok",
-    "Error"
+    "Error",
+    "Unhandled"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -713,14 +741,8 @@ inline const flatbuffers::TypeTable *MessageTypeTable() {
 }
 
 inline const flatbuffers::TypeTable *OkTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_STRING, 0, -1 }
-  };
-  static const char * const names[] = {
-    "_"
-  };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }
@@ -734,6 +756,13 @@ inline const flatbuffers::TypeTable *ErrorTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *UnhandledTypeTable() {
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }

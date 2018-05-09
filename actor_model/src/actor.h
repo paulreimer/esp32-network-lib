@@ -26,6 +26,7 @@ namespace ActorModel {
 
 static ResultUnion Ok;
 static ResultUnion Done;
+static ResultUnion Unhandled;
 
 class Node;
 class Actor;
