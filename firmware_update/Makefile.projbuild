@@ -1,0 +1,27 @@
+CXXFLAGS += \
+	-DFIRMWARE_UPDATE_ACTOR_TASK_STACK_SIZE="4096" \
+	-DFIRMWARE_UPDATE_ACTOR_MAILBOX_SIZE="4096"
+
+# Cache the component name so it can be used correctly within make targets
+FIRMWARE_UPDATE_COMPONENT_PATH := $(COMPONENT_PATH)
+
+# Generate latest.fw.json from config settings in 'make menuconfig'
+$(BUILD_DIR_BASE)/latest.fw.json: \
+	$(FIRMWARE_UPDATE_COMPONENT_PATH)/templates/latest.fw.json.tpl \
+	$(APP_BIN)
+	sed \
+		-e 's#@CONFIG_FIRMWARE_UPDATE_CURRENT_VERSION_NUMBER@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_CURRENT_VERSION_NUMBER))#' \
+		-e 's#@CONFIG_FIRMWARE_UPDATE_LATEST_URL@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_LATEST_URL))#' \
+		-e 's#@CONFIG_FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS))#' \
+		-e 's#@FIRMWARE_UPDATE_LATEST_CHECKSUM@#$(shell md5 -q $(APP_BIN))#' \
+		$< > $@
+
+# Generate latest.fw.fb binary flatbuffer from latest.fw.json
+$(BUILD_DIR_BASE)/latest.fw.fb: $(BUILD_DIR_BASE)/latest.fw.json
+	flatc --binary -o $(@D) \
+	$(FIRMWARE_UPDATE_COMPONENT_PATH)/firmware_update.fbs \
+	$^
+
+# Make sure latest.fw.* is generated for every build
+app: $(BUILD_DIR_BASE)/latest.fw.fb
+all_binaries: $(BUILD_DIR_BASE)/latest.fw.fb

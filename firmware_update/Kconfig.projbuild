@@ -1,0 +1,39 @@
+menu "Firmware Update / OTA Configuration"
+
+config FIRMWARE_UPDATE_CURRENT_VERSION_NUMBER
+  int "Firmware Current Version Number"
+  default 0
+  help
+    Firmware version number to embed in the build image.
+    This is used to compare against a downloaded firmware manifest
+    when determining whether it represents a later version.
+
+config FIRMWARE_UPDATE_RECOVERY_URL
+  string "Firmware Recovery URL"
+  default "https://..."
+  help
+    HTTP(S) URL for "recovery" firmware image.
+    Expects response containing image bin.
+
+config FIRMWARE_UPDATE_LATEST_URL
+  string "Firmware Update Latest Version URL"
+  default "https://..."
+  help
+    HTTP(S) URL for "latest" firmware image.
+    Expects response containing image bin.
+
+config FIRMWARE_UPDATE_CHECK_URL
+  string "Firmware Update Check URL"
+  default "https://..."
+  help
+    HTTP(s) URL for firmware update checks.
+    Expects response containing firmware flatbuffer.
+
+config FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS
+  int "Firmware Update Check Interval (seconds)"
+  range 1 1209600
+  default 60
+  help
+    Number of seconds to wait between firmware update checks.
+
+endmenu
