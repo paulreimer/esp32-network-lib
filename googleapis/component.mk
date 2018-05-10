@@ -11,3 +11,4 @@ COMPONENT_SRCDIRS := \
 	src/gen
 
 src/googleapis.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
+src/googleapis.o: $(COMPONENT_PATH)/src/gen/gviz_generated.h
