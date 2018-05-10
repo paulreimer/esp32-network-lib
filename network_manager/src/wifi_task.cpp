@@ -24,9 +24,6 @@
 constexpr char TAG[] = "Wifi";
 
 // Use 'make menuconfig' to set WiFi settings
-constexpr auto EXAMPLE_WIFI_SSID = CONFIG_WIFI_SSID;
-constexpr auto EXAMPLE_WIFI_PASS = CONFIG_WIFI_PASSWORD;
-
 NetworkInterfaceDetails wifi_network_details;
 
 auto event_handler(void* /* ctx */,  system_event_t* event)
@@ -78,15 +75,37 @@ auto wifi_task(void* /* user_data */)
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
 
-  wifi_config_t wifi_config = {};
-  strcpy((char*)wifi_config.sta.ssid, EXAMPLE_WIFI_SSID);
-  strcpy((char*)wifi_config.sta.password, EXAMPLE_WIFI_PASS);
+  // Check for existing config (e.g. stored in NVS)
+  wifi_config_t existing_wifi_config = {};
+  auto ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &existing_wifi_config);
 
-  ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+  if (
+    ret != ESP_OK
+    or not strlen(reinterpret_cast<char*>(existing_wifi_config.sta.ssid))
+  )
+  {
+    wifi_config_t default_wifi_config = {};
+    strcpy((char*)default_wifi_config.sta.ssid, CONFIG_WIFI_SSID);
+    strcpy((char*)default_wifi_config.sta.password, CONFIG_WIFI_PASSWORD);
+
+    ESP_LOGW(
+      TAG,
+      "Setting default WiFi configuration SSID %s...",
+      default_wifi_config.sta.ssid
+    );
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &default_wifi_config));
+  }
+  else {
+    ESP_LOGI(
+      TAG,
+      "Using existing WiFi configuration SSID %s...",
+      existing_wifi_config.sta.ssid
+    );
+  }
+
   ESP_ERROR_CHECK(esp_wifi_start());
 
   ESP_LOGI(TAG, "Complete, deleting task.");
