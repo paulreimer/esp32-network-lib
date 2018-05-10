@@ -31,7 +31,7 @@ auto compare_uuids(
 ) -> bool
 {
   return (
-    (lhs and rhs)
+    (uuid_valid(lhs) and uuid_valid(rhs))
     and (lhs->ab() == rhs->ab())
     and (lhs->cd() == rhs->cd())
   );
@@ -43,7 +43,8 @@ auto compare_uuids(
 ) -> bool
 {
   return (
-    (lhs.ab() == rhs.ab())
+    (uuid_valid(lhs) and uuid_valid(rhs))
+    and (lhs.ab() == rhs.ab())
     and (lhs.cd() == rhs.cd())
   );
 }
