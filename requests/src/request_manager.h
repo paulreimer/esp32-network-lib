@@ -78,6 +78,9 @@ protected:
   using RequestMap = std::unordered_map<HandleImplPtr, RequestHandler>;
   RequestMap requests;
 
+  auto get_existing_request_handler(const UUID* request_intent_id)
+    -> RequestMap::const_iterator;
+
 private:
 #ifdef REQUESTS_USE_CURL
   std::unique_ptr<CURLM, CURLMcode(*)(CURLM*)> multi_handle;

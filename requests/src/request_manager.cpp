@@ -156,29 +156,40 @@ auto RequestManager::fetch(
 {
   const auto _request_intent = _request_intent_buf_ref.GetRoot();
   auto request_intent_id = _request_intent->id();
+  auto existing_handler = get_existing_request_handler(request_intent_id);
 
-  const auto& inserted = requests.emplace(
-    std::move(HandleImplPtr{
+  // Only create a new request intent if an old one is not found
+  if (existing_handler == requests.end())
+  {
+    const auto& inserted = requests.emplace(
+      std::move(HandleImplPtr{
 #ifdef REQUESTS_USE_CURL
-      curl_easy_init(),
-      curl_easy_cleanup
+        curl_easy_init(),
+        curl_easy_cleanup
 #endif // REQUESTS_USE_CURL
 #ifdef REQUESTS_USE_SH2LIB
-      new sh2lib_handle,
-      sh2lib_free
+        new sh2lib_handle,
+        sh2lib_free
 #endif // REQUESTS_USE_SH2LIB
-    }),
-    std::move(RequestHandler{
-      _request_intent_buf_ref
-    })
-  );
+      }),
+      std::move(RequestHandler{
+        _request_intent_buf_ref
+      })
+    );
 
-  if (inserted.second == true)
-  {
-    auto& handle = inserted.first->first;
-    auto& handler = inserted.first->second;
+    if (inserted.second == true)
+    {
+      auto& handle = inserted.first->first;
+      auto& handler = inserted.first->second;
 
-    return send(handle.get(), handler);
+      return send(handle.get(), handler);
+    }
+  }
+  else {
+    ESP_LOGE(
+      TAG,
+      "Will not replace existing request handler. Use patch() instead.\n"
+    );
   }
 
   return false;
@@ -671,5 +682,24 @@ auto RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
   return rv;
 }
 #endif // REQUESTS_USE_CURL
+
+auto RequestManager::get_existing_request_handler(const UUID* request_intent_id)
+  -> RequestMap::const_iterator
+{
+  auto handler_iter = std::find_if(requests.begin(), requests.end(),
+    [&request_intent_id]
+    (const auto& handler_iter) -> bool
+    {
+      return (
+        compare_uuids(
+          *(handler_iter.second.request_intent->id()),
+          *(request_intent_id)
+        )
+      );
+    }
+  );
+
+  return handler_iter;
+}
 
 } // namespace Requests
