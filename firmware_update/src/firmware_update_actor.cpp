@@ -159,12 +159,17 @@ auto firmware_update_behaviour(
         else {
           ESP_LOGE(TAG, "Firmware update checksum validation failed");
 
+          // Invalidate current OTA session
           state.ota_flash_started = false;
           state.ota_flash_valid = false;
         }
       }
       else {
         ESP_LOGE(TAG, "Firmware update esp_ota_end failed");
+
+        // Invalidate current OTA session
+        state.ota_flash_started = false;
+        state.ota_flash_valid = false;
       }
     }
 
