@@ -50,10 +50,95 @@ struct RequestIntentReflectionState
 
 static RequestIntentReflectionState state;
 
-auto parse_requests_schema(
+auto _set_request_field_by_name(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const string_view field_name,
+  const string_view str
 ) -> bool;
 
-auto parse_requests_schema(
+auto _parse_requests_schema(
+) -> bool;
+
+auto make_request_intent(
+  const string_view method,
+  const string_view uri,
+  const std::vector<std::pair<string_view, string_view>>& query,
+  const std::vector<std::pair<string_view, string_view>>& headers,
+  const string_view body,
+  const UUID& to_pid,
+  const ResponseFilter desired_format,
+  const string_view object_path,
+  const string_view root_type,
+  const string_view schema_text,
+  const bool include_headers,
+  const bool streaming
+) -> RequestIntentFlatbuffer
+{
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.ForceDefaults(true);
+
+  auto request_intent_id = uuidgen();
+
+  std::vector<flatbuffers::Offset<QueryPair>> _query_vec;
+  for (const auto& arg : query)
+  {
+    _query_vec.push_back(
+      CreateQueryPair(
+        fbb,
+        fbb.CreateString(arg.first),
+        fbb.CreateString(arg.second)
+      )
+    );
+  }
+  auto query_vec = fbb.CreateVector(
+    _query_vec.data(),
+    _query_vec.size()
+  );
+
+  std::vector<flatbuffers::Offset<HeaderPair>> _headers_vec;
+  for (const auto& hdr : headers)
+  {
+    _headers_vec.push_back(
+      CreateHeaderPair(
+        fbb,
+        fbb.CreateString(hdr.first),
+        fbb.CreateString(hdr.second)
+      )
+    );
+  }
+  auto headers_vec = fbb.CreateVector(
+    _headers_vec.data(),
+    _headers_vec.size()
+  );
+
+  auto request = CreateRequest(
+    fbb,
+    method.empty()? 0 : fbb.CreateString(method),
+    uri.empty()? 0 : fbb.CreateString(uri),
+    body.empty()? 0 : fbb.CreateString(body),
+    query.empty()? 0 : query_vec,
+    headers.empty()? 0 : headers_vec
+  );
+
+  fbb.Finish(
+    CreateRequestIntent(
+      fbb,
+      &request_intent_id,
+      request,
+      &to_pid,
+      desired_format,
+      object_path.empty()? 0 : fbb.CreateString(object_path),
+      root_type.empty()? 0 : fbb.CreateString(root_type),
+      schema_text.empty()? 0 : fbb.CreateString(schema_text),
+      include_headers,
+      streaming
+    )
+  );
+
+  return fbb.Release();
+}
+
+auto _parse_requests_schema(
 ) -> bool
 {
   if (not state.request_intent_fields)
@@ -66,7 +151,7 @@ auto parse_requests_schema(
   return (state.request_intent_fields != nullptr);
 }
 
-auto set_header(
+auto set_request_header(
   MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
   const string_view k,
   const string_view v
@@ -76,7 +161,7 @@ auto set_header(
 
   if (not state.request_intent_fields)
   {
-    parse_requests_schema();
+    _parse_requests_schema();
   }
 
   const auto request_field = state.request_intent_fields->LookupByKey(
@@ -165,7 +250,7 @@ auto set_header(
 }
 
 
-auto set_query_arg(
+auto set_request_query_arg(
   MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
   const string_view k,
   const string_view v
@@ -175,7 +260,7 @@ auto set_query_arg(
 
   if (not state.request_intent_fields)
   {
-    parse_requests_schema();
+    _parse_requests_schema();
   }
 
   const auto request_field = state.request_intent_fields->LookupByKey(
@@ -263,16 +348,17 @@ auto set_query_arg(
   return updated_existing_arg;
 }
 
-auto set_request_body(
+auto _set_request_field_by_name(
   MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
-  const string_view body
+  const string_view field_name,
+  const string_view str
 ) -> bool
 {
-  auto updated_existing_body = false;
+  auto updated_existing_field = false;
 
   if (not state.request_intent_fields)
   {
-    parse_requests_schema();
+    _parse_requests_schema();
   }
 
   const auto request_field = state.request_intent_fields->LookupByKey(
@@ -283,8 +369,8 @@ auto set_request_body(
     request_field->type()->index()
   );
 
-  const auto request_body_field = request_table->fields()->LookupByKey(
-    "body"
+  const auto matching_request_field = request_table->fields()->LookupByKey(
+    string{field_name}.c_str()
   );
 
   auto resizing_root = flatbuffers::piv(
@@ -302,25 +388,62 @@ auto set_request_body(
     request_intent_mutable_buf
   );
 
-  auto request_body_str = flatbuffers::GetFieldS(
+  auto request_field_str = flatbuffers::GetFieldS(
     **(resizing_request_field),
-    *(request_body_field)
+    *(matching_request_field)
   );
 
-  if (request_body_str)
+  if (request_field_str)
   {
     SetString(
       *(state.schema),
-      string{body},
-      request_body_str,
+      string{str},
+      request_field_str,
       &request_intent_mutable_buf,
       state.request_intent_table
     );
 
-    updated_existing_body = true;
+    updated_existing_field = true;
   }
 
-  return updated_existing_body;
+  return updated_existing_field;
+}
+
+auto set_request_method(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const string_view method
+) -> bool
+{
+  return _set_request_field_by_name(
+    request_intent_mutable_buf,
+    "method",
+    method
+  );
+}
+
+auto set_request_uri(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const string_view uri
+) -> bool
+{
+  return _set_request_field_by_name(
+    request_intent_mutable_buf,
+    "uri",
+    uri
+  );
+}
+
+
+auto set_request_body(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const string_view body
+) -> bool
+{
+  return _set_request_field_by_name(
+    request_intent_mutable_buf,
+    "body",
+    body
+  );
 }
 
 auto matches(
@@ -366,11 +489,20 @@ auto get_request_intent_id(
   const MutableRequestIntentFlatbuffer& request_intent_mutable_buf
 ) -> const UUID
 {
-  const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
-    request_intent_mutable_buf.data()
-  );
+  if (not request_intent_mutable_buf.empty())
+  {
+    const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+      request_intent_mutable_buf.data()
+    );
 
-  return (*(request_intent->id()));
+    if (request_intent and request_intent->id())
+    {
+      return (*(request_intent->id()));
+    }
+  }
+
+  // Return null UUID if invalid request intent found
+  return UUID(0, 0);
 }
 
 } // namespace Requests
