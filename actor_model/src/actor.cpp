@@ -87,6 +87,7 @@ Actor::~Actor()
   // Stop the actor's execution context
   if (impl)
   {
+    // Stop immediately, do not continue processing pending messages
     vTaskDelete(impl);
   }
 }
