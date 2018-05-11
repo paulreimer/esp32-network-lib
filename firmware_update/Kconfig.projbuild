@@ -1,13 +1,5 @@
 menu "Firmware Update / OTA Configuration"
 
-config FIRMWARE_UPDATE_CURRENT_VERSION_NUMBER
-  int "Firmware Current Version Number"
-  default 0
-  help
-    Firmware version number to embed in the build image.
-    This is used to compare against a downloaded firmware manifest
-    when determining whether it represents a later version.
-
 config FIRMWARE_UPDATE_RECOVERY_URL
   string "Firmware Recovery URL"
   default "https://..."
