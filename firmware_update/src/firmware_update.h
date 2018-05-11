@@ -18,6 +18,7 @@
 namespace FirmwareUpdate {
 
 using MD5Sum = std::array<uint8_t, 16>;
+using FirmwareVersion = uint64_t;
 
 auto get_current_boot_partition()
   -> const esp_partition_t*;
@@ -27,6 +28,9 @@ auto get_next_ota_partition()
 
 auto reboot()
   -> void;
+
+auto get_current_firmware_version()
+  -> FirmwareVersion;
 
 auto checksum_partition_md5(
   const esp_partition_t* partition,

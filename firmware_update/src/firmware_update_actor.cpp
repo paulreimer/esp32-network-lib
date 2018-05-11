@@ -185,7 +185,7 @@ auto firmware_update_behaviour(
 
     if (firmware_update_metadata)
     {
-      auto current_version = CONFIG_FIRMWARE_UPDATE_CURRENT_VERSION_NUMBER;
+      auto current_version = get_current_firmware_version();
       auto new_version = firmware_update_metadata->version();
 
       if (new_version > current_version)

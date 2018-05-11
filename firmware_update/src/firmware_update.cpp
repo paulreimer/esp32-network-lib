@@ -53,6 +53,13 @@ auto reboot()
   esp_restart();
 }
 
+auto get_current_firmware_version()
+  -> FirmwareVersion
+{
+  // Defined externally based on contents of VERSION file
+  return FIRMWARE_UPDATE_CURRENT_VERSION;
+}
+
 auto checksum_partition_md5(
   const esp_partition_t* partition,
   const size_t partition_size
