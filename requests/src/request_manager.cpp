@@ -314,7 +314,8 @@ auto RequestManager::send(
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req->body()->data());
   }
 
-  ESP_LOGI(TAG, "%s %s", req->method()->c_str(), req->uri()->c_str());
+  const auto& tag = handler.request_intent->request()->uri()->c_str();
+  ESP_LOGI(tag, "%s", req->method()->c_str());
   curl_multi_add_handle(multi_handle.get(), curl);
 
   return true;
@@ -511,6 +512,7 @@ auto RequestManager::wait_any()
       if (done_req != requests.end())
       {
         auto& handler = done_req->second;
+        const auto& tag = handler.request_intent->request()->uri()->c_str();
         auto response_code = handler.response_code;
 
         handler.finish_callback();
@@ -543,14 +545,14 @@ auto RequestManager::wait_any()
 
           if (response_code > 0)
           {
-            ESP_LOGI(TAG, "Deleted completed request handle successfully");
+            ESP_LOGI(tag, "Deleted completed request handle");
           }
           else {
-            ESP_LOGW(TAG, "Deleted failed request handle successfully");
+            ESP_LOGW(tag, "Deleted failed request handle");
           }
         }
         else {
-          ESP_LOGI(TAG, "Leaving completed request connection open for streaming");
+          ESP_LOGI(tag, "Leaving completed request connection open for streaming");
         }
       }
     }
@@ -562,6 +564,7 @@ auto RequestManager::wait_any()
   {
     auto& handle = req_iter->first;
     auto& handler = req_iter->second;
+    const auto& tag = handler.request_intent->request()->uri()->c_str();
 
     if (handle)
     {
@@ -571,7 +574,7 @@ auto RequestManager::wait_any()
       if (handler.finished)
       {
         req_iter = requests.erase(req_iter);
-        ESP_LOGI(TAG, "Deleted completed request handle successfully");
+        ESP_LOGI(tag, "Deleted completed request handle");
         continue;
       }
     }

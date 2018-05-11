@@ -20,8 +20,6 @@
 
 namespace Requests {
 
-static constexpr auto TAG = "RequestHandler";
-
 using string_view = std::experimental::string_view;
 using string = std::string;
 
@@ -101,6 +99,8 @@ RequestHandler::~RequestHandler()
 auto RequestHandler::write_callback(const string_view chunk)
   -> size_t
 {
+  const auto& tag = request_intent->request()->uri()->c_str();
+
   if (request_intent->to_pid())
   {
     switch (request_intent->desired_format())
@@ -135,7 +135,7 @@ auto RequestHandler::write_callback(const string_view chunk)
             if (prefix_found)
             {
               ESP_LOGI(
-                TAG,
+                tag,
                 "Removing magic prefix ')]}'\\n' from Google APIs response"
               );
 
@@ -183,7 +183,7 @@ auto RequestHandler::write_callback(const string_view chunk)
             if (prefix_found)
             {
               ESP_LOGI(
-                TAG,
+                tag,
                 "Removing magic prefix ')]}'\\n' from Google APIs response"
               );
 
