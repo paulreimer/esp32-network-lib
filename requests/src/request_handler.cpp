@@ -295,8 +295,15 @@ auto RequestHandler::header_callback(const string_view chunk)
       // Assign the parsed status code to this response object
       response_code = _code;
 
+      // Print the received status code
+      auto status = chunk;
+      // Remove trailing '\r's, '\n's
+      if (status.find_first_of("\r\n") != string::npos)
+      {
+        status = status.substr(0, status.find_first_of("\r\n"));
+      }
       const auto& tag = request_intent->request()->uri()->c_str();
-      ESP_LOGI(tag, "%.*s", chunk.size(), chunk.data());
+      ESP_LOGI(tag, "%.*s", status.size(), status.data());
 
       // Do not attempt to parse this header any further
 #ifdef REQUESTS_USE_CURL
