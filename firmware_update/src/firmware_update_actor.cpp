@@ -253,12 +253,10 @@ auto firmware_update_behaviour(
 
   else if (matches(message, "reauth"))
   {
-    printf("firmware update actor reauth\n");
     state.access_token = string{
       reinterpret_cast<const char*>(message.payload()->data()),
       message.payload()->size()
     };
-    printf("fw access_token = '%.*s'\n", state.access_token.size(), state.access_token.data());
 
     // Use access_token to auth spreadsheet Activity insert request
     set_request_header(
