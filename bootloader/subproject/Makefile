@@ -11,7 +11,7 @@ PROJECT_NAME := bootloader
 COMPONENTS := esptool_py bootloader_support log spi_flash micro-ecc soc main
 
 # Clear C and CXX from top level project
-CFLAGS =
+CFLAGS = -DBOOTLOADER_RESET_BUTTON_GPIO_NUM=36 -DBOOTLOADER_RESET_BUTTON_GPIO_REG=IO_MUX_GPIO36_REG
 CXXFLAGS =
 
 #We cannot include the esp32 component directly but we need its includes.

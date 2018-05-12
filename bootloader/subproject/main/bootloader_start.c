@@ -17,6 +17,7 @@
 
 #include "esp_log.h"
 #include "rom/gpio.h"
+#include "soc/io_mux_reg.h"
 #include "bootloader_config.h"
 #include "bootloader_init.h"
 #include "bootloader_utility.h"
@@ -83,11 +84,17 @@ static int selected_boot_partition(const bootloader_state_t *bs)
     if (boot_index == INVALID_INDEX) {
         return boot_index; // Unrecoverable failure (not due to corrupt ota data or bad partition contents)
     } else {
-        // Check for reset to the factory firmware or for launch OTA[x] firmware.
-        // Customer implementation.
-        // if (gpio_pin_1 == true && ...){
-        //     boot_index = required_boot_partition;
-        // } ...
+        // Check the state of a pin to determine whether to force factory boot
+        // Make sure the pin is configured as input
+        SET_PERI_REG_MASK(BOOTLOADER_RESET_BUTTON_GPIO_REG,FUN_IE);
+        // Inverted logic, pull-down to force factory boot
+        uint32_t factory_boot = (GPIO_INPUT_GET(BOOTLOADER_RESET_BUTTON_GPIO_NUM) == 0);
+
+        if (factory_boot)
+        {
+            // Override select default/factory boot
+            boot_index = -1;
+        }
     }
     return boot_index;
 }
