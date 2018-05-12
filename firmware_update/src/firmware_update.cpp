@@ -20,30 +20,40 @@ namespace FirmwareUpdate {
 
 using string = std::string;
 
-auto get_current_boot_partition()
+auto get_current_partition()
   -> const esp_partition_t*
 {
-  return esp_ota_get_boot_partition();
+  // Will select the next partition in sequence in all cases
+  //return esp_ota_get_boot_partition();
+
+  // Will select the next partition in sequence in the normal case
+  // Or in case of fallback boot, will select the partition that failed
+  return esp_ota_get_running_partition();
 }
 
 // Return target for next OTA partition
 auto get_next_ota_partition()
   -> const esp_partition_t*
 {
-  auto current_partition_label = string{get_current_boot_partition()->label};
+  auto current_partition = get_current_partition();
+  return esp_ota_get_next_update_partition(current_partition);
+}
 
-  // Default to ota_0 (from factory->ota_0, or from ota_1->ota_0)
-  auto next_ota_partition_label = string{
-    current_partition_label == "ota_0"? "ota_1" : "ota_0"
-  };
-
-  auto next_ota_partition = esp_partition_find_first(
+// Return target for next OTA partition
+auto get_factory_partition()
+  -> const esp_partition_t*
+{
+  return esp_partition_find_first(
     ESP_PARTITION_TYPE_APP,
-    ESP_PARTITION_SUBTYPE_ANY,
-    next_ota_partition_label.c_str()
+    ESP_PARTITION_SUBTYPE_APP_FACTORY,
+    nullptr
   );
+}
 
-  return next_ota_partition;
+auto compare_partitions(const esp_partition_t* lhs, const esp_partition_t* rhs)
+  -> bool
+{
+  return (lhs and rhs and (lhs->address == rhs->address));
 }
 
 auto reboot()
@@ -51,6 +61,19 @@ auto reboot()
 {
   // This will be the last line executed before rebooting
   esp_restart();
+}
+
+auto factory_reset()
+  -> void
+{
+  const auto* factory_partition = get_factory_partition();
+  if (factory_partition)
+  {
+    esp_ota_set_boot_partition(factory_partition);
+
+    // This will be the last line executed before rebooting
+    esp_restart();
+  }
 }
 
 auto get_current_firmware_version()
