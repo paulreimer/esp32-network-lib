@@ -9,9 +9,13 @@
  */
 #include "firmware_update_actor.h"
 
+#include <chrono>
+
 #include "firmware_update.h"
 #include "requests.h"
 #include "actor_model.h"
+
+#include "timestamp.h"
 
 #include "embedded_files.h"
 
@@ -26,6 +30,8 @@ namespace FirmwareUpdate {
 using namespace ActorModel;
 using namespace Requests;
 using namespace Firmware;
+
+using namespace std::chrono_literals;
 
 using string = std::string;
 using string_view = std::experimental::string_view;
@@ -44,6 +50,11 @@ struct FirmwareUpdateState
 
   bool authenticated = false;
   string access_token;
+  TimeDuration last_reset_pressed;
+  TimeDuration last_reset_pressed_interval;
+  TimeDuration reset_button_trigger_interval = 2s;
+  int reset_button_trigger_intervals = 5;
+  int reset_button_trigger_progress = 0;
 };
 
 constexpr char TAG[] = "firmware_update";
@@ -282,6 +293,32 @@ auto firmware_update_behaviour(
     else {
       printf("not authenticated for firmware update check\n");
     }
+  }
+
+  else if (matches(message, "reset_pressed"))
+  {
+    // check if not too far apart
+    auto elapsed_micros = get_elapsed_microseconds();
+
+    if (state.last_reset_pressed - elapsed_micros < state.reset_button_trigger_interval)
+    {
+      ESP_LOGW(
+        TAG,
+        "About to trigger factory reset in %d",
+        state.reset_button_trigger_intervals - state.reset_button_trigger_progress
+      );
+
+      if (state.reset_button_trigger_progress++ >= state.reset_button_trigger_intervals)
+      {
+        ESP_LOGW(TAG, "Trigger factory reset");
+        factory_reset();
+      }
+    }
+    else {
+      state.reset_button_trigger_progress = 0;
+    }
+
+    state.last_reset_pressed = elapsed_micros;
   }
 
   return Ok;
