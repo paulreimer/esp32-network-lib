@@ -298,9 +298,10 @@ auto firmware_update_behaviour(
   else if (matches(message, "reset_pressed"))
   {
     // check if not too far apart
-    auto elapsed_micros = get_elapsed_microseconds();
+    auto current_micros = get_elapsed_microseconds();
+    auto elapsed_micros = (current_micros - state.last_reset_pressed);
 
-    if (state.last_reset_pressed - elapsed_micros < state.reset_button_trigger_interval)
+    if (elapsed_micros < state.reset_button_trigger_interval)
     {
       ESP_LOGW(
         TAG,
@@ -318,7 +319,7 @@ auto firmware_update_behaviour(
       state.reset_button_trigger_progress = 0;
     }
 
-    state.last_reset_pressed = elapsed_micros;
+    state.last_reset_pressed = current_micros;
   }
 
   return Ok;
