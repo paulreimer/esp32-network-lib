@@ -17,8 +17,6 @@
 
 #include "timestamp.h"
 
-#include "embedded_files.h"
-
 #include <experimental/string_view>
 #include <memory>
 #include <string>
@@ -68,14 +66,6 @@ auto firmware_update_behaviour(
   if (not _state)
   {
     _state = std::make_shared<FirmwareUpdateState>();
-
-    auto& state = *(std::static_pointer_cast<FirmwareUpdateState>(_state));
-
-    // Parse (& copy) the firmware update check request intent flatbuffer
-    state.firmware_update_check_request_intent_mutable_buf  = parse_request_intent(
-      embedded_files::firmware_update_check_request_intent_req_fb,
-      self
-    );
   }
   auto& state = *(std::static_pointer_cast<FirmwareUpdateState>(_state));
 
@@ -281,6 +271,31 @@ auto firmware_update_behaviour(
 
   else if (matches(message, "check"))
   {
+    if (message.payload()->size() > 0)
+    {
+      // Create a string_view over the embedded payload vector bytes
+      const auto firmware_update_check_request_intent_str = string_view{
+        reinterpret_cast<const char*>(message.payload()->data()),
+        message.payload()->size()
+      };
+
+      // Parse (& copy) the firmware update check request intent flatbuffer
+      state.firmware_update_check_request_intent_mutable_buf  = parse_request_intent(
+        firmware_update_check_request_intent_str,
+        self
+      );
+
+      if (state.authenticated and not state.access_token.empty())
+      {
+        // Use access_token to auth spreadsheet Activity insert request
+        set_request_header(
+          state.firmware_update_check_request_intent_mutable_buf,
+          "Authorization",
+          string{"Bearer "} + state.access_token
+        );
+      }
+    }
+
     if (state.authenticated)
     {
       auto request_manager_actor_pid = *(whereis("request_manager"));
