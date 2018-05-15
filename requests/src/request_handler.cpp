@@ -43,6 +43,7 @@ RequestHandler::RequestHandler(
   {
     switch (request_intent->desired_format())
     {
+#if REQUESTS_SUPPORT_JSON
       case ResponseFilter::JsonPath:
       {
         if (
@@ -75,6 +76,7 @@ RequestHandler::RequestHandler(
           );
         }
       }
+#endif // REQUESTS_SUPPORT_JSON
 
       case ResponseFilter::PartialResponseChunks:
       case ResponseFilter::FullResponseBody:
@@ -121,6 +123,7 @@ auto RequestHandler::write_callback(const string_view chunk)
         break;
       }
 
+#if REQUESTS_SUPPORT_JSON
       case ResponseFilter::JsonPath:
       {
         if (json_path_emitter)
@@ -215,6 +218,7 @@ auto RequestHandler::write_callback(const string_view chunk)
           break;
         }
       }
+#endif // REQUESTS_SUPPORT_JSON
     }
   }
 

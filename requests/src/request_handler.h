@@ -11,8 +11,10 @@
 
 #include "requests.h"
 
+#if REQUESTS_SUPPORT_JSON
 #include "json_emitter.h"
 #include "json_to_flatbuffers_converter.h"
+#endif // REQUESTS_SUPPORT_JSON
 
 #include <experimental/string_view>
 #include <string>
@@ -86,8 +88,10 @@ protected:
     -> ResponseFlatbuffer;
 
 private:
+#if REQUESTS_SUPPORT_JSON
   std::unique_ptr<JsonEmitter> json_path_emitter;
   std::unique_ptr<JsonToFlatbuffersConverter> flatbuffers_path_emitter;
+#endif // REQUESTS_SUPPORT_JSON
 
   string _req_url;
 };
