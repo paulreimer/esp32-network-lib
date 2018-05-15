@@ -963,7 +963,9 @@
 /* #undef USE_METALINK */
 
 /* if nghttp2 is in use */
+#if REQUESTS_SUPPORT_HTTP2
 #define USE_NGHTTP2 1
+#endif // REQUESTS_SUPPORT_HTTP2
 
 /* if NSS is enabled */
 /* #undef USE_NSS */
