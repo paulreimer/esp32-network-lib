@@ -132,19 +132,22 @@ auto update_column(
 
     auto* from_col = get_column_from_label(from_cols, match_label, prefix);
 
-    // Update column id
-    if (from_col->id()->size() > 0)
+    if (from_col)
     {
-      auto from_value = string_view{
-        from_col->id()->data(),
-        from_col->id()->size()
-      };
-      did_update = mutate_value(from_value, to_col->mutable_id());
-    }
+      // Update column id
+      if (from_col->id()->size() > 0)
+      {
+        auto from_value = string_view{
+          from_col->id()->data(),
+          from_col->id()->size()
+        };
+        did_update = mutate_value(from_value, to_col->mutable_id());
+      }
 
-    // Update column type
-    {
-      to_col->mutate_type(from_col->type());
+      // Update column type
+      {
+        to_col->mutate_type(from_col->type());
+      }
     }
   }
 
