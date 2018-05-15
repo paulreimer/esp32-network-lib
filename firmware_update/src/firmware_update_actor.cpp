@@ -148,14 +148,20 @@ auto firmware_update_behaviour(
 
         if (checksum_verified)
         {
-          esp_ota_set_boot_partition(state.ota_partition);
-          ESP_LOGW(
-            TAG,
-            "Flashed successfully to partition '%s', rebooting\n",
-            state.ota_partition->label
-          );
+          ret = esp_ota_set_boot_partition(state.ota_partition);
+          if (ret == ESP_OK)
+          {
+            ESP_LOGW(
+              TAG,
+              "Flashed successfully to partition '%s', rebooting\n",
+              state.ota_partition->label
+            );
 
-          reboot();
+            reboot();
+          }
+          else {
+            ESP_LOGE(TAG, "Could not set OTA boot partition after flashing");
+          }
         }
         else {
           ESP_LOGE(TAG, "Firmware update checksum validation failed");
