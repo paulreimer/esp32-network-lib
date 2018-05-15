@@ -268,7 +268,7 @@ auto RequestHandler::finish_callback()
 auto RequestHandler::read_callback(const size_t max_chunk_size)
   -> string_view
 {
-  auto& req = request_intent->request();
+  const auto& req = request_intent->request();
   auto req_body = req->body()->string_view();
 
   auto byte_count_remaining = (req_body.size() - body_sent_byte_count);
