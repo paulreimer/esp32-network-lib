@@ -1,0 +1,5 @@
+# Generate *.gviz.fb binary Query flatbuffer from *.gviz.json
+$(COMPILING_COMPONENT_PATH)/secrets/gen/%.gviz.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.gviz.json
+	flatc --binary -o $(@D) \
+	$(PROJECT_PATH)/esp32-network-lib/googleapis/gviz.fbs \
+	$^

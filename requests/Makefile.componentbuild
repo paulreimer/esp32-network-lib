@@ -1,0 +1,10 @@
+# Generate *.req.fb binary RequestIntent flatbuffer from *.req.json
+$(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.json
+	flatc --binary -o $(@D) \
+	--force-defaults \
+	$(PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
+	$^
+
+# Generate binary *.der from text *.pem via OpenSSL
+$(COMPILING_COMPONENT_PATH)/assets/%.der: $(COMPILING_COMPONENT_PATH)/assets/%.pem
+	openssl x509 -outform der -in $^ -out $@
