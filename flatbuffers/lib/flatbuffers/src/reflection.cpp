@@ -21,6 +21,23 @@
 
 namespace flatbuffers {
 
+void CopyInline(FlatBufferBuilder &fbb, const reflection::Field &fielddef,
+                const Table &table, size_t align, size_t size);
+
+bool VerifyStruct(flatbuffers::Verifier &v,
+                  const flatbuffers::Table &parent_table,
+                  voffset_t field_offset, const reflection::Object &obj,
+                  bool required);
+
+bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
+                           const flatbuffers::Table &parent_table,
+                           voffset_t field_offset,
+                           const reflection::Object &obj, bool required);
+
+bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
+                  const flatbuffers::Table &table,
+                  const reflection::Field &vec_field);
+
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t *data) {
   // clang-format off
   #define FLATBUFFERS_GET(T) static_cast<int64_t>(ReadScalar<T>(data))

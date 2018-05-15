@@ -25,6 +25,8 @@
 
 namespace flatbuffers {
 
+bool IsIdentifierStart(char c);
+
 const double kPi = 3.14159265358979323846;
 
 const char *const kTypeNames[] = {
