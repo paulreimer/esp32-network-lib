@@ -28,9 +28,7 @@ using string = std::string;
 
 using ActorModel::compare_uuids;
 
-#ifdef REQUESTS_USE_CURL
-mbedtls_x509_crt cacert;
-#endif // REQUESTS_USE_CURL
+mbedtls_x509_crt cacerts;
 
 constexpr char TAG[] = "RequestManager";
 
@@ -169,9 +167,7 @@ RequestManager::RequestManager()
 
 RequestManager::~RequestManager()
 {
-#ifdef REQUESTS_USE_CURL
-  mbedtls_x509_crt_free(&cacert);
-#endif // REQUESTS_USE_CURL
+  mbedtls_x509_crt_free(&cacerts);
 }
 
 auto RequestManager::fetch(
@@ -395,8 +391,7 @@ auto RequestManager::send(
       sh2lib_connect(
         hd,
         req->uri()->c_str(),
-        nullptr,
-        0
+        &cacerts
       ) == 0
     );
 
@@ -625,7 +620,6 @@ auto RequestManager::wait_all()
 auto RequestManager::add_cacert_pem(const string_view cacert_pem)
   -> bool
 {
-#ifdef REQUESTS_USE_CURL
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
 
@@ -634,7 +628,7 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
   {
     // Parse the PEM text
     auto ret = mbedtls_x509_crt_parse(
-      &cacert,
+      &cacerts,
       (unsigned char*)cacert_pem.data(),
       cacert_pem.size()
     );
@@ -653,7 +647,6 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
   else {
     ESP_LOGE(TAG, "Expected a null terminated CA cert string");
   }
-#endif // REQUESTS_USE_CURL
 
   return false;
 }
@@ -661,13 +654,12 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
 auto RequestManager::add_cacert_der(const string_view cacert_der)
   -> bool
 {
-#ifdef REQUESTS_USE_CURL
   //TODO: this is possibly not request-safe and should be avoided during requests
   //or rewritten with a CA object per request
 
   // Parse the DER content
   auto ret = mbedtls_x509_crt_parse_der(
-    &cacert,
+    &cacerts,
     (unsigned char*)cacert_der.data(),
     cacert_der.size()
   );
@@ -682,7 +674,6 @@ auto RequestManager::add_cacert_der(const string_view cacert_der)
       cacert_der.size(), cacert_der.data()
     );
   }
-#endif // REQUESTS_USE_CURL
 
   return false;
 }
@@ -698,7 +689,7 @@ auto RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
   if (ok)
   {
     // Update the curl handle's cacert chain
-    mbedtls_ssl_conf_ca_chain(ssl_ctx, &cacert, nullptr);
+    mbedtls_ssl_conf_ca_chain(ssl_ctx, &cacerts, nullptr);
 
     // Mark the callback as successfully passed
     rv = CURLE_OK;

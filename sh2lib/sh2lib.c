@@ -242,7 +242,7 @@ static int do_http2_connect(struct sh2lib_handle *hd)
     return 0;
 }
 
-int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, const unsigned char* cacert_pem_buf, size_t cacert_pem_bytes)
+int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, mbedtls_x509_crt* cacerts)
 {
     memset(hd, 0, sizeof(*hd));
 
@@ -255,6 +255,15 @@ int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, const unsigned cha
         ESP_LOGE(TAG, "[sh2-connect] esp-tls connection failed");
         goto error;
     }
+
+    // Always verify
+    mbedtls_ssl_conf_authmode(&hd->http2_tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+
+    if (cacerts)
+    {
+      mbedtls_ssl_conf_ca_chain(&hd->http2_tls->conf, cacerts, NULL);
+    }
+
     struct http_parser_url u;
     http_parser_url_init(&u);
     http_parser_parse_url(uri, strlen(uri), 0, &u);
