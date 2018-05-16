@@ -66,6 +66,7 @@ struct sh2lib_handle {
  *
  * @return The function should return 0
  */
+typedef int (*sh2lib_frame_data_header_cb_t)(struct sh2lib_handle *handle, const char *name, size_t namelen, const char *value, size_t valuelen, int flags);
 typedef int (*sh2lib_frame_data_recv_cb_t)(struct sh2lib_handle *handle, const char *data, size_t len, int flags);
 
 /**
@@ -85,6 +86,12 @@ typedef int (*sh2lib_frame_data_recv_cb_t)(struct sh2lib_handle *handle, const c
  * data pointer
  */
 typedef int (*sh2lib_putpost_data_cb_t)(struct sh2lib_handle *handle, char *data, size_t len, uint32_t *data_flags);
+
+typedef struct {
+  sh2lib_putpost_data_cb_t send_cb;
+  sh2lib_frame_data_header_cb_t header_recv_cb;
+  sh2lib_frame_data_recv_cb_t data_recv_cb;
+} sh2lib_callbacks;
 
 /**
  * @brief Connect to a URI using HTTP/2
@@ -132,7 +139,7 @@ void sh2lib_free(struct sh2lib_handle *hd);
  *             - ESP_OK if request setup is successful
  *             - ESP_FAIL if the request setup fails
  */
-int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_frame_data_recv_cb_t recv_cb);
+int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_callbacks* callbacks);
 
 /**
  * @brief Setup an HTTP POST request stream
@@ -155,8 +162,7 @@ int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_frame_data_
  *             - ESP_FAIL if the request setup fails
  */
 int sh2lib_do_post(struct sh2lib_handle *hd, const char *path,
-                   sh2lib_putpost_data_cb_t send_cb,
-                   sh2lib_frame_data_recv_cb_t recv_cb);
+                   sh2lib_callbacks* callbacks);
 
 /**
  * @brief Setup an HTTP PUT request stream
@@ -179,8 +185,7 @@ int sh2lib_do_post(struct sh2lib_handle *hd, const char *path,
  *             - ESP_FAIL if the request setup fails
  */
 int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
-                  sh2lib_putpost_data_cb_t send_cb,
-                  sh2lib_frame_data_recv_cb_t recv_cb);
+                  sh2lib_callbacks* callbacks);
 
 /**
  * @brief Execute send/receive on an HTTP/2 connection
@@ -229,7 +234,7 @@ int sh2lib_execute(struct sh2lib_handle *hd);
  *             - ESP_OK if request setup is successful
  *             - ESP_FAIL if the request setup fails
  */
-int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen, sh2lib_frame_data_recv_cb_t recv_cb);
+int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen, sh2lib_callbacks* callbacks);
 
 /**
  * @brief Setup an HTTP PUT/POST request stream with custom name-value pairs
@@ -261,7 +266,6 @@ int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_
  *             - ESP_FAIL if the request setup fails
  */
 int sh2lib_do_putpost_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen,
-                              sh2lib_putpost_data_cb_t send_cb,
-                              sh2lib_frame_data_recv_cb_t recv_cb);
+                              sh2lib_callbacks* callbacks);
 
 #endif /* ! __ESP_EXAMPLE_SH2_LIB_H_ */

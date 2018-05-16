@@ -72,16 +72,20 @@ struct RequestHandler
 #endif // REQUESTS_USE_SH2LIB
 
   // Must be public to be accessible from c-style callback
+#ifdef REQUESTS_USE_SH2LIB
+  auto header_callback(const string_view k, const string_view v)
+    -> size_t;
+  auto read_callback(const size_t max_chunk_size)
+    -> string_view;
+#endif // REQUESTS_USE_SH2LIB
+#ifdef REQUESTS_USE_CURL
   auto header_callback(const string_view chunk)
     -> size_t;
+#endif // REQUESTS_USE_CURL
   auto write_callback(const string_view chunk)
     -> size_t;
   auto finish_callback()
     -> void;
-#ifdef REQUESTS_USE_SH2LIB
-  auto read_callback(const size_t max_chunk_size)
-    -> string_view;
-#endif
 
 protected:
   auto create_partial_response(const string_view chunk)

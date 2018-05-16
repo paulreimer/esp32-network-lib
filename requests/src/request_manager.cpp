@@ -70,14 +70,23 @@ auto sslctx_function(CURL* curl, void* ssl_ctx, void* userdata)
 
 #ifdef REQUESTS_USE_SH2LIB
 // Declaration:
-auto recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
+auto header_recv_cb(
+  sh2lib_handle *handle,
+  const char *name, size_t namelen,
+  const char *value, size_t valuelen,
+  int flags
+) -> int;
+
+auto data_recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
   -> int;
 
-auto send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
+auto data_send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
   -> int;
+
+sh2lib_callbacks callbacks{data_send_cb, header_recv_cb, data_recv_cb};
 
 // Implementation:
-auto recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
+auto data_recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
   -> int
 {
   auto* userdata = handle->userdata;
@@ -97,7 +106,7 @@ auto recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
   return retval;
 }
 
-auto send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
+auto data_send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
   -> int
 {
   auto* userdata = handle->userdata;
@@ -117,6 +126,21 @@ auto send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
 
   return send_chunk.size();
 }
+
+auto header_recv_cb(
+  sh2lib_handle *handle,
+  const char *name, size_t namelen,
+  const char *value, size_t valuelen,
+  int flags
+) -> int
+{
+  auto* userdata = handle->userdata;
+
+  auto k = string_view{name, namelen};
+  auto v = string_view{value, valuelen};
+  return static_cast<RequestHandler*>(userdata)->header_callback(k, v);
+}
+
 #endif // REQUESTS_USE_SH2LIB
 
 RequestManager::RequestManager()
@@ -430,7 +454,7 @@ auto RequestManager::send(
         hd,
         nva_vec.data(),
         nva_vec.size(),
-        recv_cb
+        &callbacks
       );
     }
     else {
@@ -450,8 +474,7 @@ auto RequestManager::send(
         hd,
         nva_vec.data(),
         nva_vec.size(),
-        send_cb,
-        recv_cb
+        &callbacks
       );
     }
   }

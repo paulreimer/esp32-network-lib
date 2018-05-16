@@ -285,8 +285,52 @@ auto RequestHandler::read_callback(const size_t max_chunk_size)
 
   return send_chunk;
 }
+
+auto RequestHandler::header_callback(const string_view k, const string_view v)
+  -> size_t
+{
+  // Parse header for HTTP version and response code
+  if (response_code < 0)
+  {
+    if (k == ":status")
+    {
+      //TODO: parse v into number
+      auto _code = std::atoi(string{v}.c_str());
+      if (_code)
+      {
+        // Assign the parsed status code to this response object
+        response_code = _code;
+
+        // Print the received status code
+        const auto& tag = request_intent->request()->uri()->c_str();
+        ESP_LOGI(tag, "%.*s %.*s", k.size(), k.data(), v.size(), v.data());
+
+        // Do not attempt to parse this header any further
+        return 0;
+      }
+    }
+  }
+
+  // Only parse response headers if they were requested
+  if (request_intent->include_headers())
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(
+      CreateHeaderPair(
+        fbb,
+        fbb.CreateString(k),
+        fbb.CreateString(v)
+      )
+    );
+
+    send(*(request_intent->to_pid()), "headers", fbb.Release());
+  }
+
+  return 0;
+}
 #endif // REQUESTS_USE_SH2LIB
 
+#ifdef REQUESTS_USE_CURL
 auto RequestHandler::header_callback(const string_view chunk)
   -> size_t
 {
@@ -310,12 +354,7 @@ auto RequestHandler::header_callback(const string_view chunk)
       ESP_LOGI(tag, "%.*s", status.size(), status.data());
 
       // Do not attempt to parse this header any further
-#ifdef REQUESTS_USE_CURL
       return chunk.size();
-#endif // REQUESTS_USE_CURL
-#ifdef REQUESTS_USE_SH2LIB
-      return 0;
-#endif // REQUESTS_USE_SH2LIB
     }
   }
 
@@ -357,13 +396,9 @@ auto RequestHandler::header_callback(const string_view chunk)
     }
   }
 
-#ifdef REQUESTS_USE_CURL
   return chunk.size();
-#endif // REQUESTS_USE_CURL
-#ifdef REQUESTS_USE_SH2LIB
-  return 0;
-#endif // REQUESTS_USE_SH2LIB
 }
+#endif // REQUESTS_USE_CURL
 
 auto RequestHandler::create_partial_response(const string_view chunk)
   -> ResponseFlatbuffer
