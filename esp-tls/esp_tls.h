@@ -54,6 +54,7 @@ typedef struct esp_tls_cfg {
     bool non_block;                         /*!< Configure non-blocking mode. If set to true the 
                                                  underneath socket will be configured in non 
                                                  blocking mode after tls session is established */
+    mbedtls_x509_crt* cacerts;
 } esp_tls_cfg_t;
 
 /**

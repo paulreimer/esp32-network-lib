@@ -62,7 +62,7 @@ static ssize_t tcp_read(esp_tls_t *tls, char *data, size_t datalen)
 
 static ssize_t tls_read(esp_tls_t *tls, char *data, size_t datalen)
 {
-    ssize_t ret = mbedtls_ssl_read(&tls->ssl, (unsigned char *)data, datalen);   
+    ssize_t ret = mbedtls_ssl_read(&tls->ssl, (unsigned char *)data, datalen);
     if (ret < 0) {
         if (ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
             return 0;
@@ -122,7 +122,7 @@ err_freeaddr:
 static void verify_certificate(esp_tls_t *tls)
 {
     int flags;
-    char buf[100]; 
+    char buf[100];
     if ((flags = mbedtls_ssl_get_verify_result(&tls->ssl)) != 0) {
         ESP_LOGI(TAG, "Failed to verify peer certificate!");
         bzero(buf, sizeof(buf));
@@ -133,7 +133,7 @@ static void verify_certificate(esp_tls_t *tls)
     }
 }
 
-static void mbedtls_cleanup(esp_tls_t *tls) 
+static void mbedtls_cleanup(esp_tls_t *tls)
 {
     if (!tls) {
         return;
@@ -149,21 +149,21 @@ static void mbedtls_cleanup(esp_tls_t *tls)
 static int create_ssl_handle(esp_tls_t *tls, const char *hostname, size_t hostlen, const esp_tls_cfg_t *cfg)
 {
     int ret;
-    
+
     mbedtls_net_init(&tls->server_fd);
     tls->server_fd.fd = tls->sockfd;
     mbedtls_ssl_init(&tls->ssl);
     mbedtls_ctr_drbg_init(&tls->ctr_drbg);
     mbedtls_ssl_config_init(&tls->conf);
     mbedtls_entropy_init(&tls->entropy);
-    
-    if ((ret = mbedtls_ctr_drbg_seed(&tls->ctr_drbg, 
+
+    if ((ret = mbedtls_ctr_drbg_seed(&tls->ctr_drbg,
                     mbedtls_entropy_func, &tls->entropy, NULL, 0)) != 0) {
         ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
-        goto exit;        
+        goto exit;
     }
-    
-    /* Hostname set here should match CN in server certificate */    
+
+    /* Hostname set here should match CN in server certificate */
     char *use_host = strndup(hostname, hostlen);
     if (!use_host) {
         goto exit;
@@ -188,7 +188,11 @@ static int create_ssl_handle(esp_tls_t *tls, const char *hostname, size_t hostle
         mbedtls_ssl_conf_alpn_protocols(&tls->conf, cfg->alpn_protos);
     }
 
-    if (cfg->cacert_pem_buf != NULL) {
+    if (cfg->cacerts != NULL) {
+      mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+      mbedtls_ssl_conf_ca_chain(&tls->conf, cfg->cacerts, NULL);
+    }
+    else if (cfg->cacert_pem_buf != NULL) {
         mbedtls_x509_crt_init(&tls->cacert);
         ret = mbedtls_x509_crt_parse(&tls->cacert, cfg->cacert_pem_buf, cfg->cacert_pem_bytes);
         if (ret < 0) {
@@ -200,7 +204,7 @@ static int create_ssl_handle(esp_tls_t *tls, const char *hostname, size_t hostle
     } else {
         mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_NONE);
     }
-    
+
     mbedtls_ssl_conf_rng(&tls->conf, mbedtls_ctr_drbg_random, &tls->ctr_drbg);
 
 #ifdef CONFIG_MBEDTLS_DEBUG
@@ -220,11 +224,11 @@ static int create_ssl_handle(esp_tls_t *tls, const char *hostname, size_t hostle
             if (cfg->cacert_pem_buf != NULL) {
                 /* This is to check whether handshake failed due to invalid certificate*/
                 verify_certificate(tls);
-            }   
+            }
             goto exit;
         }
     }
-    
+
     return 0;
 exit:
     mbedtls_cleanup(tls);
