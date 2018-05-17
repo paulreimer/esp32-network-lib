@@ -108,6 +108,8 @@ auto firmware_update_behaviour(
         state.ota_bytes_written += response->body()->size();
       }
       else {
+        // Invalidate current OTA session
+        state.ota_flash_started = false;
         state.ota_flash_valid = false;
         ESP_LOGE(TAG, "esp_ota_write failed, err: %d", ret);
       }
