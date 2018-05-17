@@ -563,17 +563,17 @@ auto RequestManager::wait_any()
             handler.slist = nullptr;
           }
 
+          if (response_code > 0)
+          {
+            ESP_LOGI(tag, "Deleting completed request handle");
+          }
+          else {
+            ESP_LOGW(tag, "Deleting failed request handle");
+          }
+
           // Dispose handle (curl_multi may retain it in the connection cache)
           // Cleanup, free request handle and RequestT/ResponseT objects
           requests.erase(done_req);
-
-          if (response_code > 0)
-          {
-            ESP_LOGI(tag, "Deleted completed request handle");
-          }
-          else {
-            ESP_LOGW(tag, "Deleted failed request handle");
-          }
         }
         else {
           ESP_LOGI(tag, "Leaving completed request connection open for streaming");
@@ -597,8 +597,8 @@ auto RequestManager::wait_any()
 
       if (handler.finished)
       {
+        ESP_LOGI(tag, "Deleting completed request handle");
         req_iter = requests.erase(req_iter);
-        ESP_LOGI(tag, "Deleted completed request handle");
         continue;
       }
     }
