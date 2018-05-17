@@ -275,6 +275,8 @@ auto firmware_update_behaviour(
     );
 
     state.authenticated = true;
+
+    return {Result::Ok, EventTerminationAction::ContinueProcessing};
   }
 
   else if (matches(message, "check"))
@@ -316,6 +318,8 @@ auto firmware_update_behaviour(
     else {
       printf("not authenticated for firmware update check\n");
     }
+
+    return {Result::Ok};
   }
 
   else if (matches(message, "reset_pressed"))
@@ -343,6 +347,8 @@ auto firmware_update_behaviour(
     }
 
     state.last_reset_pressed = current_micros;
+
+    return {Result::Ok};
   }
 
   return {Result::Unhandled};
