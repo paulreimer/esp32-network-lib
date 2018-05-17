@@ -99,6 +99,35 @@ inline const char *EnumNameProcessFlag(ProcessFlag e) {
   return EnumNamesProcessFlag()[index];
 }
 
+enum class EventTerminationAction : int8_t {
+  StopProcessing = 0,
+  ContinueProcessing = 1,
+  MIN = StopProcessing,
+  MAX = ContinueProcessing
+};
+
+inline const EventTerminationAction (&EnumValuesEventTerminationAction())[2] {
+  static const EventTerminationAction values[] = {
+    EventTerminationAction::StopProcessing,
+    EventTerminationAction::ContinueProcessing
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesEventTerminationAction() {
+  static const char * const names[] = {
+    "StopProcessing",
+    "ContinueProcessing",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameEventTerminationAction(EventTerminationAction e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesEventTerminationAction()[index];
+}
+
 enum class Result : uint8_t {
   NONE = 0,
   Ok = 1,
@@ -688,6 +717,24 @@ inline const flatbuffers::TypeTable *ProcessFlagTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 1, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *EventTerminationActionTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    EventTerminationActionTypeTable
+  };
+  static const char * const names[] = {
+    "StopProcessing",
+    "ContinueProcessing"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

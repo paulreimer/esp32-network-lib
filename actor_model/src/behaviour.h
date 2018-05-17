@@ -26,14 +26,17 @@ using StatePtr = std::shared_ptr<State>;
 struct ResultUnion
 {
   ResultUnion(
-    Result _type = Result::Unhandled,
-    flatbuffers::Offset<void> _data = 0
+    const Result& _type = Result::Unhandled,
+    const EventTerminationAction& _action = EventTerminationAction::StopProcessing,
+    const flatbuffers::Offset<void>& _data = 0
   )
   : type(_type)
+  , action(_action)
   , data(_data)
   {}
 
   Result type;
+  EventTerminationAction action;
   flatbuffers::Offset<void> data;
 };
 

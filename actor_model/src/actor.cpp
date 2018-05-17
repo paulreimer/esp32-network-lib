@@ -213,7 +213,12 @@ auto Actor::loop()
       }
 
       // Exit the loop, unless behaviour did not handle this message
-      if (result.type != Result::Unhandled)
+      if (
+        not (
+          result.type == Result::Unhandled
+          or result.action == EventTerminationAction::ContinueProcessing
+        )
+      )
       {
         break;
       }

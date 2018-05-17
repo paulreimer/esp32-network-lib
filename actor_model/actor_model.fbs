@@ -16,7 +16,7 @@ enum SupervisionStrategy:byte
   one_for_one,
   one_for_all,
   rest_for_one,
-  simple_one_for_one
+  simple_one_for_one,
 }
 
 enum ProcessFlag:short
@@ -31,6 +31,12 @@ table Message
   from_pid:UUID;
   payload_alignment:uint;
   payload:[ubyte];
+}
+
+enum EventTerminationAction:byte
+{
+  StopProcessing,
+  ContinueProcessing,
 }
 
 table Ok
