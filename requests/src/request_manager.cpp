@@ -163,6 +163,9 @@ RequestManager::RequestManager()
   // Attempt to pipeline and/or multiplex requests if possible
   //curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
 #endif // REQUESTS_USE_CURL
+
+  // Initialize (empty) CA certificate chain
+  mbedtls_x509_crt_init(&cacerts);
 }
 
 RequestManager::~RequestManager()
