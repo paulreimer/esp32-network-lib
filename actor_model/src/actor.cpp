@@ -58,11 +58,6 @@ Actor::Actor(
 , current_node(_current_node)
 , started(false)
 {
-  // Setup re-usable return objects
-  Ok.type = Result::Ok;
-  Unhandled.type = Result::Unhandled;
-  Done.type = Result::Error;
-
   state_ptrs.resize(behaviours.size());
 
   dictionary.ancestors = _ancestors;

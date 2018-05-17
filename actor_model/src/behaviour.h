@@ -23,7 +23,16 @@ namespace ActorModel {
 using State = void;
 using StatePtr = std::shared_ptr<State>;
 
-struct ResultUnion {
+struct ResultUnion
+{
+  ResultUnion(
+    Result _type = Result::Unhandled,
+    flatbuffers::Offset<void> _data = 0
+  )
+  : type(_type)
+  , data(_data)
+  {}
+
   Result type;
   flatbuffers::Offset<void> data;
 };

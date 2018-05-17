@@ -116,7 +116,7 @@ auto firmware_update_behaviour(
       ESP_LOGE(TAG, "Invalid state");
     }
 
-    return Ok;
+    return {Result::Ok};
   }
 
   // Check for firmware image complete, switch to the new partition and reboot
@@ -180,7 +180,7 @@ auto firmware_update_behaviour(
       }
     }
 
-    return Ok;
+    return {Result::Ok};
   }
 
   // Check for firmware update check results, parse the Firmware flatbuffer
@@ -240,7 +240,7 @@ auto firmware_update_behaviour(
       }
     }
 
-    return Ok;
+    return {Result::Ok};
   }
 
 
@@ -248,17 +248,17 @@ auto firmware_update_behaviour(
   {
     ESP_LOGE(TAG, "Firmware update check request failed");
 
-    return Ok;
+    return {Result::Ok};
   }
 
   else if (matches(message, "error", response, firmware_update_request_intent_id))
   {
     ESP_LOGE(TAG, "Firmware update download request failed");
 
-    return Ok;
+    return {Result::Ok};
   }
 
-  else if (matches(message, "reauth"))
+  else if (matches(message, "access_token"))
   {
     state.access_token = string{
       reinterpret_cast<const char*>(message.payload()->data()),
@@ -343,7 +343,7 @@ auto firmware_update_behaviour(
     state.last_reset_pressed = current_micros;
   }
 
-  return Ok;
+  return {Result::Unhandled};
 }
 
 } // namespace FirmwareUpdate

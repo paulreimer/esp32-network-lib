@@ -40,7 +40,7 @@ auto request_manager_behaviour(
       message.payload()->size()
     });
 
-    return Ok;
+    return {Result::Ok};
   }
 
   else if (matches(message, "add_cacert_pem"))
@@ -50,7 +50,7 @@ auto request_manager_behaviour(
       message.payload()->size()
     });
 
-    return Ok;
+    return {Result::Ok};
   }
 
   else if (matches(message, "request"))
@@ -71,7 +71,7 @@ auto request_manager_behaviour(
       send(self, "tick", "");
     }
 
-    return Ok;
+    return {Result::Ok};
   }
 
   else {
@@ -83,10 +83,10 @@ auto request_manager_behaviour(
       send(self, "tick", "");
     }
 
-    return Ok;
+    return {Result::Ok};
   }
 
-  return Unhandled;
+  return {Result::Unhandled};
 }
 
 } // namespace Requests
