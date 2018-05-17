@@ -15,6 +15,7 @@ using string_view = std::experimental::string_view;
 
 // free functions bound to default node
 
+// Single behaviour convenience function
 auto spawn(
   const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback
@@ -22,7 +23,7 @@ auto spawn(
 {
   auto& node = Actor::get_default_node();
   return node.spawn(
-    std::move(_behaviour),
+    {std::move(_behaviour)},
     std::move(_exec_config_callback)
   );
 }
@@ -35,7 +36,34 @@ auto spawn_link(
 {
   auto& node = Actor::get_default_node();
   return node.spawn_link(
-    std::move(_behaviour),
+    {std::move(_behaviour)},
+    _initial_link_pid,
+    std::move(_exec_config_callback)
+  );
+}
+
+// Multiple chained behaviours
+auto spawn(
+  const Behaviours&& _behaviours,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
+{
+  auto& node = Actor::get_default_node();
+  return node.spawn(
+    std::move(_behaviours),
+    std::move(_exec_config_callback)
+  );
+}
+
+auto spawn_link(
+  const Behaviours&& _behaviours,
+  const Pid& _initial_link_pid,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
+{
+  auto& node = Actor::get_default_node();
+  return node.spawn_link(
+    std::move(_behaviours),
     _initial_link_pid,
     std::move(_exec_config_callback)
   );

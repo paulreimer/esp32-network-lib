@@ -23,6 +23,7 @@ using string_view = std::experimental::string_view;
 
 void actor_task(void* user_data = nullptr);
 
+// Single behaviour convenience function
 Actor::Actor(
   const Pid& _pid,
   const Behaviour&& _behaviour,
@@ -31,8 +32,28 @@ Actor::Actor(
   const Actor::ProcessDictionary::AncestorList&& _ancestors,
   Node* const _current_node
 )
+: Actor(
+  _pid,
+  Behaviours{std::move(_behaviour)},
+  execution_config,
+  initial_link_pid,
+  std::move(_ancestors),
+  _current_node
+)
+{
+}
+
+// Multiple chained behaviours
+Actor::Actor(
+  const Pid& _pid,
+  const Behaviours&& _behaviours,
+  const ActorExecutionConfig& execution_config,
+  const MaybePid& initial_link_pid,
+  const Actor::ProcessDictionary::AncestorList&& _ancestors,
+  Node* const _current_node
+)
 : pid(_pid)
-, behaviour(_behaviour)
+, behaviours(_behaviours)
 , mailbox(execution_config.mailbox_size())
 , current_node(_current_node)
 , started(false)
@@ -41,6 +62,8 @@ Actor::Actor(
   Ok.type = Result::Ok;
   Unhandled.type = Result::Unhandled;
   Done.type = Result::Error;
+
+  state_ptrs.resize(behaviours.size());
 
   dictionary.ancestors = _ancestors;
 
@@ -178,14 +201,26 @@ auto Actor::loop()
   {
     const Message* message = flatbuffers::GetRoot<Message>(_message.data());
 
-    result = behaviour(pid, state, *(message));
-
-    if (result.type == Result::Error)
+    auto idx = 0;
+    for (const auto& behaviour : behaviours)
     {
-      string_view reason = "normal";
-      if (reason == "normal")
+      auto& state = state_ptrs[idx++];
+
+      result = behaviour(pid, state, *(message));
+
+      if (result.type == Result::Error)
       {
-        exit(reason);
+        string_view reason = "normal";
+        if (reason == "normal")
+        {
+          exit(reason);
+        }
+      }
+
+      // Exit the loop, unless behaviour did not handle this message
+      if (result.type != Result::Unhandled)
+      {
+        break;
       }
     }
 

@@ -18,13 +18,14 @@ Node::Node()
 {
 }
 
+// Single behaviour convenience function
 auto Node::spawn(
   const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   return _spawn(
-    std::move(_behaviour),
+    {std::move(_behaviour)},
     std::experimental::nullopt,
     std::move(_exec_config_callback)
   );
@@ -37,14 +38,40 @@ auto Node::spawn_link(
 ) -> Pid
 {
   return _spawn(
-    std::move(_behaviour),
+    {std::move(_behaviour)},
+    _initial_link_pid,
+    std::move(_exec_config_callback)
+  );
+}
+
+// Multiple chained behaviours
+auto Node::spawn(
+  const Behaviours&& _behaviours,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
+{
+  return _spawn(
+    std::move(_behaviours),
+    std::experimental::nullopt,
+    std::move(_exec_config_callback)
+  );
+}
+
+auto Node::spawn_link(
+  const Behaviours&& _behaviours,
+  const Pid& _initial_link_pid,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
+{
+  return _spawn(
+    std::move(_behaviours),
     _initial_link_pid,
     std::move(_exec_config_callback)
   );
 }
 
 auto Node::_spawn(
-  const Behaviour&& _behaviour,
+  const Behaviours&& _behaviours,
   const MaybePid& _initial_link_pid,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
@@ -73,7 +100,7 @@ auto Node::_spawn(
     ActorPtr{
       new Actor{
         child_pid,
-        std::move(_behaviour),
+        std::move(_behaviours),
         *(execution_config),
         _initial_link_pid
       }

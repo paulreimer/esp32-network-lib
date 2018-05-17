@@ -90,9 +90,20 @@ public:
     -> bool;
 
 protected:
+  // Single behaviour convenience function
   Actor(
     const Pid& _pid,
     const Behaviour&& _behaviour,
+    const ActorExecutionConfig& execution_config,
+    const MaybePid& initial_link_pid = std::experimental::nullopt,
+    const ProcessDictionary::AncestorList&& _ancestors = {},
+    Node* const _current_node = nullptr
+  );
+
+  // Multiple chained behaviours
+  Actor(
+    const Pid& _pid,
+    const Behaviours&& _behaviours,
     const ActorExecutionConfig& execution_config,
     const MaybePid& initial_link_pid = std::experimental::nullopt,
     const ProcessDictionary::AncestorList&& _ancestors = {},
@@ -111,9 +122,9 @@ protected:
   const Pid pid;
 
   // Actor implementation:
-  Behaviour behaviour;
+  Behaviours behaviours;
   Mailbox mailbox;
-  StatePtr state;
+  std::vector<StatePtr> state_ptrs;
 
   // References to other actors:
   //Children children;

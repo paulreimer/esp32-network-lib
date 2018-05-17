@@ -46,6 +46,7 @@ public:
   // public constructors/destructors:
   Node();
 
+  // Single behaviour convenience function
   auto spawn(
     const Behaviour&& _behaviour,
     const ExecConfigCallback&& _exec_config_callback
@@ -53,6 +54,18 @@ public:
 
   auto spawn_link(
     const Behaviour&& _behaviour,
+    const Pid& _initial_link_pid,
+    const ExecConfigCallback&& _exec_config_callback
+  ) -> Pid;
+
+  // Multiple chained behaviours
+  auto spawn(
+    const Behaviours&& _behaviours,
+    const ExecConfigCallback&& _exec_config_callback
+  ) -> Pid;
+
+  auto spawn_link(
+    const Behaviours&& _behaviours,
     const Pid& _initial_link_pid,
     const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
@@ -86,7 +99,7 @@ public:
 
 protected:
   auto _spawn(
-    const Behaviour&& _behaviour,
+    const Behaviours&& _behaviours,
     const MaybePid& _initial_link_pid = std::experimental::nullopt,
     const ExecConfigCallback&& _exec_config_callback = nullptr
   ) -> Pid;

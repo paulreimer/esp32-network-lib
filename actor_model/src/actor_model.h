@@ -21,6 +21,8 @@ namespace ActorModel {
 using MessageFlatbuffer = flatbuffers::DetachedBuffer;
 
 // free functions bound to default node
+
+// Single behaviour convenience function
 auto spawn(
   const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback = nullptr
@@ -28,6 +30,18 @@ auto spawn(
 
 auto spawn_link(
   const Behaviour&& _behaviour,
+  const Pid& _initial_link_pid,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
+
+// Multiple chained behaviours
+auto spawn(
+  const Behaviours&& _behaviours,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
+
+auto spawn_link(
+  const Behaviours&& _behaviours,
   const Pid& _initial_link_pid,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;

@@ -16,6 +16,7 @@
 #include "delegate.hpp"
 
 #include <memory>
+#include <vector>
 
 namespace ActorModel {
 
@@ -32,5 +33,7 @@ using Behaviour = delegate<ResultUnion(
   StatePtr& state,
   const Message&
 )>;
+
+using Behaviours = std::vector<Behaviour>;
 
 } // namespace ActorModel
