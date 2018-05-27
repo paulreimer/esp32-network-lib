@@ -12,7 +12,12 @@
 #include "request_manager.h"
 #include "actor_model.h"
 
+#include "delay.h"
+
+#include <chrono>
 #include <memory>
+
+using namespace std::chrono_literals;
 
 namespace Requests {
 
@@ -66,6 +71,7 @@ auto request_manager_behaviour(
         requests.fetch(request_intent_buf_ref);
 
         // Begin ticking on next message
+        delay(10ms);
         send(self, "tick", "");
       }
 
