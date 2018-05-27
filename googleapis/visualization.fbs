@@ -110,6 +110,15 @@ table Query
   options:QueryOption;
 }
 
-root_type Query;
+table QueryIntent
+{
+  id:UUID.UUID;
+  to_pid:UUID.UUID;
+  spreadsheet_id:string;
+  gid:string;
+  query:Query;
+}
+
+root_type QueryIntent;
 file_identifier "gviz";
 file_extension "fb";

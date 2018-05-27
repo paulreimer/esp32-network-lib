@@ -1,13 +1,28 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License.
+ * To view a copy of this license, visit
+ * https://creativecommons.org/licenses/by-nc-sa/4.0/
+ * or send a letter to
+ * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+ */
 #include "googleapis.h"
+
+#include "uuid.h"
 
 #include <stdio.h>
 
 namespace googleapis {
 
-using namespace GViz;
-
+namespace Visualization {
 using string_view = std::experimental::string_view;
 using string = std::string;
+using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
+
+using UUID::uuid_valid;
+
+using namespace Requests;
 
 auto get_column_from_label(
   const DatatableColumns* cols,
@@ -178,59 +193,67 @@ auto update_columns(
   return column_ids_found;
 }
 
-auto update_query_columns(
+auto update_query_intent_columns(
   const DatatableColumns* from_cols,
-  Query* to_query
+  QueryIntent* query_intent
 ) -> bool
 {
   bool did_update_all_ids = true;
 
-  if (to_query->select())
+  if (query_intent)
   {
-    auto updated_cols = update_columns(from_cols, to_query->mutable_select());
-    if (updated_cols != to_query->select()->size())
-    {
-      did_update_all_ids = false;
-    }
-  }
+    auto* query = query_intent->mutable_query();
 
-  if (to_query->where())
-  {
-    for (auto i = 0; i < to_query->where()->size(); ++i)
+    if (query)
     {
-      auto* to_col = to_query->where()->GetMutableObject(i)->mutable_column();
-      auto did_update = update_column(from_cols, to_col);
-      if (not did_update)
+      if (query->select())
       {
-        did_update_all_ids = false;
+        auto updated_cols = update_columns(from_cols, query->mutable_select());
+        if (updated_cols != query->select()->size())
+        {
+          did_update_all_ids = false;
+        }
       }
-    }
-  }
 
-  if (to_query->group_by())
-  {
-    auto updated_cols = update_columns(from_cols, to_query->mutable_group_by());
-    if (updated_cols != to_query->group_by()->size())
-    {
-      did_update_all_ids = false;
-    }
-  }
+      if (query->where())
+      {
+        for (auto i = 0; i < query->where()->size(); ++i)
+        {
+          auto* to_col = query->where()->GetMutableObject(i)->mutable_column();
+          auto did_update = update_column(from_cols, to_col);
+          if (not did_update)
+          {
+            did_update_all_ids = false;
+          }
+        }
+      }
 
-  if (to_query->pivot())
-  {
-    auto updated_cols = update_columns(from_cols, to_query->mutable_pivot());
-    if (updated_cols != to_query->pivot()->size())
-    {
-      did_update_all_ids = false;
-    }
-  }
+      if (query->group_by())
+      {
+        auto updated_cols = update_columns(from_cols, query->mutable_group_by());
+        if (updated_cols != query->group_by()->size())
+        {
+          did_update_all_ids = false;
+        }
+      }
 
-  if (to_query->order_by())
-  {
-    auto updated_cols = update_columns(from_cols, to_query->mutable_order_by());
-    if (updated_cols != to_query->order_by()->size())
-    {
-      did_update_all_ids = false;
+      if (query->pivot())
+      {
+        auto updated_cols = update_columns(from_cols, query->mutable_pivot());
+        if (updated_cols != query->pivot()->size())
+        {
+          did_update_all_ids = false;
+        }
+      }
+
+      if (query->order_by())
+      {
+        auto updated_cols = update_columns(from_cols, query->mutable_order_by());
+        if (updated_cols != query->order_by()->size())
+        {
+          did_update_all_ids = false;
+        }
+      }
     }
   }
 
@@ -371,53 +394,129 @@ auto build_where_clauses(
   return where_clauses_str;
 }
 
-auto build_query(
-  const Query* query
+auto build_query_string(
+  const QueryIntent* query_intent
 ) -> string
 {
-  string query_str;
+  string query_string_str;
 
-  if (query->select())
+  if (query_intent)
   {
-    query_str += "select " + build_column_list(query->select());
+    const auto* query = query_intent->query();
+    if (query)
+    {
+      if (query->select())
+      {
+        query_string_str += "select " + build_column_list(query->select());
+      }
+
+      if (query->where())
+      {
+        query_string_str += "where " + build_where_clauses(query->where());
+      }
+
+      if (query->group_by())
+      {
+        query_string_str += " group by " + build_column_list(query->group_by());
+      }
+
+      if (query->pivot())
+      {
+        query_string_str += " pivot " + build_column_list(query->pivot());
+      }
+
+      if (query->order_by())
+      {
+        query_string_str += " order by " + build_column_list(query->order_by());
+      }
+
+      if (query->limit())
+      {
+        query_string_str += " limit " + std::to_string(query->limit());
+      }
+
+      if (query->offset())
+      {
+        query_string_str += " offset " + std::to_string(query->offset());
+      }
+
+      if (query->options() != QueryOption::defaults)
+      {
+        query_string_str += " options " + string{EnumNameQueryOption(query->options())};
+      }
+    }
   }
 
-  if (query->where())
-  {
-    query_str += "where " + build_where_clauses(query->where());
-  }
-
-  if (query->group_by())
-  {
-    query_str += " group by " + build_column_list(query->group_by());
-  }
-
-  if (query->pivot())
-  {
-    query_str += " pivot " + build_column_list(query->pivot());
-  }
-
-  if (query->order_by())
-  {
-    query_str += " order by " + build_column_list(query->order_by());
-  }
-
-  if (query->limit())
-  {
-    query_str += " limit " + std::to_string(query->limit());
-  }
-
-  if (query->offset())
-  {
-    query_str += " offset " + std::to_string(query->offset());
-  }
-
-  if (query->options() != QueryOption::defaults)
-  {
-    query_str += " options " + string{EnumNameQueryOption(query->options())};
-  }
-
-  return query_str;
+  return query_string_str;
 }
+
+auto update_request_intent_for_query_intent(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const QueryIntent* query_intent
+) -> bool
+{
+  if (
+    query_intent
+    and query_intent->spreadsheet_id()
+    and query_intent->gid()
+    and query_intent->query()
+  )
+  {
+
+    // Set the uri
+    const auto& id = query_intent->spreadsheet_id()->str();
+    auto uri = ( "https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq");
+    set_request_uri(request_intent_mutable_buf, uri);
+
+    // Set the 'gid' query arg
+    auto gid = query_intent->gid()->string_view();
+    set_request_query_arg(request_intent_mutable_buf, "gid", gid);
+
+    // Set the 'tq' query arg
+    auto tq = build_query_string(query_intent);
+    set_request_query_arg(request_intent_mutable_buf, "tq", tq);
+
+    return true;
+  }
+
+  return false;
+}
+
+auto query_intent_valid(const QueryIntent* query_intent)
+  -> bool
+{
+  return (
+    query_intent
+    and query_intent->id()
+    and query_intent->to_pid()
+    and uuid_valid(query_intent->to_pid())
+    and query_intent->spreadsheet_id()
+    and query_intent->gid()
+    and query_intent->query()
+  );
+}
+
+auto datatable_has_columns(const Datatable* datatable)
+  -> bool
+{
+  return (
+    datatable
+    and datatable->cols()
+    and (datatable->cols()->Length() > 0)
+  );
+}
+
+auto datatable_has_rows(const Datatable* datatable)
+  -> bool
+{
+  return (
+    datatable
+    and datatable->rows()
+    and (datatable->rows()->Length() > 0)
+  );
+}
+
+
+} // namespace Visualization
 
 } // namespace googleapis
