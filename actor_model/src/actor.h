@@ -40,8 +40,8 @@ class Actor
 public:
   // type aliases:
   using Reason = std::experimental::string_view;
-  using LinkList = std::unordered_set<Pid, UUIDHashFunc, UUIDEqualFunc>;
-  using MonitorList = std::unordered_set<Pid, UUIDHashFunc, UUIDEqualFunc>;
+  using LinkList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
+  using MonitorList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
 
   using string_view = std::experimental::string_view;
   using flatbuf = std::vector<uint8_t>;
