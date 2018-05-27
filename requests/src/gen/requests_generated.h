@@ -404,11 +404,11 @@ struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::String *mutable_errbuf() {
     return GetPointer<flatbuffers::String *>(VT_ERRBUF);
   }
-  const UUID *request_id() const {
-    return GetStruct<const UUID *>(VT_REQUEST_ID);
+  const UUID::UUID *request_id() const {
+    return GetStruct<const UUID::UUID *>(VT_REQUEST_ID);
   }
-  UUID *mutable_request_id() {
-    return GetStruct<UUID *>(VT_REQUEST_ID);
+  UUID::UUID *mutable_request_id() {
+    return GetStruct<UUID::UUID *>(VT_REQUEST_ID);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -420,7 +420,7 @@ struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(body()) &&
            VerifyOffset(verifier, VT_ERRBUF) &&
            verifier.Verify(errbuf()) &&
-           VerifyField<UUID>(verifier, VT_REQUEST_ID) &&
+           VerifyField<UUID::UUID>(verifier, VT_REQUEST_ID) &&
            verifier.EndTable();
   }
 };
@@ -440,7 +440,7 @@ struct ResponseBuilder {
   void add_errbuf(flatbuffers::Offset<flatbuffers::String> errbuf) {
     fbb_.AddOffset(Response::VT_ERRBUF, errbuf);
   }
-  void add_request_id(const UUID *request_id) {
+  void add_request_id(const UUID::UUID *request_id) {
     fbb_.AddStruct(Response::VT_REQUEST_ID, request_id);
   }
   explicit ResponseBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -461,7 +461,7 @@ inline flatbuffers::Offset<Response> CreateResponse(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<HeaderPair>>> headers = 0,
     flatbuffers::Offset<flatbuffers::String> body = 0,
     flatbuffers::Offset<flatbuffers::String> errbuf = 0,
-    const UUID *request_id = 0) {
+    const UUID::UUID *request_id = 0) {
   ResponseBuilder builder_(_fbb);
   builder_.add_request_id(request_id);
   builder_.add_errbuf(errbuf);
@@ -477,7 +477,7 @@ inline flatbuffers::Offset<Response> CreateResponseDirect(
     const std::vector<flatbuffers::Offset<HeaderPair>> *headers = nullptr,
     const char *body = nullptr,
     const char *errbuf = nullptr,
-    const UUID *request_id = 0) {
+    const UUID::UUID *request_id = 0) {
   return Requests::CreateResponse(
       _fbb,
       code,
@@ -496,8 +496,8 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   enum {
     VT_ID = 4,
-    VT_REQUEST = 6,
-    VT_TO_PID = 8,
+    VT_TO_PID = 6,
+    VT_REQUEST = 8,
     VT_DESIRED_FORMAT = 10,
     VT_OBJECT_PATH = 12,
     VT_ROOT_TYPE = 14,
@@ -505,23 +505,23 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_INCLUDE_HEADERS = 18,
     VT_STREAMING = 20
   };
-  const UUID *id() const {
-    return GetStruct<const UUID *>(VT_ID);
+  const UUID::UUID *id() const {
+    return GetStruct<const UUID::UUID *>(VT_ID);
   }
-  UUID *mutable_id() {
-    return GetStruct<UUID *>(VT_ID);
+  UUID::UUID *mutable_id() {
+    return GetStruct<UUID::UUID *>(VT_ID);
+  }
+  const UUID::UUID *to_pid() const {
+    return GetStruct<const UUID::UUID *>(VT_TO_PID);
+  }
+  UUID::UUID *mutable_to_pid() {
+    return GetStruct<UUID::UUID *>(VT_TO_PID);
   }
   const Request *request() const {
     return GetPointer<const Request *>(VT_REQUEST);
   }
   Request *mutable_request() {
     return GetPointer<Request *>(VT_REQUEST);
-  }
-  const UUID *to_pid() const {
-    return GetStruct<const UUID *>(VT_TO_PID);
-  }
-  UUID *mutable_to_pid() {
-    return GetStruct<UUID *>(VT_TO_PID);
   }
   ResponseFilter desired_format() const {
     return static_cast<ResponseFilter>(GetField<int16_t>(VT_DESIRED_FORMAT, 0));
@@ -561,10 +561,10 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<UUID>(verifier, VT_ID) &&
+           VerifyField<UUID::UUID>(verifier, VT_ID) &&
+           VerifyField<UUID::UUID>(verifier, VT_TO_PID) &&
            VerifyOffset(verifier, VT_REQUEST) &&
            verifier.VerifyTable(request()) &&
-           VerifyField<UUID>(verifier, VT_TO_PID) &&
            VerifyField<int16_t>(verifier, VT_DESIRED_FORMAT) &&
            VerifyOffset(verifier, VT_OBJECT_PATH) &&
            verifier.Verify(object_path()) &&
@@ -581,14 +581,14 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct RequestIntentBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_id(const UUID *id) {
+  void add_id(const UUID::UUID *id) {
     fbb_.AddStruct(RequestIntent::VT_ID, id);
+  }
+  void add_to_pid(const UUID::UUID *to_pid) {
+    fbb_.AddStruct(RequestIntent::VT_TO_PID, to_pid);
   }
   void add_request(flatbuffers::Offset<Request> request) {
     fbb_.AddOffset(RequestIntent::VT_REQUEST, request);
-  }
-  void add_to_pid(const UUID *to_pid) {
-    fbb_.AddStruct(RequestIntent::VT_TO_PID, to_pid);
   }
   void add_desired_format(ResponseFilter desired_format) {
     fbb_.AddElement<int16_t>(RequestIntent::VT_DESIRED_FORMAT, static_cast<int16_t>(desired_format), 0);
@@ -622,9 +622,9 @@ struct RequestIntentBuilder {
 
 inline flatbuffers::Offset<RequestIntent> CreateRequestIntent(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const UUID *id = 0,
+    const UUID::UUID *id = 0,
+    const UUID::UUID *to_pid = 0,
     flatbuffers::Offset<Request> request = 0,
-    const UUID *to_pid = 0,
     ResponseFilter desired_format = ResponseFilter::FullResponseBody,
     flatbuffers::Offset<flatbuffers::String> object_path = 0,
     flatbuffers::Offset<flatbuffers::String> root_type = 0,
@@ -635,8 +635,8 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntent(
   builder_.add_schema_text(schema_text);
   builder_.add_root_type(root_type);
   builder_.add_object_path(object_path);
-  builder_.add_to_pid(to_pid);
   builder_.add_request(request);
+  builder_.add_to_pid(to_pid);
   builder_.add_id(id);
   builder_.add_desired_format(desired_format);
   builder_.add_streaming(streaming);
@@ -646,9 +646,9 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntent(
 
 inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const UUID *id = 0,
+    const UUID::UUID *id = 0,
+    const UUID::UUID *to_pid = 0,
     flatbuffers::Offset<Request> request = 0,
-    const UUID *to_pid = 0,
     ResponseFilter desired_format = ResponseFilter::FullResponseBody,
     const char *object_path = nullptr,
     const char *root_type = nullptr,
@@ -658,8 +658,8 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
   return Requests::CreateRequestIntent(
       _fbb,
       id,
-      request,
       to_pid,
+      request,
       desired_format,
       object_path ? _fbb.CreateString(object_path) : 0,
       root_type ? _fbb.CreateString(root_type) : 0,
@@ -773,7 +773,7 @@ inline const flatbuffers::TypeTable *ResponseTypeTable() {
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     HeaderPairTypeTable,
-    UUIDTypeTable
+    UUID::UUIDTypeTable
   };
   static const char * const names[] = {
     "code",
@@ -791,8 +791,8 @@ inline const flatbuffers::TypeTable *ResponseTypeTable() {
 inline const flatbuffers::TypeTable *RequestIntentTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
-    { flatbuffers::ET_SEQUENCE, 0, 1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
     { flatbuffers::ET_SHORT, 0, 2 },
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_STRING, 0, -1 },
@@ -801,14 +801,14 @@ inline const flatbuffers::TypeTable *RequestIntentTypeTable() {
     { flatbuffers::ET_BOOL, 0, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    UUIDTypeTable,
+    UUID::UUIDTypeTable,
     RequestTypeTable,
     ResponseFilterTypeTable
   };
   static const char * const names[] = {
     "id",
-    "request",
     "to_pid",
+    "request",
     "desired_format",
     "object_path",
     "root_type",

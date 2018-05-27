@@ -15,6 +15,8 @@ namespace ActorModel {
 
 using string_view = std::experimental::string_view;
 
+using UUID::uuidgen;
+
 Mailbox::AddressRegistry Mailbox::address_registry;
 
 Mailbox::Mailbox(const size_t _mailbox_size)

@@ -14,6 +14,8 @@
 
 namespace ActorModel {
 
+using UUID::uuidgen;
+
 Node::Node()
 {
 }

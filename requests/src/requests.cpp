@@ -11,22 +11,22 @@
 
 #include "uuid.h"
 
-#include "actor_model.h"
-
 #include <utility>
 
 #include "flatbuffers/reflection.h"
 
 namespace Requests {
 
-using ActorModel::uuidgen;
+using UUID::uuidgen;
 
 using string = std::string;
 using string_view = std::experimental::string_view;
 
-using ActorModel::compare_uuids;
-using ActorModel::update_uuid;
-using ActorModel::uuid_valid;
+using UUID::compare_uuids;
+using UUID::update_uuid;
+using UUID::uuid_valid;
+using UUID::NullUUID;
+using UUID = UUID::UUID;
 
 using RequestIntentFields = flatbuffers::Vector<
   flatbuffers::Offset<reflection::Field>
@@ -127,8 +127,8 @@ auto make_request_intent(
     CreateRequestIntent(
       fbb,
       &request_intent_id,
-      request,
       &to_pid,
+      request,
       desired_format,
       object_path.empty()? 0 : fbb.CreateString(object_path),
       root_type.empty()? 0 : fbb.CreateString(root_type),
@@ -505,7 +505,7 @@ auto get_request_intent_id(
   }
 
   // Return null UUID if invalid request intent found
-  return UUID(0, 0);
+  return NullUUID;
 }
 
 } // namespace Requests

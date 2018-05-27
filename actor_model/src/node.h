@@ -38,8 +38,8 @@ public:
   using ProcessRegistry = std::unordered_map<
     Pid,
     ActorPtr,
-    UUIDHashFunc,
-    UUIDEqualFunc
+    UUID::UUIDHashFunc,
+    UUID::UUIDEqualFunc
   >;
   using NamedProcessRegistry = std::unordered_map<string, Pid>;
 

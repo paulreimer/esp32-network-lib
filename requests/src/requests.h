@@ -20,10 +20,8 @@
 namespace Requests {
 
 using RequestIntentFlatbuffer = flatbuffers::DetachedBuffer;
-using MutableRequestIntentFlatbuffer = std::vector<uint8_t>;
 using RequestIntentFlatbufferRef = flatbuffers::BufferRef<RequestIntent>;
-
-using ActorModel::compare_uuids;
+using MutableRequestIntentFlatbuffer = std::vector<uint8_t>;
 
 auto make_request_intent(
   const std::experimental::string_view method,
@@ -35,7 +33,7 @@ auto make_request_intent(
     std::pair<std::experimental::string_view, std::experimental::string_view>
   >& headers = {},
   const std::experimental::string_view body = "",
-  const UUID& to_pid = UUID(0,0),
+  const UUID::UUID& to_pid = UUID::NullUUID,
   const ResponseFilter desired_format = ResponseFilter::FullResponseBody,
   const std::experimental::string_view object_path = "",
   const std::experimental::string_view root_type = "",
@@ -82,7 +80,7 @@ auto matches(
   const ActorModel::Message& message,
   const std::experimental::string_view type,
   const Response*& response,
-  const UUID& request_intent_id
+  const UUID::UUID& request_intent_id
 ) -> bool;
 
 // Return a vector of parsed bytes
@@ -94,6 +92,6 @@ auto parse_request_intent(
 // Extract the request intent ID from the bytes of a RequestIntent flatbuffer
 auto get_request_intent_id(
   const MutableRequestIntentFlatbuffer& request_intent_mutable_buf
-) -> const UUID;
+) -> const UUID::UUID;
 
 } // namespace Requests

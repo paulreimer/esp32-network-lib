@@ -28,7 +28,7 @@ table Message
 {
   type:string;
   timestamp:ulong;
-  from_pid:UUID;
+  from_pid:UUID.UUID;
   payload_alignment:uint;
   payload:[ubyte];
 }
@@ -56,7 +56,7 @@ union Result { Ok, Error, Unhandled }
 
 table Signal
 {
-  from_pid:UUID;
+  from_pid:UUID.UUID;
   reason:string;
 }
 

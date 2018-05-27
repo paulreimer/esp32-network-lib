@@ -1,5 +1,14 @@
 # Generate *.gviz.fb binary Query flatbuffer from *.gviz.json
+# in any component's secrets/gen/ directory:
 $(COMPILING_COMPONENT_PATH)/secrets/gen/%.gviz.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.gviz.json
 	flatc --binary -o $(@D) \
-	$(PROJECT_PATH)/esp32-network-lib/googleapis/gviz.fbs \
+	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
+	$(PROJECT_PATH)/esp32-network-lib/googleapis/visualization.fbs \
+	$^
+
+# in any component's assets/ directory:
+$(COMPILING_COMPONENT_PATH)/assets/gen/%.gviz.fb: $(COMPILING_COMPONENT_PATH)/assets/%.gviz.json
+	flatc --binary -o $(@D) \
+	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
+	$(PROJECT_PATH)/esp32-network-lib/googleapis/visualization.fbs \
 	$^

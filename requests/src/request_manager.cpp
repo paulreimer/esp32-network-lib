@@ -26,7 +26,8 @@ namespace Requests {
 using string_view = std::experimental::string_view;
 using string = std::string;
 
-using ActorModel::compare_uuids;
+using UUID::compare_uuids;
+using UUID = UUID::UUID;
 
 mbedtls_x509_crt cacerts;
 

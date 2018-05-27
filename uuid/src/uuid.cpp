@@ -11,7 +11,7 @@
 
 #include "sole.hpp"
 
-namespace ActorModel {
+namespace UUID {
 
 auto UUIDHashFunc::operator()(const UUID& uuid) const
   -> std::size_t
@@ -132,4 +132,4 @@ auto get_uuid_str(const UUID& uuid)
   return _uuid.str();
 }
 
-} // namespace ActorModel
+} // namespace UUID

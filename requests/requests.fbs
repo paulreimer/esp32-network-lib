@@ -7,7 +7,8 @@
  * or send a letter to
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
-include "../actor_model/uuid.fbs";
+
+include "uuid.fbs";
 
 namespace Requests;
 
@@ -38,7 +39,7 @@ table Response
   headers:[HeaderPair];
   body:string;
   errbuf:string;
-  request_id:UUID;
+  request_id:UUID.UUID;
 }
 
 enum PostCallbackAction:byte
@@ -57,9 +58,9 @@ enum ResponseFilter:short
 
 table RequestIntent
 {
-  id:UUID;
+  id:UUID.UUID;
+  to_pid:UUID.UUID;
   request:Request;
-  to_pid:UUID;
   desired_format:ResponseFilter = FullResponseBody;
   object_path:string;
   root_type:string;

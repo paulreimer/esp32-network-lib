@@ -11,6 +11,8 @@
 
 #include "request_handler.h"
 
+#include "uuid.h"
+
 #ifdef REQUESTS_USE_CURL
 #include "curl/curl.h"
 #include "curl/multi.h"
@@ -78,7 +80,7 @@ protected:
   using RequestMap = std::unordered_map<HandleImplPtr, RequestHandler>;
   RequestMap requests;
 
-  auto get_existing_request_handler(const UUID* request_intent_id)
+  auto get_existing_request_handler(const UUID::UUID* request_intent_id)
     -> RequestMap::const_iterator;
 
 private:

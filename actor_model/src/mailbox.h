@@ -29,13 +29,13 @@ public:
   using string = std::string;
   using string_view = std::experimental::string_view;
 
-  using Address = UUID;
+  using Address = UUID::UUID;
 
   using AddressRegistry = std::unordered_map<
     Address,
     Mailbox*,
-    UUIDHashFunc,
-    UUIDEqualFunc
+    UUID::UUIDHashFunc,
+    UUID::UUIDEqualFunc
   >;
 
   explicit Mailbox(const size_t _mailbox_size = 2048);

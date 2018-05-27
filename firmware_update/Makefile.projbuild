@@ -20,6 +20,7 @@ $(BUILD_DIR_BASE)/latest.fw.json: \
 # Generate latest.fw.fb binary flatbuffer from latest.fw.json
 $(BUILD_DIR_BASE)/latest.fw.fb: $(BUILD_DIR_BASE)/latest.fw.json
 	flatc --binary -o $(@D) \
+	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
 	$(FIRMWARE_UPDATE_COMPONENT_PATH)/firmware_update.fbs \
 	$^
 

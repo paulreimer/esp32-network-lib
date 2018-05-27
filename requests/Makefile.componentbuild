@@ -1,10 +1,20 @@
 # Generate *.req.fb binary RequestIntent flatbuffer from *.req.json
+# in any component's secrets/gen/ directory:
 $(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.json
 	flatc --binary -o $(@D) \
-	--force-defaults \
+	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
 	$(PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
+	--force-defaults \
+	$^
+
+# in any component's assets/ directory:
+$(COMPILING_COMPONENT_PATH)/assets/gen/%.req.fb: $(COMPILING_COMPONENT_PATH)/assets/%.req.json
+	flatc --binary -o $(@D) \
+	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
+	$(PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
+	--force-defaults \
 	$^
 
 # Generate binary *.der from text *.pem via OpenSSL
-$(COMPILING_COMPONENT_PATH)/assets/%.der: $(COMPILING_COMPONENT_PATH)/assets/%.pem
+$(COMPILING_COMPONENT_PATH)/assets/gen/%.der: $(COMPILING_COMPONENT_PATH)/assets/%.pem
 	openssl x509 -outform der -in $^ -out $@

@@ -208,11 +208,11 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_timestamp(uint64_t _timestamp) {
     return SetField<uint64_t>(VT_TIMESTAMP, _timestamp, 0);
   }
-  const UUID *from_pid() const {
-    return GetStruct<const UUID *>(VT_FROM_PID);
+  const UUID::UUID *from_pid() const {
+    return GetStruct<const UUID::UUID *>(VT_FROM_PID);
   }
-  UUID *mutable_from_pid() {
-    return GetStruct<UUID *>(VT_FROM_PID);
+  UUID::UUID *mutable_from_pid() {
+    return GetStruct<UUID::UUID *>(VT_FROM_PID);
   }
   uint32_t payload_alignment() const {
     return GetField<uint32_t>(VT_PAYLOAD_ALIGNMENT, 0);
@@ -231,7 +231,7 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_TYPE) &&
            verifier.Verify(type()) &&
            VerifyField<uint64_t>(verifier, VT_TIMESTAMP) &&
-           VerifyField<UUID>(verifier, VT_FROM_PID) &&
+           VerifyField<UUID::UUID>(verifier, VT_FROM_PID) &&
            VerifyField<uint32_t>(verifier, VT_PAYLOAD_ALIGNMENT) &&
            VerifyOffset(verifier, VT_PAYLOAD) &&
            verifier.Verify(payload()) &&
@@ -248,7 +248,7 @@ struct MessageBuilder {
   void add_timestamp(uint64_t timestamp) {
     fbb_.AddElement<uint64_t>(Message::VT_TIMESTAMP, timestamp, 0);
   }
-  void add_from_pid(const UUID *from_pid) {
+  void add_from_pid(const UUID::UUID *from_pid) {
     fbb_.AddStruct(Message::VT_FROM_PID, from_pid);
   }
   void add_payload_alignment(uint32_t payload_alignment) {
@@ -273,7 +273,7 @@ inline flatbuffers::Offset<Message> CreateMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> type = 0,
     uint64_t timestamp = 0,
-    const UUID *from_pid = 0,
+    const UUID::UUID *from_pid = 0,
     uint32_t payload_alignment = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload = 0) {
   MessageBuilder builder_(_fbb);
@@ -289,7 +289,7 @@ inline flatbuffers::Offset<Message> CreateMessageDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *type = nullptr,
     uint64_t timestamp = 0,
-    const UUID *from_pid = 0,
+    const UUID::UUID *from_pid = 0,
     uint32_t payload_alignment = 0,
     const std::vector<uint8_t> *payload = nullptr) {
   return ActorModel::CreateMessage(
@@ -438,11 +438,11 @@ struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FROM_PID = 4,
     VT_REASON = 6
   };
-  const UUID *from_pid() const {
-    return GetStruct<const UUID *>(VT_FROM_PID);
+  const UUID::UUID *from_pid() const {
+    return GetStruct<const UUID::UUID *>(VT_FROM_PID);
   }
-  UUID *mutable_from_pid() {
-    return GetStruct<UUID *>(VT_FROM_PID);
+  UUID::UUID *mutable_from_pid() {
+    return GetStruct<UUID::UUID *>(VT_FROM_PID);
   }
   const flatbuffers::String *reason() const {
     return GetPointer<const flatbuffers::String *>(VT_REASON);
@@ -452,7 +452,7 @@ struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<UUID>(verifier, VT_FROM_PID) &&
+           VerifyField<UUID::UUID>(verifier, VT_FROM_PID) &&
            VerifyOffset(verifier, VT_REASON) &&
            verifier.Verify(reason()) &&
            verifier.EndTable();
@@ -462,7 +462,7 @@ struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct SignalBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_from_pid(const UUID *from_pid) {
+  void add_from_pid(const UUID::UUID *from_pid) {
     fbb_.AddStruct(Signal::VT_FROM_PID, from_pid);
   }
   void add_reason(flatbuffers::Offset<flatbuffers::String> reason) {
@@ -482,7 +482,7 @@ struct SignalBuilder {
 
 inline flatbuffers::Offset<Signal> CreateSignal(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const UUID *from_pid = 0,
+    const UUID::UUID *from_pid = 0,
     flatbuffers::Offset<flatbuffers::String> reason = 0) {
   SignalBuilder builder_(_fbb);
   builder_.add_reason(reason);
@@ -492,7 +492,7 @@ inline flatbuffers::Offset<Signal> CreateSignal(
 
 inline flatbuffers::Offset<Signal> CreateSignalDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const UUID *from_pid = 0,
+    const UUID::UUID *from_pid = 0,
     const char *reason = nullptr) {
   return ActorModel::CreateSignal(
       _fbb,
@@ -772,7 +772,7 @@ inline const flatbuffers::TypeTable *MessageTypeTable() {
     { flatbuffers::ET_UCHAR, 1, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    UUIDTypeTable
+    UUID::UUIDTypeTable
   };
   static const char * const names[] = {
     "type",
@@ -820,7 +820,7 @@ inline const flatbuffers::TypeTable *SignalTypeTable() {
     { flatbuffers::ET_STRING, 0, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    UUIDTypeTable
+    UUID::UUIDTypeTable
   };
   static const char * const names[] = {
     "from_pid",

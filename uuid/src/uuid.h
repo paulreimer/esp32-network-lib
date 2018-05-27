@@ -9,12 +9,14 @@
  */
 #pragma once
 
-#include "actor_model_generated.h"
+#include "uuid_generated.h"
 
 #include <memory>
 #include <string>
 
-namespace ActorModel {
+namespace UUID {
+
+static UUID NullUUID = UUID(0, 0);
 
 struct UUIDHashFunc
 {
@@ -67,4 +69,4 @@ auto update_uuid(UUID* uuid_ptr, const UUID& uuid)
 auto get_uuid_str(const UUID& uuid)
   -> std::string;
 
-} // namespace ActorModel
+} // namespace UUID
