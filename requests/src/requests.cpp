@@ -9,6 +9,8 @@
  */
 #include "requests.h"
 
+#include "actor_model.h"
+
 #include "uuid.h"
 
 #include <utility>

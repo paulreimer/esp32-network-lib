@@ -11,6 +11,8 @@
 
 #include "pid.h"
 
+#include "actor_model_generated.h"
+
 #include "requests_generated.h"
 
 #include <utility>
