@@ -3,7 +3,8 @@
 #
 
 COMPONENT_DEPENDS := \
-	flatbuffers
+	flatbuffers \
+	requests
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
@@ -19,3 +20,4 @@ COMPONENT_SRCDIRS := \
 	lib/yajl/src
 
 src/json_emitter.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
+src/json_emitter.o: $(PROJECT_PATH)/esp32-network-lib/requests/src/gen/requests_generated.h
