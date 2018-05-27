@@ -13,6 +13,9 @@ COMPONENT_SRCDIRS := \
 	src \
 	src/gen
 
+COMPONENT_EXTRA_CLEAN := \
+	$(COMPONENT_PATH)/src/gen/firmware_update_generated.h
+
 # Depends on firmware_update.fbs
 src/firmware_update.o: $(COMPONENT_PATH)/src/gen/firmware_update_generated.h
 # Depends on top-level VERSION file contents
