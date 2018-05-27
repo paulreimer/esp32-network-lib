@@ -19,6 +19,7 @@
 namespace ActorModel {
 
 using MessageFlatbuffer = flatbuffers::DetachedBuffer;
+using MutableFlatbuffer = std::vector<uint8_t>;
 
 // free functions bound to default node
 
@@ -87,6 +88,21 @@ auto whereis(const std::experimental::string_view name)
 
 inline
 auto matches(
+) -> bool
+{
+  return true;
+}
+
+inline
+auto matches(
+  const ActorModel::Message& message
+) -> bool
+{
+  return true;
+}
+
+inline
+auto matches(
   const ActorModel::Message& message,
   const std::experimental::string_view type
 ) -> bool
@@ -94,12 +110,72 @@ auto matches(
   return (message.type() and message.type()->string_view() == type);
 }
 
+inline
+auto matches(
+  const ActorModel::Message& message,
+  const std::experimental::string_view type,
+  std::experimental::string_view& payload
+) -> bool
+{
+  if (matches(message, type))
+  {
+    payload = std::experimental::string_view{
+      reinterpret_cast<const char*>(message.payload()->data()),
+      message.payload()->size()
+    };
+
+    return true;
+  }
+
+  return false;
+}
+
+inline
+auto matches(
+  const ActorModel::Message& message,
+  const std::experimental::string_view type,
+  std::string& payload
+) -> bool
+{
+  if (matches(message, type))
+  {
+    payload.assign(
+      reinterpret_cast<const char*>(message.payload()->data()),
+      message.payload()->size()
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
+inline
+auto matches(
+  const ActorModel::Message& message,
+  const std::experimental::string_view type,
+  MutableFlatbuffer& payload
+) -> bool
+{
+  if (matches(message, type))
+  {
+    payload.assign(
+      message.payload()->data(),
+      (message.payload()->data() + message.payload()->size())
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
 template<typename TableT>
 inline
 auto matches(
   const ActorModel::Message& message,
   const std::experimental::string_view type,
-  const TableT*& ptr
+  const TableT*& payload_ptr
 ) -> bool
 {
   if (matches(message, type))
@@ -110,7 +186,7 @@ auto matches(
 
     if (fb)
     {
-      ptr = fb;
+      payload_ptr = fb;
       return true;
     }
   }
