@@ -161,7 +161,7 @@ auto Actor::exit(const Pid& pid2, const Reason exit_reason)
 
   fbb.Finish(exit_signal_offset);
 
-  auto* exit_signal = flatbuffers::GetRoot<Signal>(fbb.GetBufferPointer());
+  const auto* exit_signal = flatbuffers::GetRoot<Signal>(fbb.GetBufferPointer());
 
   return node.signal(pid2, *(exit_signal));
 }
@@ -194,7 +194,7 @@ auto Actor::loop()
   auto _message = mailbox.receive_raw();
   if (not _message.empty())
   {
-    const Message* message = flatbuffers::GetRoot<Message>(_message.data());
+    const auto* message = flatbuffers::GetRoot<Message>(_message.data());
 
     auto idx = 0;
     for (const auto& behaviour : behaviours)
