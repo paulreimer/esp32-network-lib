@@ -33,57 +33,59 @@ auto request_manager_behaviour(
 
   auto& requests = *(std::static_pointer_cast<RequestManager>(state));
 
-  if (matches(message, "add_cacert_der"))
   {
-    requests.add_cacert_der(string_view{
-      reinterpret_cast<const char*>(message.payload()->data()),
-      message.payload()->size()
-    });
-
-    return {Result::Ok};
-  }
-
-  else if (matches(message, "add_cacert_pem"))
-  {
-    requests.add_cacert_pem(string_view{
-      reinterpret_cast<const char*>(message.payload()->data()),
-      message.payload()->size()
-    });
-
-    return {Result::Ok};
-  }
-
-  else if (matches(message, "request"))
-  {
-    auto request_intent = flatbuffers::GetRoot<RequestIntent>(
-      message.payload()->data()
-    );
-
-    if (request_intent and request_intent->request())
+    string_view cacert_der_str;
+    if (matches(message, "add_cacert_der", cacert_der_str))
     {
-      const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
-        const_cast<uint8_t*>(message.payload()->data()),
-        message.payload()->size()
-      };
-      requests.fetch(request_intent_buf_ref);
+      requests.add_cacert_der(cacert_der_str);
 
-      // Begin ticking on next message
-      send(self, "tick", "");
+      return {Result::Ok};
     }
-
-    return {Result::Ok};
   }
 
-  else {
-    auto requests_remaining = requests.wait_any();
-
-    if (requests_remaining > 0)
+  {
+    string_view cacert_pem_str;
+    if (matches(message, "add_cacert_pem", cacert_pem_str))
     {
-      // Re-trigger ourselves with an arbitrary message
-      send(self, "tick", "");
-    }
+      requests.add_cacert_pem(cacert_pem_str);
 
-    return {Result::Ok};
+      return {Result::Ok};
+    }
+  }
+
+  {
+    const RequestIntent* request_intent;
+    if (matches(message, "request", request_intent))
+    {
+      if (request_intent and request_intent->request())
+      {
+        const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
+          const_cast<uint8_t*>(message.payload()->data()),
+          message.payload()->size()
+        };
+        requests.fetch(request_intent_buf_ref);
+
+        // Begin ticking on next message
+        send(self, "tick", "");
+      }
+
+      return {Result::Ok};
+    }
+  }
+
+  {
+    if (matches(message))
+    {
+      auto requests_remaining = requests.wait_any();
+
+      if (requests_remaining > 0)
+      {
+        // Re-trigger ourselves with an arbitrary message
+        send(self, "tick", "");
+      }
+
+      return {Result::Ok, EventTerminationAction::ContinueProcessing};
+    }
   }
 
   return {Result::Unhandled};
