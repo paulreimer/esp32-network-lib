@@ -499,9 +499,14 @@ auto visualization_query_actor_behaviour(
       if (not state.pending_queries.empty())
       {
         // Re-trigger ourselves with an arbitrary message
-        delay(10ms);
+        delay(100ms);
         send(self, "tick");
+
+        auto app_actor_pid = *(whereis("app"));
+        send(app_actor_pid, "progress");
       }
+
+      return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
   }
 
