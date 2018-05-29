@@ -238,8 +238,6 @@ auto RequestHandler::finish_callback()
 
   if (request_intent->to_pid())
   {
-    auto type = is_success_code? "complete" : "error";
-
     // Clear the body for the final message
     if (is_success_code)
     {
@@ -260,7 +258,7 @@ auto RequestHandler::finish_callback()
     }
 
     auto partial_response = create_partial_response(response_body);
-    send(*(request_intent->to_pid()), type, partial_response);
+    send(*(request_intent->to_pid()), "complete", partial_response);
   }
 
 #ifdef REQUESTS_USE_SH2LIB
