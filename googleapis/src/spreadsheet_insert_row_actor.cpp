@@ -41,6 +41,7 @@ struct SpreadsheetInsertRowActorState
   {
   }
 
+  MutableInsertRowIntentFlatbuffer current_insert_row_intent_mutable_buf;
   MutableRequestIntentFlatbuffer insert_row_request_intent_mutable_buf;
   std::queue<MutableInsertRowIntentFlatbuffer> pending_insert_row_intents;
   bool insert_row_request_in_progress = false;
@@ -74,18 +75,12 @@ auto spreadsheet_insert_row_actor_behaviour(
     MutableInsertRowIntentFlatbuffer insert_row_intent_mutable_buf;
     if (matches(message, "insert_row", insert_row_intent_mutable_buf))
     {
-      const auto* insert_row = flatbuffers::GetRoot<InsertRowIntent>(
+      const auto* insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
         insert_row_intent_mutable_buf.data()
       );
 
-      if (
-        insert_row->spreadsheet_id()
-        and insert_row->sheet_name()
-        and insert_row->values_json()
-      )
+      if (insert_row_intent_valid(insert_row_intent))
       {
-        printf("valid insert_row found, push to queue\n");
-        printf("'%s'\n", insert_row->values_json()->c_str());
         state.pending_insert_row_intents.emplace(insert_row_intent_mutable_buf);
       }
 
@@ -103,8 +98,6 @@ auto spreadsheet_insert_row_actor_behaviour(
     );
     if (matches(message, "chunk", response, insert_row_request_intent_id))
     {
-      printf("received chunk for insert_row\n");
-
       return {Result::Ok};
     }
   }
@@ -116,8 +109,24 @@ auto spreadsheet_insert_row_actor_behaviour(
     );
     if (matches(message, "complete", response, insert_row_request_intent_id))
     {
-      printf("did post insert_row\n");
       state.insert_row_request_in_progress = false;
+
+      const auto* current_insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
+        state.current_insert_row_intent_mutable_buf.data()
+      );
+
+      // If a valid insert row intent was finished, send a message to the to_pid
+      if (
+        current_insert_row_intent
+        and current_insert_row_intent->to_pid()
+      )
+      {
+        const auto& to_pid = *(current_insert_row_intent->to_pid());
+        send(to_pid, "inserted_row");
+      }
+
+      // Clear the current insert row intent
+      state.current_insert_row_intent_mutable_buf.clear();
 
       return {Result::Ok};
     }
@@ -175,34 +184,29 @@ auto spreadsheet_insert_row_actor_behaviour(
       {
         if (not state.insert_row_request_in_progress)
         {
-          const auto& insert_row_intent_mutable_buf = (
+          state.current_insert_row_intent_mutable_buf = (
             state.pending_insert_row_intents.front()
           );
 
-          const auto* insert_row = flatbuffers::GetRoot<InsertRowIntent>(
-            insert_row_intent_mutable_buf.data()
+          const auto* insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
+            state.current_insert_row_intent_mutable_buf.data()
           );
 
-          if (
-            insert_row
-            and insert_row->spreadsheet_id()
-            and insert_row->sheet_name()
-            and insert_row->values_json()
-          )
+          if (insert_row_intent_valid(insert_row_intent))
           {
             // Send append row request
             set_request_uri(
               state.insert_row_request_intent_mutable_buf,
               string{"https://content-sheets.googleapis.com/v4/spreadsheets/"}
-                + insert_row->spreadsheet_id()->str()
+                + insert_row_intent->spreadsheet_id()->str()
                 + "/values/"
-                + insert_row->sheet_name()->str()
+                + insert_row_intent->sheet_name()->str()
                 + ":append"
             );
 
             set_request_body(
               state.insert_row_request_intent_mutable_buf,
-              insert_row->values_json()->string_view()
+              insert_row_intent->values_json()->string_view()
             );
 
             state.insert_row_request_in_progress = true;
@@ -218,8 +222,12 @@ auto spreadsheet_insert_row_actor_behaviour(
           state.pending_insert_row_intents.pop();
         }
         else {
-          delay(10ms);
+          // Re-trigger ourselves with an arbitrary message
+          delay(100ms);
           send(self, "tick");
+
+          auto app_actor_pid = *(whereis("app"));
+          send(app_actor_pid, "progress");
         }
       }
       return {Result::Ok, EventTerminationAction::ContinueProcessing};
