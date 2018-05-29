@@ -88,7 +88,11 @@ auto datatable_has_rows(const Datatable* datatable)
 } // namespace Visualization
 
 namespace Sheets {
-  using MutableInsertRowIntentFlatbuffer = std::vector<uint8_t>;
+using MutableInsertRowIntentFlatbuffer = std::vector<uint8_t>;
+
+auto insert_row_intent_valid(const InsertRowIntent* insert_row_intent)
+  -> bool;
+
 } // namespace Sheets
 
 namespace embedded_files {

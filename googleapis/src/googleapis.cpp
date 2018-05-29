@@ -16,6 +16,7 @@
 namespace googleapis {
 
 namespace Visualization {
+
 using string_view = std::experimental::string_view;
 using string = std::string;
 using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
@@ -516,7 +517,22 @@ auto datatable_has_rows(const Datatable* datatable)
   );
 }
 
-
 } // namespace Visualization
+
+namespace Sheets {
+
+auto insert_row_intent_valid(const InsertRowIntent* insert_row_intent)
+  -> bool
+{
+  return (
+    insert_row_intent
+    and uuid_valid(insert_row_intent->id())
+    and insert_row_intent->spreadsheet_id()
+    and insert_row_intent->sheet_name()
+    and insert_row_intent->values_json()
+  );
+}
+
+} // namespace Sheets
 
 } // namespace googleapis
