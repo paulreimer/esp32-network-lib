@@ -412,8 +412,8 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    // Any unhandled message should trigger an attempt to schedule more requests
-    if (matches(message))
+    // A tick message should trigger an attempt to schedule more requests
+    if (matches(message, "tick"))
     {
       //printf("requests in progress: %d\n", state.max_requests_in_progress);
       for (
