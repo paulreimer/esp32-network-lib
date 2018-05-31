@@ -9,8 +9,7 @@ COMPONENT_ADD_INCLUDEDIRS := \
 	src \
 	src/gen \
 	lib/cpp17_headers/include \
-	lib/delegate \
-	lib/GSL/include
+	lib/delegate
 
 COMPONENT_PRIV_INCLUDEDIRS := \
 	lib
