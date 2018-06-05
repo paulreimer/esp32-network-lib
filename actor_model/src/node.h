@@ -17,11 +17,43 @@
 #include "delegate.hpp"
 
 #include <experimental/string_view>
+#include <chrono>
 #include <unordered_map>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 
 namespace ActorModel {
 
 using ExecConfigCallback = delegate<void(ActorExecutionConfigBuilder&)>;
+using Time = std::chrono::milliseconds;
+
+using TRef = uint32_t;
+using TTL = int;
+
+constexpr TRef NullTRef = 0;
+
+class TimedMessage
+{
+public:
+  TimedMessage(
+    const Pid& _pid,
+    flatbuffers::DetachedBuffer&& _message_buf,
+    const bool _is_recurring,
+    const TimerHandle_t _timer_handle
+  )
+  : pid(_pid)
+  , message_buf(std::move(_message_buf))
+  , is_recurring(_is_recurring)
+  , timer_handle(_timer_handle)
+  {
+  }
+
+  Pid pid;
+  flatbuffers::DetachedBuffer message_buf;
+  bool is_recurring;
+  TimerHandle_t timer_handle;
+};
 
 class Actor;
 class Node
@@ -42,6 +74,7 @@ public:
     UUID::UUIDEqualFunc
   >;
   using NamedProcessRegistry = std::unordered_map<string, Pid>;
+  using TimedMessages = std::unordered_map<TRef, TimedMessage>;
 
   // public constructors/destructors:
   Node();
@@ -76,14 +109,45 @@ public:
     const bool flag_setting
   ) -> bool;
 
-  auto send(const Pid& pid, const Message& message)
-    -> bool;
+  auto send(
+    const Pid& pid,
+    const Message& message
+  ) -> bool;
 
   auto send(
     const Pid& pid,
     const string_view type,
     const string_view payload
   ) -> bool;
+
+  auto send_after(
+    const Time time,
+    const Pid& pid,
+    const Message& message
+  ) -> TRef;
+
+  auto send_after(
+    const Time time,
+    const Pid& pid,
+    const string_view type,
+    const string_view payload
+  ) -> TRef;
+
+  auto send_interval(
+    const Time time,
+    const Pid& pid,
+    const Message& message
+  ) -> TRef;
+
+  auto send_interval(
+    const Time time,
+    const Pid& pid,
+    const string_view type,
+    const string_view payload
+  ) -> TRef;
+
+  auto cancel(const TRef tref)
+    -> bool;
 
   auto register_name(const string_view name, const Pid& pid)
     -> bool;
@@ -96,6 +160,9 @@ public:
 
   auto whereis(const string_view name)
     -> MaybePid;
+
+  auto timer_callback(const TRef tref)
+    -> bool;
 
 protected:
   auto _spawn(
@@ -110,8 +177,18 @@ protected:
   auto signal(const Pid& pid, const Signal& sig)
     -> bool;
 
+  auto start_timer(
+    const Time time,
+    const Pid& pid,
+    flatbuffers::DetachedBuffer&& message_buf,
+    const bool is_recurring = false
+  ) -> TRef;
+
   ProcessRegistry process_registry;
   NamedProcessRegistry named_process_registry;
+  TimedMessages timed_messages;
+  TRef next_tref = 1;
+  TRef invalid_tref = 0;
 
 private:
 };

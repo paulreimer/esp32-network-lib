@@ -9,12 +9,17 @@
  */
 #include "actor.h"
 
+#include "delay.h"
+#include <chrono>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 #include "esp_log.h"
 
 namespace ActorModel {
+
+using namespace std::chrono_literals;
 
 static Node default_node;
 
@@ -84,7 +89,20 @@ Actor::Actor(
     &impl
   );
 
-  started = (retval == pdPASS);
+  if (retval == pdPASS)
+  {
+    // Create semaphore to indicate safe-to-receive
+    receive_semaphore = xSemaphoreCreateBinary();
+    if (receive_semaphore)
+    {
+      // Set initial semaphore state
+      xSemaphoreGive(receive_semaphore);
+
+      // Create extra mutex for SMP safety
+      vPortCPUInitializeMutex(&receive_multicore_mutex);
+      started = true;
+    }
+  }
 }
 
 Actor::~Actor()
@@ -100,6 +118,25 @@ Actor::~Actor()
       poison_pill->reason()->size()
     };
     exit(pid2, exit_reason);
+  }
+
+  if (receive_semaphore)
+  {
+    // Delete the semaphore within a critical section
+    taskENTER_CRITICAL(&receive_multicore_mutex);
+
+    // Acquire the semaphore before deleting it
+    if (xSemaphoreTake(receive_semaphore, timeout(10s)) == pdTRUE)
+    {
+      vSemaphoreDelete(receive_semaphore);
+    }
+    else {
+      ESP_LOGE(
+        get_uuid_str(pid).c_str(),
+        "Unable to delete receive semaphore in ~Actor destructor"
+      );
+    }
+    taskEXIT_CRITICAL(&receive_multicore_mutex);
   }
 
   // Stop the actor's execution context
@@ -192,41 +229,67 @@ auto Actor::loop()
   // Wait for and obtain a reference to a message
   // (which must be released afterwards)
   auto _message = mailbox.receive_raw();
+
   if (not _message.empty())
   {
-    const auto* message = flatbuffers::GetRoot<Message>(_message.data());
+    result = process_message(_message);
 
-    auto idx = 0;
-    for (const auto& behaviour : behaviours)
+    // Release the memory back to the buffer
+    mailbox.release(_message);
+  }
+
+  return result;
+}
+
+auto Actor::process_message(const string_view _message)
+  -> ResultUnion
+{
+  ResultUnion result;
+
+  // Acquire the semaphore before processing this message
+  if (xSemaphoreTake(receive_semaphore, timeout(10s)) == pdTRUE)
+  {
+    if (not _message.empty())
     {
-      auto& state = state_ptrs[idx++];
+      const auto* message = flatbuffers::GetRoot<Message>(_message.data());
 
-      result = behaviour(pid, state, *(message));
-
-      if (result.type == Result::Error)
+      auto idx = 0;
+      for (const auto& behaviour : behaviours)
       {
-        string_view reason = "normal";
-        if (reason == "normal")
+        auto& state = state_ptrs[idx++];
+
+        result = behaviour(pid, state, *(message));
+
+        if (result.type == Result::Error)
         {
-          exit(reason);
+          string_view reason = "normal";
+          if (reason == "normal")
+          {
+            exit(reason);
+          }
+        }
+
+        // Exit the loop, unless behaviour did not handle this message
+        if (
+          not (
+            result.type == Result::Unhandled
+            or result.action == EventTerminationAction::ContinueProcessing
+          )
+        )
+        {
+          break;
         }
       }
 
-      // Exit the loop, unless behaviour did not handle this message
-      if (
-        not (
-          result.type == Result::Unhandled
-          or result.action == EventTerminationAction::ContinueProcessing
-        )
-      )
-      {
-        break;
-      }
+      xSemaphoreGive(receive_semaphore);
     }
-
   }
-  // Release the memory back to the buffer
-  mailbox.release(_message);
+  else {
+    ESP_LOGW(
+      get_uuid_str(pid).c_str(),
+      "Unable to acquire receive semaphore in process_message"
+    );
+  }
 
   return result;
 }

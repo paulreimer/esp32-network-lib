@@ -53,8 +53,10 @@ auto process_flag(
   const bool flag_setting
 ) -> bool;
 
-auto send(const Pid& pid, const Message& message)
-  -> bool;
+auto send(
+  const Pid& pid,
+  const Message& message
+) -> bool;
 
 auto send(
   const Pid& pid,
@@ -73,6 +75,63 @@ auto send(
   const std::experimental::string_view type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool;
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const Message& message
+) -> TRef;
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const std::experimental::string_view payload = ""
+) -> TRef;
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const std::vector<uint8_t>& payload_vec
+) -> TRef;
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const MessageFlatbuffer& payload_flatbuffer
+) -> TRef;
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const Message& message
+) -> TRef;
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const std::experimental::string_view payload = ""
+) -> TRef;
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const std::vector<uint8_t>& payload_vec
+) -> TRef;
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const std::experimental::string_view type,
+  const MessageFlatbuffer& payload_flatbuffer
+) -> TRef;
+
+auto cancel(const TRef tref)
+  -> bool;
 
 auto register_name(const std::experimental::string_view name, const Pid& pid)
   -> bool;

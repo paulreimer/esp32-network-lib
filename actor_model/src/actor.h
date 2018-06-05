@@ -23,7 +23,9 @@
 #include <unordered_set>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
 
 namespace ActorModel {
 
@@ -43,8 +45,10 @@ public:
   using LinkList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
   using MonitorList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
 
-  using string_view = std::experimental::string_view;
+  using StatePtrs = std::vector<StatePtr>;
   using flatbuf = std::vector<uint8_t>;
+
+  using string_view = std::experimental::string_view;
 
   struct ProcessFlagHashFunc
   {
@@ -75,19 +79,11 @@ public:
   auto loop()
     -> ResultUnion;
 
-  //TODO: these should not exist here, they should take a Pid:
-  auto exit(const Reason exit_reason)
-    -> bool;
-  auto exit(const Pid& pid2, const Reason exit_reason)
-    -> bool;
-  auto send(const Message& message)
-    -> bool;
-  auto send(const string_view type, const string_view payload)
-    -> bool;
-  auto link(const Pid& pid2)
-    -> bool;
-  auto unlink(const Pid& pid2)
-    -> bool;
+  auto timer_callback(const TRef tref)
+    -> ResultUnion;
+
+  auto process_message(const string_view _message)
+    -> ResultUnion;
 
 protected:
   // Single behaviour convenience function
@@ -119,12 +115,25 @@ protected:
   auto get_current_node()
     -> Node&;
 
+  auto exit(const Reason exit_reason)
+    -> bool;
+  auto exit(const Pid& pid2, const Reason exit_reason)
+    -> bool;
+  auto send(const Message& message)
+    -> bool;
+  auto send(const string_view type, const string_view payload)
+    -> bool;
+  auto link(const Pid& pid2)
+    -> bool;
+  auto unlink(const Pid& pid2)
+    -> bool;
+
   const Pid pid;
 
   // Actor implementation:
   Behaviours behaviours;
   Mailbox mailbox;
-  std::vector<StatePtr> state_ptrs;
+  StatePtrs state_ptrs;
 
   // References to other actors:
   //Children children;
@@ -144,6 +153,8 @@ protected:
 
 private:
   TaskHandle_t impl = nullptr;
+  SemaphoreHandle_t receive_semaphore = nullptr;
+  portMUX_TYPE receive_multicore_mutex;
   bool started = false;
 
 // static methods:

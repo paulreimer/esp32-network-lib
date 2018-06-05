@@ -41,14 +41,20 @@ public:
   explicit Mailbox(const size_t _mailbox_size = 2048);
   ~Mailbox();
 
+  static auto create_message(
+    const string_view type,
+    const string_view payload,
+    const size_t payload_alignment = sizeof(uint64_t)
+  ) -> flatbuffers::DetachedBuffer;
+
   auto send(const Message& message)
     -> bool;
 
-  auto send(const string_view type, const string_view payload)
-    -> bool;
-
-  auto receive()
-    -> const Message*;
+  auto send(
+    const string_view type,
+    const string_view payload,
+    const size_t payload_alignment = sizeof(uint64_t)
+  ) -> bool;
 
   auto receive_raw()
     -> string_view;

@@ -79,8 +79,10 @@ auto process_flag(
   return node.process_flag(pid, flag, flag_setting);
 }
 
-auto send(const Pid& pid, const Message& message)
-  -> bool
+auto send(
+  const Pid& pid,
+  const Message& message
+) -> bool
 {
   auto& node = Actor::get_default_node();
   return node.send(pid, message);
@@ -123,6 +125,117 @@ auto send(
     payload_flatbuffer.size()
   );
   return node.send(pid, type, payload);
+}
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const Message& message
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  return node.send_after(time, pid, message);
+}
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const string_view payload
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  return node.send_after(time, pid, type, payload);
+}
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const std::vector<uint8_t>& payload_vec
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  const auto payload = string_view{
+    reinterpret_cast<const char*>(payload_vec.data()),
+    payload_vec.size()
+  };
+
+  return node.send_after(time, pid, type, payload);
+}
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const MessageFlatbuffer& payload_flatbuffer
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  auto payload = string_view(
+    reinterpret_cast<const char*>(payload_flatbuffer.data()),
+    payload_flatbuffer.size()
+  );
+  return node.send_after(time, pid, type, payload);
+}
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const Message& message
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  return node.send_interval(time, pid, message);
+}
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const string_view payload
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  return node.send_interval(time, pid, type, payload);
+}
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const std::vector<uint8_t>& payload_vec
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  const auto payload = string_view{
+    reinterpret_cast<const char*>(payload_vec.data()),
+    payload_vec.size()
+  };
+
+  return node.send_interval(time, pid, type, payload);
+}
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const MessageFlatbuffer& payload_flatbuffer
+) -> TRef
+{
+  auto& node = Actor::get_default_node();
+  auto payload = string_view(
+    reinterpret_cast<const char*>(payload_flatbuffer.data()),
+    payload_flatbuffer.size()
+  );
+  return node.send_interval(time, pid, type, payload);
+}
+
+auto cancel(const TRef tref)
+  -> bool
+{
+  auto& node = Actor::get_default_node();
+  return node.cancel(tref);
 }
 
 auto register_name(const string_view name, const Pid& pid)

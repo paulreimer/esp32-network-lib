@@ -8,13 +8,26 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 #include "node.h"
-#include "uuid.h"
 
 #include "actor.h"
+#include "delay.h"
+#include "uuid.h"
+
+#include "esp_log.h"
 
 namespace ActorModel {
 
+using namespace std::chrono_literals;
+
 using UUID::uuidgen;
+
+auto _timer_callback(TimerHandle_t timer_handle)
+  -> void
+{
+  auto& node = Actor::get_default_node();
+  auto tref = reinterpret_cast<TRef>(pvTimerGetTimerID(timer_handle));
+  node.timer_callback(tref);
+}
 
 Node::Node()
 {
@@ -139,8 +152,10 @@ auto Node::process_flag(
   return false;
 }
 
-auto Node::send(const Pid& pid, const Message& message)
-  -> bool
+auto Node::send(
+  const Pid& pid,
+  const Message& message
+) -> bool
 {
   const auto& process_iter = process_registry.find(pid);
   if (process_iter != process_registry.end())
@@ -158,8 +173,7 @@ auto Node::send(
   const Pid& pid,
   const string_view type,
   const string_view payload
-)
-  -> bool
+) -> bool
 {
   const auto& process_iter = process_registry.find(pid);
   if (process_iter != process_registry.end())
@@ -171,6 +185,205 @@ auto Node::send(
   }
 
   return false;
+}
+
+auto Node::send_after(
+  const Time time,
+  const Pid& pid,
+  const Message& message
+) -> TRef
+{
+  auto is_recurring = false;
+  const auto& process_iter = process_registry.find(pid);
+  if (process_iter != process_registry.end())
+  {
+    if (process_iter->second)
+    {
+      auto&& message_buf = Mailbox::create_message(
+        message.type()->string_view(),
+        string_view{
+          reinterpret_cast<const char*>(message.payload()->data()),
+          message.payload()->size()
+        },
+        message.payload_alignment()
+      );
+      return start_timer(time, pid, std::move(message_buf), is_recurring);
+    }
+  }
+
+  return false;
+}
+
+auto Node::send_after(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const string_view payload
+) -> TRef
+{
+  auto is_recurring = false;
+  const auto& process_iter = process_registry.find(pid);
+  if (process_iter != process_registry.end())
+  {
+    if (process_iter->second)
+    {
+      auto&& message_buf = Mailbox::create_message(type, payload);
+      return start_timer(time, pid, std::move(message_buf), is_recurring);
+    }
+  }
+
+  return false;
+}
+
+auto Node::send_interval(
+  const Time time,
+  const Pid& pid,
+  const Message& message
+) -> TRef
+{
+  auto is_recurring = true;
+  const auto& process_iter = process_registry.find(pid);
+  if (process_iter != process_registry.end())
+  {
+    if (process_iter->second)
+    {
+      auto&& message_buf = Mailbox::create_message(
+        message.type()->string_view(),
+        string_view{
+          reinterpret_cast<const char*>(message.payload()->data()),
+          message.payload()->size()
+        },
+        message.payload_alignment()
+      );
+      return start_timer(time, pid, std::move(message_buf), is_recurring);
+    }
+  }
+
+  return false;
+}
+
+auto Node::send_interval(
+  const Time time,
+  const Pid& pid,
+  const string_view type,
+  const string_view payload
+) -> TRef
+{
+  auto is_recurring = true;
+  const auto& process_iter = process_registry.find(pid);
+  if (process_iter != process_registry.end())
+  {
+    if (process_iter->second)
+    {
+      auto&& message_buf = Mailbox::create_message(type, payload);
+      return start_timer(time, pid, std::move(message_buf), is_recurring);
+    }
+  }
+
+  return false;
+}
+
+auto Node::start_timer(
+  const Time time,
+  const Pid& pid,
+  flatbuffers::DetachedBuffer&& message_buf,
+  const bool is_recurring
+) -> TRef
+{
+  auto tref = next_tref++;
+  auto timer_name = "tref_" + std::to_string(tref);
+  auto timer_handle = xTimerCreate(
+    timer_name.c_str(),
+    timeout(time),
+    is_recurring,
+    reinterpret_cast<void*>(tref),
+    _timer_callback
+  );
+
+  if (timer_handle)
+  {
+    auto inserted = timed_messages.emplace(
+      tref,
+      TimedMessage{pid, std::move(message_buf), is_recurring, timer_handle}
+    );
+
+    if (inserted.second)
+    {
+      if (xTimerStart(timer_handle, timeout(10s)) == pdTRUE)
+      {
+        return tref;
+      }
+      else {
+        // Delete the inserted callback data, if timer could not be started
+        cancel(tref);
+      }
+    }
+    else {
+      ESP_LOGE("Node", "Could not insert TimedMessage for timer %d", tref);
+    }
+  }
+  else {
+    ESP_LOGE("Node", "Could not create timer %d", tref);
+  }
+
+  return invalid_tref;
+}
+
+auto Node::cancel(const TRef tref)
+  -> bool
+{
+  auto timed_message = timed_messages.find(tref);
+  if (timed_message != timed_messages.end())
+  {
+    const auto* message = flatbuffers::GetRoot<Message>(timed_message->second.message_buf.data());
+    ESP_LOGW("Node", "Cancel timer for %s", message->type()->c_str());
+
+    if (timed_message->second.timer_handle)
+    {
+      auto ret = xTimerStop(timed_message->second.timer_handle, timeout(10s));
+      if (ret != pdTRUE)
+      {
+        ESP_LOGW("Node", "Could not stop timer %d", tref);
+      }
+    }
+  }
+
+  auto erased = timed_messages.erase(tref);
+  return (erased > 0);
+}
+
+auto Node::timer_callback(const TRef tref)
+  -> bool
+{
+  auto did_process_message = false;
+  auto timed_message = timed_messages.find(tref);
+  if (timed_message != timed_messages.end())
+  {
+    const auto& pid = timed_message->second.pid;
+    const auto& process_iter = process_registry.find(pid);
+    const auto& _message = timed_message->second.message_buf;
+
+    if (process_iter != process_registry.end())
+    {
+      if (process_iter->second)
+      {
+        const auto* message = flatbuffers::GetRoot<Message>(_message.data());
+        auto result = process_iter->second->process_message(string_view{
+          reinterpret_cast<const char*>(_message.data()),
+          _message.size()
+        });
+
+        did_process_message = true;
+      }
+    }
+
+    if (not timed_message->second.is_recurring)
+    {
+      cancel(tref);
+    }
+  }
+
+  return did_process_message;
 }
 
 auto Node::signal(const Pid& pid, const Signal& sig)
