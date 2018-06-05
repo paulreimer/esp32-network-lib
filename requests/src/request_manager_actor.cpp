@@ -70,8 +70,7 @@ auto request_manager_behaviour(
         };
         requests.fetch(request_intent_buf_ref);
 
-        // Begin ticking on next message
-        delay(10ms);
+        // Re-trigger ourselves immediately with an arbitrary message
         send(self, "tick", "");
       }
 
@@ -80,13 +79,13 @@ auto request_manager_behaviour(
   }
 
   {
-    if (matches(message))
+    if (matches(message, "tick"))
     {
       auto requests_remaining = requests.wait_any();
 
       if (requests_remaining > 0)
       {
-        // Re-trigger ourselves with an arbitrary message
+        // Re-trigger ourselves immediately with an arbitrary message
         send(self, "tick", "");
       }
 
