@@ -210,8 +210,9 @@ auto RequestManager::fetch(
     }
   }
   else {
+    const auto& tag = existing_handler->second.request_intent->request()->uri()->c_str();
     ESP_LOGE(
-      TAG,
+      tag,
       "Will not replace existing request handler. Use patch() instead.\n"
     );
   }
