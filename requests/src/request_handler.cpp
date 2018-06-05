@@ -101,11 +101,18 @@ RequestHandler::~RequestHandler()
 auto RequestHandler::write_callback(const string_view chunk)
   -> size_t
 {
+  auto is_success_code = ((response_code > 0) and (response_code < 400));
   const auto& tag = request_intent->request()->uri()->c_str();
 
-  if (request_intent->to_pid())
+  if (uuid_valid(request_intent->to_pid()))
   {
-    switch (request_intent->desired_format())
+    if (not is_success_code)
+    {
+      // Do not attempt to parse if HTTP error code returned
+      // Just buffer all chunks to a final body sent in finish_callback
+      response_body.append(chunk.data(), chunk.size());
+    }
+    else switch (request_intent->desired_format())
     {
       case ResponseFilter::FullResponseBody:
       {
@@ -118,7 +125,7 @@ auto RequestHandler::write_callback(const string_view chunk)
       default:
       {
         auto partial_response = create_partial_response(chunk);
-        send(*(request_intent->to_pid()), "chunk", partial_response);
+        send(*(request_intent->to_pid()), "response_chunk", partial_response);
 
         break;
       }
@@ -152,7 +159,7 @@ auto RequestHandler::write_callback(const string_view chunk)
             (string_view parsed_chunk) -> PostCallbackAction
             {
               auto partial_response = create_partial_response(parsed_chunk);
-              send(*(request_intent->to_pid()), "chunk", partial_response);
+              send(*(request_intent->to_pid()), "response_chunk", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             },
@@ -162,7 +169,7 @@ auto RequestHandler::write_callback(const string_view chunk)
             {
               // Generate flatbuffer for nesting inside the parent Message object
               auto partial_response = create_partial_response(parsed_chunk);
-              send(*(request_intent->to_pid()), "error", partial_response);
+              send(*(request_intent->to_pid()), "response_error", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             }
@@ -200,7 +207,7 @@ auto RequestHandler::write_callback(const string_view chunk)
             (string_view parsed_chunk) -> PostCallbackAction
             {
               auto partial_response = create_partial_response(parsed_chunk);
-              send(*(request_intent->to_pid()), "chunk", partial_response);
+              send(*(request_intent->to_pid()), "response_chunk", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             },
@@ -209,7 +216,7 @@ auto RequestHandler::write_callback(const string_view chunk)
             (string_view parsed_chunk) -> PostCallbackAction
             {
               auto partial_response = create_partial_response(parsed_chunk);
-              send(*(request_intent->to_pid()), "error", partial_response);
+              send(*(request_intent->to_pid()), "response_error", partial_response);
 
               return PostCallbackAction::ContinueProcessing;
             }
@@ -258,7 +265,14 @@ auto RequestHandler::finish_callback()
     }
 
     auto partial_response = create_partial_response(response_body);
-    send(*(request_intent->to_pid()), "complete", partial_response);
+    // Send an "response_error" message
+    if (not is_success_code)
+    {
+      send(*(request_intent->to_pid()), "response_error", partial_response);
+    }
+
+    // Always send a "response_finished" message, no matter what the response code/state
+    send(*(request_intent->to_pid()), "response_finished", partial_response);
   }
 
 #ifdef REQUESTS_USE_SH2LIB

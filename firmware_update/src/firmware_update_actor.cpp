@@ -75,7 +75,7 @@ auto firmware_update_behaviour(
     auto firmware_update_request_intent_id = get_request_intent_id(
       state.firmware_update_request_intent_mutable_buf
     );
-    if (matches(message, "chunk", response, firmware_update_request_intent_id))
+    if (matches(message, "response_chunk", response, firmware_update_request_intent_id))
     {
       // Initialize OTA session if not already started
       if (not state.ota_flash_started)
@@ -125,7 +125,7 @@ auto firmware_update_behaviour(
     auto firmware_update_request_intent_id = get_request_intent_id(
       state.firmware_update_request_intent_mutable_buf
     );
-    if (matches(message, "complete", response, firmware_update_request_intent_id))
+    if (matches(message, "response_finished", response, firmware_update_request_intent_id))
     {
       if (
         state.ota_partition
@@ -195,7 +195,7 @@ auto firmware_update_behaviour(
     auto firmware_update_check_request_intent_id = get_request_intent_id(
       state.firmware_update_check_request_intent_mutable_buf
     );
-    if (matches(message, "complete", response, firmware_update_check_request_intent_id))
+    if (matches(message, "response_finished", response, firmware_update_check_request_intent_id))
     {
       auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
         response->body()->data()
@@ -261,7 +261,7 @@ auto firmware_update_behaviour(
     auto firmware_update_check_request_intent_id = get_request_intent_id(
       state.firmware_update_check_request_intent_mutable_buf
     );
-    if (matches(message, "error", response, firmware_update_check_request_intent_id))
+    if (matches(message, "response_error", response, firmware_update_check_request_intent_id))
     {
       ESP_LOGE(TAG, "Firmware update check request failed");
 
@@ -274,7 +274,7 @@ auto firmware_update_behaviour(
     auto firmware_update_request_intent_id = get_request_intent_id(
       state.firmware_update_request_intent_mutable_buf
     );
-    if (matches(message, "error", response, firmware_update_request_intent_id))
+    if (matches(message, "response_error", response, firmware_update_request_intent_id))
     {
       ESP_LOGE(TAG, "Firmware update download request failed");
 

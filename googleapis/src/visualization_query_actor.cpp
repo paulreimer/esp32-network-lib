@@ -221,7 +221,7 @@ auto visualization_query_actor_behaviour(
 
   {
     const Response* response;
-    if (matches(message, "chunk", response, state.current_update_columns_request_id))
+    if (matches(message, "response_chunk", response, state.current_update_columns_request_id))
     {
       if (
         not state.spreadsheet_column_ids_key.first.empty()
@@ -256,7 +256,7 @@ auto visualization_query_actor_behaviour(
 
   {
     const Response* response;
-    if (matches(message, "chunk", response, state.current_query_request_id))
+    if (matches(message, "response_chunk", response, state.current_query_request_id))
     {
       printf("received chunk for query\n");
 
@@ -283,7 +283,7 @@ auto visualization_query_actor_behaviour(
 
   {
     const Response* response;
-    if (matches(message, "complete", response, state.current_query_request_id))
+    if (matches(message, "response_finished", response, state.current_query_request_id))
     {
       printf("did complete current_query_request\n");
       state.current_query_request_id = NullUUID;
@@ -304,7 +304,7 @@ auto visualization_query_actor_behaviour(
 
   {
     const Response* response;
-    if (matches(message, "complete", response, state.current_update_columns_request_id))
+    if (matches(message, "response_finished", response, state.current_update_columns_request_id))
     {
       // This means OAuth info was omitted, so re-send the request again
       if (response->code() == 302)
@@ -342,7 +342,7 @@ auto visualization_query_actor_behaviour(
 
   {
     const Response* response;
-    if (matches(message, "error", response, state.current_query_request_id))
+    if (matches(message, "response_error", response, state.current_query_request_id))
     {
       if (response->code() == 401)
       {
@@ -365,7 +365,7 @@ auto visualization_query_actor_behaviour(
 
   {
     const Response* response;
-    if (matches(message, "error", response, state.current_update_columns_request_id))
+    if (matches(message, "response_error", response, state.current_update_columns_request_id))
     {
       if (response->code() == 401)
       {

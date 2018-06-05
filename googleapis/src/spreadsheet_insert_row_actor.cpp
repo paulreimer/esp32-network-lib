@@ -96,7 +96,7 @@ auto spreadsheet_insert_row_actor_behaviour(
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
-    if (matches(message, "chunk", response, insert_row_request_intent_id))
+    if (matches(message, "response_chunk", response, insert_row_request_intent_id))
     {
       return {Result::Ok};
     }
@@ -107,7 +107,7 @@ auto spreadsheet_insert_row_actor_behaviour(
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
-    if (matches(message, "complete", response, insert_row_request_intent_id))
+    if (matches(message, "response_finished", response, insert_row_request_intent_id))
     {
       state.insert_row_request_in_progress = false;
 
@@ -137,7 +137,7 @@ auto spreadsheet_insert_row_actor_behaviour(
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
-    if (matches(message, "error", response, insert_row_request_intent_id))
+    if (matches(message, "response_error", response, insert_row_request_intent_id))
     {
       if (response->code() == 401)
       {
