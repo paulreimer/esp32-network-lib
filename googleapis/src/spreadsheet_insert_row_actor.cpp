@@ -45,6 +45,8 @@ struct SpreadsheetInsertRowActorState
   MutableRequestIntentFlatbuffer insert_row_request_intent_mutable_buf;
   std::queue<MutableInsertRowIntentFlatbuffer> pending_insert_row_intents;
   bool insert_row_request_in_progress = false;
+  string access_token_str;
+  TRef tick_timer_ref = NullTRef;
 };
 
 auto spreadsheet_insert_row_actor_behaviour(
@@ -82,10 +84,13 @@ auto spreadsheet_insert_row_actor_behaviour(
       if (insert_row_intent_valid(insert_row_intent))
       {
         state.pending_insert_row_intents.emplace(insert_row_intent_mutable_buf);
-      }
 
-      // Re-trigger ourselves with an arbitrary message
-      send(self, "tick");
+        if (not state.tick_timer_ref)
+        {
+          // Re-trigger ourselves periodically (timer will be cancelled later)
+          state.tick_timer_ref = send_interval(200ms, self, "tick");
+        }
+      }
 
       return {Result::Ok};
     }
@@ -109,24 +114,46 @@ auto spreadsheet_insert_row_actor_behaviour(
     );
     if (matches(message, "response_finished", response, insert_row_request_intent_id))
     {
-      state.insert_row_request_in_progress = false;
-
-      const auto* current_insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
-        state.current_insert_row_intent_mutable_buf.data()
-      );
-
-      // If a valid insert row intent was finished, send a message to the to_pid
-      if (
-        current_insert_row_intent
-        and current_insert_row_intent->to_pid()
-      )
+      if (response->code() == 200)
       {
-        const auto& to_pid = *(current_insert_row_intent->to_pid());
-        send(to_pid, "inserted_row");
+        const auto* current_insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
+          state.current_insert_row_intent_mutable_buf.data()
+        );
+
+        // If a valid insert row intent was finished, send a message to the to_pid
+        if (
+          current_insert_row_intent
+          and current_insert_row_intent->to_pid()
+        )
+        {
+          const auto& to_pid = *(current_insert_row_intent->to_pid());
+          send(to_pid, "inserted_row");
+        }
+
+        // Clear the current insert row intent
+        state.current_insert_row_intent_mutable_buf.clear();
+        state.insert_row_request_in_progress = false;
+      }
+      // Resend any failed requests
+      else {
+        ESP_LOGE(TAG, "Fatal error (%d), resending: '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
+        auto request_manager_actor_pid = *(whereis("request_manager"));
+        send(
+          request_manager_actor_pid,
+          "request",
+          state.insert_row_request_intent_mutable_buf
+        );
       }
 
-      // Clear the current insert row intent
-      state.current_insert_row_intent_mutable_buf.clear();
+      // If there are no more pending rows to insert, cancel the tick timer
+      if (
+        state.pending_insert_row_intents.empty()
+        and state.tick_timer_ref
+      )
+      {
+        cancel(state.tick_timer_ref);
+        state.tick_timer_ref = NullTRef;
+      }
 
       return {Result::Ok};
     }
@@ -145,32 +172,18 @@ auto spreadsheet_insert_row_actor_behaviour(
         send(auth_actor_pid, "reauth");
       }
 
-      if (response->code() < 0)
-      {
-        ESP_LOGE(TAG, "Fatal error (%d), resending: '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
-        auto request_manager_actor_pid = *(whereis("request_manager"));
-        send(
-          request_manager_actor_pid,
-          "request",
-          state.insert_row_request_intent_mutable_buf
-        );
-        //throw std::runtime_error("Fatal error");
-      }
-      ESP_LOGE(TAG, "got error (%d): '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
-
       return {Result::Ok};
     }
   }
 
   {
-    string_view access_token_str;
-    if (matches(message, "access_token", access_token_str))
+    if (matches(message, "access_token", state.access_token_str))
     {
       // Use access_token to auth spreadsheet Log insert request
       set_request_header(
         state.insert_row_request_intent_mutable_buf,
         "Authorization",
-        string{"Bearer "} + string{access_token_str}
+        string{"Bearer "} + state.access_token_str
       );
 
       return {Result::Ok, EventTerminationAction::ContinueProcessing};
@@ -178,9 +191,12 @@ auto spreadsheet_insert_row_actor_behaviour(
   }
 
   {
-    if (matches(message))
+    if (matches(message, "tick"))
     {
-      if (not state.pending_insert_row_intents.empty())
+      if (
+        not state.pending_insert_row_intents.empty()
+        and not state.access_token_str.empty()
+      )
       {
         if (not state.insert_row_request_in_progress)
         {
@@ -221,15 +237,8 @@ auto spreadsheet_insert_row_actor_behaviour(
           // Pop the row now that it has been processed.
           state.pending_insert_row_intents.pop();
         }
-        else {
-          // Re-trigger ourselves with an arbitrary message
-          delay(100ms);
-          send(self, "tick");
-
-          auto app_actor_pid = *(whereis("app"));
-          send(app_actor_pid, "progress");
-        }
       }
+
       return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
   }
