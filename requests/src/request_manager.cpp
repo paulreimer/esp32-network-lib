@@ -235,9 +235,8 @@ auto RequestManager::send(
     if (req->query() and req->query()->size() > 0)
     {
       char delim = (handler._req_url.find_first_of('?') == string::npos)? '?' : '&';
-      for (auto arg_idx = 0; arg_idx < req->query()->size(); ++arg_idx)
+      for (const auto* arg : *(req->query()))
       {
-        const auto* arg = req->query()->Get(arg_idx);
         handler._req_url += delim + urlencode(arg->k()->string_view()) + '=' + urlencode(arg->v()->string_view());
         delim = '&';
       }
@@ -312,9 +311,8 @@ auto RequestManager::send(
 
     if (req->headers() and req->headers()->size() > 0)
     {
-      for (auto hdr_idx = 0; hdr_idx < req->headers()->size(); ++hdr_idx)
+      for (const auto* hdr : *(req->headers()))
       {
-        const auto* hdr = req->headers()->Get(hdr_idx);
         string hdr_str(hdr->k()->str() + string(": ") + hdr->v()->str());
         handler.slist = curl_slist_append(handler.slist, hdr_str.c_str());
       }
@@ -436,9 +434,8 @@ auto RequestManager::send(
         SH2LIB_MAKE_NV(":authority", handler.connected_hostname.c_str(), flags),
       };
 
-      for (auto hdr_idx = 0; hdr_idx < req->headers()->size(); ++hdr_idx)
+      for (const auto* hdr : *(req->headers()))
       {
-        const auto* hdr = req->headers()->Get(hdr_idx);
         nva_vec.emplace_back(nghttp2_nv{
           (uint8_t*)(hdr->k()->data()),
           (uint8_t*)(hdr->v()->data()),
