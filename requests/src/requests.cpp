@@ -13,6 +13,8 @@
 
 #include "uuid.h"
 
+#include "embedded_files_string_view_wrapper.h"
+
 #include <utility>
 
 #include "flatbuffers/reflection.h"
@@ -33,16 +35,6 @@ using UUID = UUID::UUID;
 using RequestIntentFields = flatbuffers::Vector<
   flatbuffers::Offset<reflection::Field>
 >;
-
-#define DECLARE_STRING_VIEW_WRAPPER(file_name_with_ext)       \
-  extern const char file_name_with_ext ## _start[]            \
-    asm("_binary_" #file_name_with_ext "_start");             \
-  extern const char file_name_with_ext ## _end[]              \
-    asm("_binary_" #file_name_with_ext "_end");               \
-  const std::experimental::string_view file_name_with_ext(    \
-    file_name_with_ext ## _start,                             \
-    file_name_with_ext ## _end - file_name_with_ext ## _start \
-  )
 
 DECLARE_STRING_VIEW_WRAPPER(requests_bfbs);
 
