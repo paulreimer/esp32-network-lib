@@ -34,11 +34,37 @@ using namespace std::chrono_literals;
 using string = std::string;
 using string_view = std::experimental::string_view;
 
+using UUID::NullUUID;
+using UUID = UUID::UUID;
+
+using MutableFileMetadataFlatbuffer = std::vector<uint8_t>;
+
 struct FirmwareUpdateState
 {
+  // Re-usable firmware update request
   MutableRequestIntentFlatbuffer firmware_update_check_request_intent_mutable_buf;
-  MutableRequestIntentFlatbuffer firmware_update_request_intent_mutable_buf;
+  // Metadata from most recent firmware update request
+  MutableFileMetadataFlatbuffer pending_firmware_metadata;
 
+  // Request state
+  UUID firmware_update_check_request_intent_id = NullUUID;
+  UUID download_image_request_intent_id = NullUUID;
+  UUID download_file_request_intent_id = NullUUID;
+
+  bool firmware_update_check_request_in_progress = false;
+  bool download_file_request_in_progress = false;
+  bool download_image_request_in_progress = false;
+
+  // Cancellable timer
+  TRef tick_timer_ref = NullTRef;
+
+  // Download file state
+  FILE* current_download_file_fp = nullptr;
+  string current_download_file_path;
+  string current_download_file_checksum;
+  bool has_updated_files = false;
+
+  // ESP-IDF OTA
   esp_ota_handle_t ota_handle = 0;
   const esp_partition_t* ota_partition = nullptr;
   bool ota_flash_started = false;
@@ -46,8 +72,12 @@ struct FirmwareUpdateState
   ssize_t ota_bytes_written = 0;
   string ota_checksum_hex_str;
 
+  // Auth
   bool authenticated = false;
+  bool initial_update_check_request_sent = false;
   string access_token;
+
+  // Reset button trigger
   TimeDuration last_reset_pressed;
   TimeDuration last_reset_pressed_interval;
   TimeDuration reset_button_trigger_interval = 2s;
@@ -69,13 +99,104 @@ auto firmware_update_behaviour(
   }
   auto& state = *(std::static_pointer_cast<FirmwareUpdateState>(_state));
 
+  {
+    const Response* response;
+    if (
+      matches(
+        message,
+        "response_chunk",
+        response,
+        state.download_image_request_intent_id
+      )
+    )
+    {
+      auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
+        response->body()->data()
+      );
+
+      if (firmware_update_metadata)
+      {
+        state.pending_firmware_metadata.assign(
+          response->body()->begin(),
+          response->body()->end()
+        );
+
+        if (not state.tick_timer_ref)
+        {
+          // Re-trigger ourselves periodically (timer will be cancelled later)
+          state.tick_timer_ref = send_interval(500ms, self, "tick");
+        }
+
+      }
+
+      return {Result::Ok};
+    }
+  }
+
+  {
+    const Response* response;
+    if (
+      matches(
+        message,
+        "response_error",
+        response,
+        state.firmware_update_check_request_intent_id
+      )
+    )
+    {
+      ESP_LOGE(TAG, "Firmware update check request failed");
+
+      return {Result::Ok};
+    }
+  }
+
+  // Check for firmware update check results, parse the Firmware flatbuffer
+  {
+    const Response* response;
+    if (
+      matches(
+        message,
+        "response_finished",
+        response,
+        state.firmware_update_check_request_intent_id
+      )
+    )
+    {
+      auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
+        response->body()->data()
+      );
+
+      if (firmware_update_metadata)
+      {
+        state.pending_firmware_metadata.assign(
+          response->body()->begin(),
+          response->body()->end()
+        );
+
+        if (not state.tick_timer_ref)
+        {
+          // Re-trigger ourselves periodically (timer will be cancelled later)
+          state.tick_timer_ref = send_interval(500ms, self, "tick");
+        }
+      }
+
+      state.firmware_update_check_request_in_progress = false;
+
+      return {Result::Ok};
+    }
+  }
+
   // Check for firmware image chunk, write it to flash
   {
     const Response* response;
-    auto firmware_update_request_intent_id = get_request_intent_id(
-      state.firmware_update_request_intent_mutable_buf
-    );
-    if (matches(message, "response_chunk", response, firmware_update_request_intent_id))
+    if (
+      matches(
+        message,
+        "response_chunk",
+        response,
+        state.download_image_request_intent_id
+      )
+    )
     {
       // Initialize OTA session if not already started
       if (not state.ota_flash_started)
@@ -119,13 +240,34 @@ auto firmware_update_behaviour(
     }
   }
 
+  {
+    const Response* response;
+    if (
+      matches(
+        message,
+        "response_error",
+        response,
+        state.download_image_request_intent_id
+      )
+    )
+    {
+      ESP_LOGE(TAG, "Firmware update image download request failed");
+
+      return {Result::Ok};
+    }
+  }
+
   // Check for firmware image complete, switch to the new partition and reboot
   {
     const Response* response;
-    auto firmware_update_request_intent_id = get_request_intent_id(
-      state.firmware_update_request_intent_mutable_buf
-    );
-    if (matches(message, "response_finished", response, firmware_update_request_intent_id))
+    if (
+      matches(
+        message,
+        "response_finished",
+        response,
+        state.download_image_request_intent_id
+      )
+    )
     {
       if (
         state.ota_partition
@@ -185,98 +327,200 @@ auto firmware_update_behaviour(
         }
       }
 
+      state.download_image_request_intent_id = NullUUID;
+      state.download_image_request_in_progress = false;
+
       return {Result::Ok};
     }
   }
 
-  // Check for firmware update check results, parse the Firmware flatbuffer
+  // Check for file chunk, write it to filesystem
   {
     const Response* response;
-    auto firmware_update_check_request_intent_id = get_request_intent_id(
-      state.firmware_update_check_request_intent_mutable_buf
-    );
-    if (matches(message, "response_finished", response, firmware_update_check_request_intent_id))
+    if (
+      matches(
+        message,
+        "response_chunk",
+        response,
+        state.download_file_request_intent_id
+      )
+    )
     {
-      auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
-        response->body()->data()
-      );
-
-      if (firmware_update_metadata)
+      // Open the destination file if it is not already open
+      if (not state.current_download_file_path.empty())
       {
-        auto current_version = get_current_firmware_version();
-        auto new_version = firmware_update_metadata->version();
-
-        if (new_version > current_version)
+        if (state.current_download_file_fp == nullptr)
         {
-          printf("Newer firmware update version %d available, downloading\n", new_version);
+          state.current_download_file_fp = fopen(
+            state.current_download_file_path.c_str(),
+            "w"
+          );
 
-          if (firmware_update_metadata->checksum())
+          if (state.current_download_file_fp == nullptr)
           {
-            state.ota_checksum_hex_str = (
-              firmware_update_metadata->checksum()->str()
-            );
-          }
-          else {
-            ESP_LOGW(TAG, "Firmware update missing checksum for verification");
-          }
-
-          if (firmware_update_metadata->url())
-          {
-            auto firmware_request_buffer = make_request_intent(
-              "GET",
-              firmware_update_metadata->url()->string_view(),
-              {},
-              {{"Authorization", string{"Bearer "} + state.access_token}},
-              "",
-              self,
-              ResponseFilter::PartialResponseChunks
-            );
-
-            auto _firmware_request_buffer = string_view{
-              reinterpret_cast<const char*>(firmware_request_buffer.data()),
-              firmware_request_buffer.size()
-            };
-            state.firmware_update_request_intent_mutable_buf.assign(
-              _firmware_request_buffer.begin(),
-              _firmware_request_buffer.end()
-            );
-
-            auto request_manager_actor_pid = *(whereis("request_manager"));
-            send(
-              request_manager_actor_pid,
-              "request",
-              state.firmware_update_request_intent_mutable_buf
-            );
+            ESP_LOGE(TAG, "Could not open file for writing: %s", state.current_download_file_path.c_str());
           }
         }
+
+        if (state.current_download_file_fp != nullptr)
+        {
+          auto chunk_len = response->body()->size();
+          auto bytes_written = fwrite(
+            response->body()->data(),
+            sizeof(char),
+            chunk_len,
+            state.current_download_file_fp
+          );
+
+          if (bytes_written == chunk_len)
+          {
+          }
+          else {
+            ESP_LOGW(
+              TAG,
+              "Invalid write %d bytes from file %s",
+              bytes_written,
+              state.current_download_file_path.c_str()
+            );
+
+            // Close file pointer before deleting file
+            fclose(state.current_download_file_fp);
+            state.current_download_file_fp = nullptr;
+
+            // Attempt to delete the file from the filesystem
+            auto did_delete = (
+              remove(state.current_download_file_path.c_str()) == 0
+            );
+            if (not did_delete)
+            {
+              ESP_LOGW(
+                TAG,
+                "Could not delete (possibly) corrupt file %s",
+                state.current_download_file_path.c_str()
+              );
+            }
+          }
+        }
+        else {
+          ESP_LOGW(TAG, "File not open for writing: %s", state.current_download_file_path.c_str());
+        }
+      }
+      else {
+        ESP_LOGW(TAG, "Received chunk for unexpected file");
       }
 
       return {Result::Ok};
     }
   }
 
-
   {
     const Response* response;
-    auto firmware_update_check_request_intent_id = get_request_intent_id(
-      state.firmware_update_check_request_intent_mutable_buf
-    );
-    if (matches(message, "response_error", response, firmware_update_check_request_intent_id))
+    if (
+      matches(
+        message,
+        "response_error",
+        response,
+        state.download_file_request_intent_id
+      )
+    )
     {
-      ESP_LOGE(TAG, "Firmware update check request failed");
+      if (not state.current_download_file_path.empty())
+      {
+        // Close file pointer if it is open
+        if (state.current_download_file_fp != nullptr)
+        {
+          fclose(state.current_download_file_fp);
+          state.current_download_file_fp = nullptr;
+        }
+
+        // Attempt to delete the file from the filesystem
+        auto did_delete = (
+          remove(state.current_download_file_path.c_str()) == 0
+        );
+        if (not did_delete)
+        {
+          ESP_LOGW(
+            TAG,
+            "Could not delete (possibly) corrupt file %s",
+            state.current_download_file_path.c_str()
+          );
+        }
+      }
+
+      ESP_LOGE(TAG, "Firmware update file download request failed");
 
       return {Result::Ok};
     }
   }
 
+  // Downloaded config file complete, close the file and (optionally) verify it
   {
     const Response* response;
-    auto firmware_update_request_intent_id = get_request_intent_id(
-      state.firmware_update_request_intent_mutable_buf
-    );
-    if (matches(message, "response_error", response, firmware_update_request_intent_id))
+    if (
+      matches(
+        message,
+        "response_finished",
+        response,
+        state.download_file_request_intent_id
+      )
+    )
     {
-      ESP_LOGE(TAG, "Firmware update download request failed");
+      // Close file pointer if it is still open
+      if (state.current_download_file_fp != nullptr)
+      {
+        fclose(state.current_download_file_fp);
+        state.current_download_file_fp = nullptr;
+      }
+
+      // If a checksum was specified, verify it (delete file on failure)
+      if (not state.current_download_file_checksum.empty())
+      {
+        auto md5sum = checksum_file_md5(state.current_download_file_path);
+        auto md5sum_hex_str = get_md5sum_hex_str(md5sum);
+        if (md5sum_hex_str != state.current_download_file_checksum)
+        {
+          ESP_LOGE(
+            TAG,
+            "Invalid MD5 checksum %s calculated for file %s (expected %s)",
+            md5sum_hex_str.c_str(),
+            state.current_download_file_path.c_str(),
+            state.current_download_file_checksum.c_str()
+          );
+
+          // Attempt to delete the file from the filesystem
+          auto did_delete = remove(state.current_download_file_path.c_str());
+          if (not did_delete)
+          {
+            ESP_LOGW(
+              TAG,
+              "Could not delete (possibly) corrupt file %s",
+              state.current_download_file_path.c_str()
+            );
+          }
+        }
+        else {
+          ESP_LOGI(
+            TAG,
+            "Downloaded file %s with checksum %s",
+            state.current_download_file_path.c_str(),
+            md5sum_hex_str.c_str()
+          );
+          state.has_updated_files = true;
+        }
+      }
+      else {
+        ESP_LOGI(
+          TAG,
+          "Downloaded file %s",
+          state.current_download_file_path.c_str()
+        );
+        state.has_updated_files = true;
+      }
+
+      // Reset current file state
+      state.current_download_file_path.clear();
+      state.download_file_request_intent_id = NullUUID;
+      state.download_file_request_in_progress = false;
 
       return {Result::Ok};
     }
@@ -285,7 +529,7 @@ auto firmware_update_behaviour(
   {
     if (matches(message, "access_token", state.access_token))
     {
-      // Use access_token to auth spreadsheet Activity insert request
+      // Use access_token to auth future check requests
       set_request_header(
         state.firmware_update_check_request_intent_mutable_buf,
         "Authorization",
@@ -294,25 +538,34 @@ auto firmware_update_behaviour(
 
       state.authenticated = true;
 
+      if (not state.initial_update_check_request_sent)
+      {
+        send(self, "check");
+      }
+
       return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
   }
 
   {
-    string_view firmware_update_check_request_intent_str;
-    if (matches(message, "check", firmware_update_check_request_intent_str))
+    string_view firmware_update_check_request_intent;
+    if (matches(message, "check", firmware_update_check_request_intent))
     {
-      if (not firmware_update_check_request_intent_str.empty())
+      if (not firmware_update_check_request_intent.empty())
       {
         // Parse (& copy) the firmware update check request intent flatbuffer
-        state.firmware_update_check_request_intent_mutable_buf  = parse_request_intent(
-          firmware_update_check_request_intent_str,
+        state.firmware_update_check_request_intent_mutable_buf = parse_request_intent(
+          firmware_update_check_request_intent,
           self
+        );
+
+        state.firmware_update_check_request_intent_id = get_request_intent_id(
+          state.firmware_update_check_request_intent_mutable_buf
         );
 
         if (state.authenticated and not state.access_token.empty())
         {
-          // Use access_token to auth spreadsheet Activity insert request
+          // Use access_token to auth firmware update check request
           set_request_header(
             state.firmware_update_check_request_intent_mutable_buf,
             "Authorization",
@@ -324,6 +577,8 @@ auto firmware_update_behaviour(
       if (state.authenticated)
       {
         auto request_manager_actor_pid = *(whereis("request_manager"));
+        state.firmware_update_check_request_in_progress = true;
+
         send(
           request_manager_actor_pid,
           "request",
@@ -368,6 +623,132 @@ auto firmware_update_behaviour(
       state.last_reset_pressed = current_micros;
 
       return {Result::Ok};
+    }
+  }
+
+  {
+    if (matches(message, "tick"))
+    {
+      if (
+        not state.pending_firmware_metadata.empty()
+        and not state.download_file_request_in_progress
+        and not state.download_image_request_in_progress
+        and not state.access_token.empty()
+      )
+      {
+        const auto* firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
+          state.pending_firmware_metadata.data()
+        );
+
+        if (firmware_update_metadata)
+        {
+          auto current_version = get_current_firmware_version();
+          auto new_version = firmware_update_metadata->version();
+          auto all_files_valid = true;
+
+          if (firmware_update_metadata->files())
+          {
+            for (const auto* file : *(firmware_update_metadata->files()))
+            {
+              auto file_exists = (access(file->path()->c_str(), F_OK ) != -1);
+              if (not file_exists)
+              {
+                all_files_valid = false;
+
+                auto download_file_request_intent_buffer = make_request_intent(
+                  "GET",
+                  file->url()->string_view(),
+                  {},
+                  {{"Authorization", string{"Bearer "} + state.access_token}},
+                  "",
+                  self,
+                  ResponseFilter::PartialResponseChunks
+                );
+
+                state.current_download_file_path = file->path()->str();
+                if (file->checksum())
+                {
+                  state.current_download_file_checksum = file->checksum()->str();
+                }
+
+                state.download_file_request_intent_id = get_request_intent_id(
+                  download_file_request_intent_buffer
+                );
+
+                state.download_file_request_in_progress = true;
+
+                auto request_manager_actor_pid = *(whereis("request_manager"));
+                send(
+                  request_manager_actor_pid,
+                  "request",
+                  download_file_request_intent_buffer
+                );
+              }
+            }
+          }
+
+          if (all_files_valid and (new_version > current_version))
+          {
+            printf("Newer firmware update version %d available, downloading\n", new_version);
+
+            if (firmware_update_metadata->checksum())
+            {
+              state.ota_checksum_hex_str = (
+                firmware_update_metadata->checksum()->str()
+              );
+            }
+            else {
+              ESP_LOGW(TAG, "Firmware update missing checksum for verification");
+            }
+
+            if (firmware_update_metadata->url())
+            {
+              auto download_image_request_intent_buffer = make_request_intent(
+                "GET",
+                firmware_update_metadata->url()->string_view(),
+                {},
+                {{"Authorization", string{"Bearer "} + state.access_token}},
+                "",
+                self,
+                ResponseFilter::PartialResponseChunks
+              );
+
+              state.download_image_request_intent_id = get_request_intent_id(
+                download_image_request_intent_buffer
+              );
+
+              state.download_image_request_in_progress = true;
+
+              auto request_manager_actor_pid = *(whereis("request_manager"));
+              send(
+                request_manager_actor_pid,
+                "request",
+                download_image_request_intent_buffer
+              );
+            }
+          }
+
+          if (all_files_valid and (new_version == current_version))
+          {
+            // Clear pending firmware metadata, if everything is up-to-date
+            state.pending_firmware_metadata.clear();
+
+            // Cancel the tick timer
+            cancel(state.tick_timer_ref);
+            state.tick_timer_ref = NullTRef;
+
+            if (state.has_updated_files)
+            {
+              state.has_updated_files = false;
+              ESP_LOGW(TAG, "Successfully updated all files, rebooting\n");
+
+              reboot();
+            }
+          }
+        }
+      }
+
+      return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
   }
 
