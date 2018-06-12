@@ -36,10 +36,8 @@ auto get_column_from_label(
 
   if (cols)
   {
-    for (auto col_idx = 0; col_idx < cols->Length(); ++col_idx)
+    for (const auto* column : *(cols))
     {
-      auto* column = cols->Get(col_idx);
-
       if (column->label() and column->id())
       {
         auto label = string_view{
