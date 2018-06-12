@@ -93,7 +93,7 @@ struct VisualizationQueryActorState
   UUID current_update_columns_request_id;
   UUID current_query_request_id;
 
-  TRef tick_timer_ref;
+  TRef tick_timer_ref = NullTRef;
 
   auto has_column_ids_for_query(
     const QueryIntent* query
