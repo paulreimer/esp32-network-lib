@@ -19,6 +19,7 @@
 namespace FirmwareUpdate {
 
 using string = std::string;
+using string_view = std::experimental::string_view;
 
 auto get_current_partition()
   -> const esp_partition_t*
@@ -123,6 +124,61 @@ auto checksum_partition_md5(
 
   mbedtls_md5_finish(&ctx, &md5sum[0]);
   mbedtls_md5_free(&ctx);
+
+  return md5sum;
+}
+
+auto checksum_file_md5(
+  const string_view path
+) -> MD5Sum
+{
+  MD5Sum md5sum = {0};
+
+  auto file = fopen(path.data(), "rb");
+  if (file != nullptr)
+  {
+    // Seek to end of file to determine its size
+    fseek(file, 0L, SEEK_END);
+    auto file_size = ftell(file);
+    rewind(file);
+
+    // Run the md5sum over the file in chunks of 32 bytes
+    constexpr size_t buffer_size = 32;
+    uint8_t buffer[buffer_size] = {0};
+
+    mbedtls_md5_context ctx;
+    mbedtls_md5_init(&ctx);
+    mbedtls_md5_starts(&ctx);
+
+    for (auto offset = 0; offset < file_size; offset += buffer_size)
+    {
+      auto bytes_to_read = (
+        ((offset + buffer_size) <= file_size)?
+        buffer_size : (file_size - offset)
+      );
+
+      auto bytes_read = fread(
+        buffer,
+        sizeof(uint8_t),
+        bytes_to_read,
+        file
+      );
+
+      if (bytes_read != bytes_to_read)
+      {
+        // Abort with null md5sum at this point
+        return md5sum;
+      }
+
+      mbedtls_md5_update(&ctx, buffer, bytes_to_read);
+    }
+
+    mbedtls_md5_finish(&ctx, &md5sum[0]);
+    mbedtls_md5_free(&ctx);
+
+    fclose(file);
+    file = nullptr;
+  }
 
   return md5sum;
 }

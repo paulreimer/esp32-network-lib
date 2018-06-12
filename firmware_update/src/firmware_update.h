@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <experimental/string_view>
 #include <array>
 
 #include "firmware_update_generated.h"
@@ -44,6 +45,10 @@ auto get_current_firmware_version()
 auto checksum_partition_md5(
   const esp_partition_t* partition,
   const size_t partition_size
+) -> MD5Sum;
+
+auto checksum_file_md5(
+  const std::experimental::string_view path
 ) -> MD5Sum;
 
 auto get_md5sum_hex_str(const MD5Sum& md5sum)
