@@ -502,4 +502,24 @@ auto get_request_intent_id(
   return NullUUID;
 }
 
+auto get_request_intent_id(
+  const RequestIntentFlatbuffer& request_intent_buf
+) -> const UUID
+{
+  if (request_intent_buf.size() > 0)
+  {
+    const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+      request_intent_buf.data()
+    );
+
+    if (request_intent and request_intent->id())
+    {
+      return (*(request_intent->id()));
+    }
+  }
+
+  // Return null UUID if invalid request intent found
+  return NullUUID;
+}
+
 } // namespace Requests

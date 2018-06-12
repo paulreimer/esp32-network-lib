@@ -96,4 +96,8 @@ auto get_request_intent_id(
   const MutableRequestIntentFlatbuffer& request_intent_mutable_buf
 ) -> const UUID::UUID;
 
+auto get_request_intent_id(
+  const RequestIntentFlatbuffer& request_intent_buf
+) -> const UUID::UUID;
+
 } // namespace Requests
