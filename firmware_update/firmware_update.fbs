@@ -9,11 +9,18 @@
  */
 namespace Firmware;
 
+table FileMetadata {
+  path:string (key);
+  checksum:string;
+  url:string;
+}
+
 table FirmwareMetadata {
   version:uint (key);
   checksum:string;
   url:string;
   interval:uint = 3600;
+  files:[FileMetadata];
 }
 
 root_type FirmwareMetadata;
