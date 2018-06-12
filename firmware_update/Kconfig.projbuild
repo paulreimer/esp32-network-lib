@@ -28,4 +28,10 @@ config FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS
   help
     Number of seconds to wait between firmware update checks.
 
+config FIRMWARE_UPDATE_GDRIVE_FOLDER_ID
+  string "Firmware Update Google Drive Folder ID"
+  default ""
+  help
+    Google Drive Folder ID that holds the per-device config files.
+
 endmenu

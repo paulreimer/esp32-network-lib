@@ -1,21 +1,60 @@
 CXXFLAGS += \
 	-DFIRMWARE_UPDATE_ACTOR_TASK_STACK_SIZE="4096" \
-	-DFIRMWARE_UPDATE_ACTOR_MAILBOX_SIZE="4096" \
+	-DFIRMWARE_UPDATE_ACTOR_MAILBOX_SIZE="8192" \
 	-DFIRMWARE_UPDATE_CURRENT_VERSION="$(shell cat $(PROJECT_PATH)/VERSION)"
 
 # Cache the component name so it can be used correctly within make targets
 FIRMWARE_UPDATE_COMPONENT_PATH := $(COMPONENT_PATH)
 
+FILESYSTEM_FILES = $(shell find $(PROJECT_PATH)/fs/ -type f)
+
 # Generate latest.fw.json from config settings in 'make menuconfig'
 $(BUILD_DIR_BASE)/latest.fw.json: \
 	$(FIRMWARE_UPDATE_COMPONENT_PATH)/templates/latest.fw.json.tpl \
 	$(APP_BIN)
+	# Replace config values with expanded values
 	sed \
 		-e 's#@FIRMWARE_UPDATE_CURRENT_VERSION@#$(shell cat $(PROJECT_PATH)/VERSION)#' \
 		-e 's#@CONFIG_FIRMWARE_UPDATE_LATEST_URL@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_LATEST_URL))#' \
 		-e 's#@CONFIG_FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS))#' \
 		-e 's#@FIRMWARE_UPDATE_LATEST_CHECKSUM@#$(shell md5 -q $(APP_BIN))#' \
 		$< > $@
+	# List the files available in the Google Drive folder
+	# Create a temp file and use jq to create an array of files used in the fs
+	FILESYSTEM_ROOT="/spiflash/" && \
+	GDRIVE_LIST_OUTPUT=$$(gdrive list --no-header --name-width 0 \
+		-q "\
+			'$(call dequote,$(CONFIG_FIRMWARE_UPDATE_GDRIVE_FOLDER_ID))' in parents and \
+			mimeType != 'application/vnd.google-apps.folder' \
+		" | \
+		tr -s ' ' ',' | \
+		cut -f 1,2 -d ',' \
+	) && \
+	\
+	read -r -a GDRIVE_FILES <<< $${GDRIVE_LIST_OUTPUT} && \
+	\
+	TMPFILE="$$(mktemp)" && \
+	\
+	for LOCAL_PATH in $(FILESYSTEM_FILES); do \
+		FILE_NAME="$$(basename $${LOCAL_PATH})"; \
+		for GDRIVE_FILE_MAPPING in "$${GDRIVE_FILES[@]}"; do \
+			GDRIVE_FILE_ID="$${GDRIVE_FILE_MAPPING%%,*}"; \
+			GDRIVE_FILE_NAME="$${GDRIVE_FILE_MAPPING#*,}"; \
+			if [[ "$${GDRIVE_FILE_NAME}" = "$${FILE_NAME}" ]]; then \
+				URI="https://www.googleapis.com/drive/v3/files/$${GDRIVE_FILE_ID}?alt=media"; \
+				\
+				mv "$@" "$${TMPFILE}"; \
+				\
+				jq ".files |= (. + [{\
+					\"path\": \"$${FILESYSTEM_ROOT}$${FILE_NAME}\", \
+					\"url\": \"$${URI}\", \
+					\"checksum\": \"$$(md5 -q $${LOCAL_PATH})\" \
+				}] | unique)" $${TMPFILE} > $@; \
+			fi; \
+		done; \
+	done && \
+	\
+	rm "$${TMPFILE}"
 
 # Generate latest.fw.fb binary flatbuffer from latest.fw.json
 $(BUILD_DIR_BASE)/latest.fw.fb: $(BUILD_DIR_BASE)/latest.fw.json
