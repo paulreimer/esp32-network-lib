@@ -1,0 +1,17 @@
+menu "FATFS Partition Image Configuration"
+
+config FATFS_PARTITION_BASE_ADDR
+  hex "FATFS partition base address"
+  range 100000 1FFE000
+  default 110000
+  help
+    Starting address of the FATFS partition
+
+config FATFS_PARTITION_SIZE
+  int "FATFS partition size in bytes"
+  range 131072 16777216
+  default 131072
+  help
+    Total size of the FATFS parition in bytes
+
+endmenu
