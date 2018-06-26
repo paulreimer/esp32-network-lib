@@ -39,7 +39,7 @@ using UUID = UUID::UUID;
 
 using MutableFileMetadataFlatbuffer = std::vector<uint8_t>;
 
-struct FirmwareUpdateState
+struct FirmwareUpdateActorState
 {
   // Re-usable firmware update request
   MutableRequestIntentFlatbuffer firmware_update_check_request_intent_mutable_buf;
@@ -87,7 +87,7 @@ struct FirmwareUpdateState
 
 constexpr char TAG[] = "firmware_update";
 
-auto firmware_update_behaviour(
+auto firmware_update_actor_behaviour(
   const Pid& self,
   StatePtr& _state,
   const Message& message
@@ -95,9 +95,9 @@ auto firmware_update_behaviour(
 {
   if (not _state)
   {
-    _state = std::make_shared<FirmwareUpdateState>();
+    _state = std::make_shared<FirmwareUpdateActorState>();
   }
-  auto& state = *(std::static_pointer_cast<FirmwareUpdateState>(_state));
+  auto& state = *(std::static_pointer_cast<FirmwareUpdateActorState>(_state));
 
   {
     const Response* response;

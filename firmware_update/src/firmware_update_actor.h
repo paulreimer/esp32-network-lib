@@ -13,7 +13,7 @@
 
 namespace FirmwareUpdate {
 
-auto firmware_update_behaviour(
+auto firmware_update_actor_behaviour(
   const ActorModel::Pid& self,
   ActorModel::StatePtr& state,
   const ActorModel::Message& message
