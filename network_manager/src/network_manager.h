@@ -9,10 +9,16 @@
  */
 #pragma once
 
+#include "network_manager_generated.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 
 #include "lwip/ip4_addr.h"
+
+#include "esp_event.h"
+
+namespace NetworkManager {
 
 struct NetworkInterfaceDetails
 {
@@ -36,8 +42,15 @@ auto get_network_details()
 auto get_wifi_connection_rssi(const size_t samples)
   -> int;
 
+auto event_handler(void* ctx, system_event_t* event)
+  -> esp_err_t;
+
 // The event group allows multiple bits for each event,
 // but we only care about one event - are we connected
 // to the AP with an IP?
 constexpr int NETWORK_IS_CONNECTED = BIT0;
-constexpr int NETWORK_TIME_AVAILABLE = BIT1;
+constexpr int NETWORK_IS_CONNECTED_IPV4 = BIT1;
+constexpr int NETWORK_IS_CONNECTED_IPV6 = BIT2;
+constexpr int NETWORK_TIME_AVAILABLE = BIT3;
+
+} // namespace NetworkManager

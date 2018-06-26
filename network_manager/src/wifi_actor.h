@@ -9,5 +9,14 @@
  */
 #pragma once
 
-auto network_check_task(void* user_data = nullptr)
-  -> void;
+#include "actor_model.h"
+
+namespace NetworkManager {
+
+auto wifi_actor_behaviour(
+  const ActorModel::Pid& self,
+  ActorModel::StatePtr& state,
+  const ActorModel::Message& message
+) -> ActorModel::ResultUnion;
+
+} // namespace NetworkManager

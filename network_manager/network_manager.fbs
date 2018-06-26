@@ -1,0 +1,63 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License.
+ * To view a copy of this license, visit
+ * https://creativecommons.org/licenses/by-nc-sa/4.0/
+ * or send a letter to
+ * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+ */
+
+namespace NetworkManager;
+
+table WifiConfiguration
+{
+  ssid:string;
+  password:string;
+}
+
+table NTPConfiguration
+{
+  ntp_server:string;
+  posix_timezone:string;
+}
+
+table NetworkCheckConfiguration
+{
+  upstream_ping_ip:uint32;
+}
+
+table mDNSTXTRecord
+{
+  k:string;
+  v:string;
+}
+
+table mDNSService
+{
+  instance:string;
+  name:string;
+  protocol:string;
+  port:uint16;
+  txt_records:[mDNSTXTRecord];
+}
+
+table mDNSConfiguration
+{
+  hostname:string;
+  instance:string;
+  domain:string;
+  services:[mDNSService];
+}
+
+table NetworkConnectionIntent
+{
+  wifi:WifiConfiguration;
+  ntp:NTPConfiguration;
+  network_check:NetworkCheckConfiguration;
+  mdns:mDNSConfiguration;
+}
+
+root_type NetworkConnectionIntent;
+file_extension "fb";
+file_identifier "Netw";
