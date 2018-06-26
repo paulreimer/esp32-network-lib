@@ -13,7 +13,7 @@
 
 namespace Requests {
 
-auto request_manager_behaviour(
+auto request_manager_actor_behaviour(
   const ActorModel::Pid& self,
   ActorModel::StatePtr& state,
   const ActorModel::Message& message

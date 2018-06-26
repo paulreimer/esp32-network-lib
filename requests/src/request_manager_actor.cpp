@@ -7,25 +7,25 @@
  * or send a letter to
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
+
 #include "request_manager_actor.h"
 
 #include "request_manager.h"
-#include "actor_model.h"
 
 #include "delay.h"
 
 #include <chrono>
 #include <memory>
 
-using namespace std::chrono_literals;
-
 namespace Requests {
+
+using namespace std::chrono_literals;
 
 using namespace ActorModel;
 
 using string_view = std::experimental::string_view;
 
-auto request_manager_behaviour(
+auto request_manager_actor_behaviour(
   const Pid& self,
   StatePtr& state,
   const Message& message
