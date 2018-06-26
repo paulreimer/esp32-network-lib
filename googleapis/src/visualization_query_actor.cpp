@@ -422,7 +422,10 @@ auto visualization_query_actor_behaviour(
     if (matches(message, "tick"))
     {
       // Ensure an access_token is present before working on requests
-      if (not state.access_token_str.empty())
+      if (
+        state.tick_timer_ref
+        and not state.access_token_str.empty()
+      )
       {
         for (
           auto i = state.pending_queries.begin();

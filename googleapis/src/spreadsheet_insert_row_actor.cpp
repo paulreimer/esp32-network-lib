@@ -194,7 +194,8 @@ auto spreadsheet_insert_row_actor_behaviour(
     if (matches(message, "tick"))
     {
       if (
-        not state.pending_insert_row_intents.empty()
+        state.tick_timer_ref
+        and not state.pending_insert_row_intents.empty()
         and not state.access_token_str.empty()
       )
       {

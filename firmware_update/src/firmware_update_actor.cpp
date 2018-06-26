@@ -630,7 +630,8 @@ auto firmware_update_actor_behaviour(
     if (matches(message, "tick"))
     {
       if (
-        not state.pending_firmware_metadata.empty()
+        state.tick_timer_ref
+        and not state.pending_firmware_metadata.empty()
         and not state.download_file_request_in_progress
         and not state.download_image_request_in_progress
         and not state.access_token.empty()
