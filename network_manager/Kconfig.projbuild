@@ -1,4 +1,4 @@
-menu "Wifi Configuration"
+menu "Network Configuration"
 
 config WIFI_SSID
     string "Wifi SSID"
