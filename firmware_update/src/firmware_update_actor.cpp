@@ -7,6 +7,7 @@
  * or send a letter to
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
+
 #include "firmware_update_actor.h"
 
 #include <chrono>
