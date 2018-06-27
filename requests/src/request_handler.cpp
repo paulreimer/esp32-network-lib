@@ -26,6 +26,8 @@ using string = std::string;
 
 using ActorModel::send;
 
+using namespace Json;
+
 RequestHandler::RequestHandler(
   const RequestIntentFlatbufferRef& _request_intent_buf_ref
 )
@@ -157,22 +159,22 @@ auto RequestHandler::write_callback(const string_view chunk)
 
           json_path_emitter->parse(json_chunk,
             [this]
-            (string_view parsed_chunk) -> PostCallbackAction
+            (string_view parsed_chunk) -> JsonEmitter::PostCallbackAction
             {
               auto partial_response = create_partial_response(parsed_chunk);
               send(*(request_intent->to_pid()), "response_chunk", partial_response);
 
-              return PostCallbackAction::ContinueProcessing;
+              return JsonEmitter::ContinueProcessing;
             },
 
             [this]
-            (string_view parsed_chunk) -> PostCallbackAction
+            (string_view parsed_chunk) -> JsonEmitter::PostCallbackAction
             {
               // Generate flatbuffer for nesting inside the parent Message object
               auto partial_response = create_partial_response(parsed_chunk);
               send(*(request_intent->to_pid()), "response_error", partial_response);
 
-              return PostCallbackAction::ContinueProcessing;
+              return JsonEmitter::ContinueProcessing;
             }
           );
         }
@@ -205,21 +207,21 @@ auto RequestHandler::write_callback(const string_view chunk)
 
           flatbuffers_path_emitter->parse(json_chunk,
             [this]
-            (string_view parsed_chunk) -> PostCallbackAction
+            (string_view parsed_chunk) -> JsonEmitter::PostCallbackAction
             {
               auto partial_response = create_partial_response(parsed_chunk);
               send(*(request_intent->to_pid()), "response_chunk", partial_response);
 
-              return PostCallbackAction::ContinueProcessing;
+              return JsonEmitter::ContinueProcessing;
             },
 
             [this]
-            (string_view parsed_chunk) -> PostCallbackAction
+            (string_view parsed_chunk) -> JsonEmitter::PostCallbackAction
             {
               auto partial_response = create_partial_response(parsed_chunk);
               send(*(request_intent->to_pid()), "response_error", partial_response);
 
-              return PostCallbackAction::ContinueProcessing;
+              return JsonEmitter::ContinueProcessing;
             }
           );
 

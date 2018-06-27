@@ -94,7 +94,10 @@ protected:
 
 private:
 #if REQUESTS_SUPPORT_JSON
+  using JsonEmitter = Json::JsonEmitter;
   std::unique_ptr<JsonEmitter> json_path_emitter;
+
+  using JsonToFlatbuffersConverter = JsonFlatbuffers::JsonToFlatbuffersConverter;
   std::unique_ptr<JsonToFlatbuffersConverter> flatbuffers_path_emitter;
 #endif // REQUESTS_SUPPORT_JSON
 
