@@ -27,7 +27,7 @@ using namespace ActorModel;
 
 using namespace std::chrono_literals;
 
-constexpr char TAG[] = "NetworkCheck";
+constexpr char TAG[] = "network_check";
 
 auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found* pf)
   -> esp_err_t;
