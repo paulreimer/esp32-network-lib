@@ -86,6 +86,12 @@ auto matches(
   const UUID::UUID& request_intent_id
 ) -> bool;
 
+// Generate random request intent id, (optionally) set to_pid
+auto update_request_intent_ids(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const ActorModel::Pid& to_pid = ActorModel::Pid()
+) -> bool;
+
 // Return a vector of parsed bytes
 auto parse_request_intent(
   const std::experimental::string_view req_fb,

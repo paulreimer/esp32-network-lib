@@ -509,6 +509,27 @@ auto matches(
   );
 }
 
+auto update_request_intent_ids(
+  MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
+  const ActorModel::Pid& to_pid
+) -> bool
+{
+  auto parsed_request_intent = flatbuffers::GetMutableRoot<RequestIntent>(
+    request_intent_mutable_buf.data()
+  );
+
+  // Generate a random ID for this request intent
+  uuidgen(parsed_request_intent->mutable_id());
+
+  if (uuid_valid(to_pid))
+  {
+    update_uuid(parsed_request_intent->mutable_to_pid(), to_pid);
+    return true;
+  }
+
+  return false;
+}
+
 auto parse_request_intent(
   const std::experimental::string_view req_fb,
   const ActorModel::Pid& to_pid
@@ -519,17 +540,7 @@ auto parse_request_intent(
     req_fb.end()
   };
 
-  auto parsed_request_intent = flatbuffers::GetMutableRoot<RequestIntent>(
-    parsed_request_intent_mutable_buf.data()
-  );
-
-  // Generate a random ID for this request intent
-  uuidgen(parsed_request_intent->mutable_id());
-
-  if (uuid_valid(to_pid))
-  {
-    update_uuid(parsed_request_intent->mutable_to_pid(), to_pid);
-  }
+  update_request_intent_ids(parsed_request_intent_mutable_buf, to_pid);
 
   return parsed_request_intent_mutable_buf;
 }
