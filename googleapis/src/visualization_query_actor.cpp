@@ -90,8 +90,8 @@ struct VisualizationQueryActorState
   int max_requests_in_progress = 1;
   string access_token_str;
 
-  UUID current_update_columns_request_id;
-  UUID current_query_request_id;
+  UUID current_update_columns_request_id = NullUUID;
+  UUID current_query_request_id = NullUUID;
 
   TRef tick_timer_ref = NullTRef;
 
