@@ -422,7 +422,10 @@ auto RequestHandler::create_partial_response(const string_view chunk)
       fbb,
       response_code,
       0, // headers
-      fbb.CreateString(chunk), // body
+      fbb.CreateVector(
+        reinterpret_cast<const uint8_t*>(chunk.data()),
+        chunk.size()
+      ), // body
       0, // errbuf
       request_intent->id()
     )

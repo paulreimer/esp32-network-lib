@@ -28,7 +28,7 @@ table Request
 {
   method:string;
   uri:string;
-  body:string;
+  body:[ubyte];
   query:[QueryPair];
   headers:[HeaderPair];
 }
@@ -37,7 +37,7 @@ table Response
 {
   code:short = -1;
   headers:[HeaderPair];
-  body:string;
+  body:[ubyte];
   errbuf:string;
   request_id:UUID.UUID;
 }

@@ -277,7 +277,14 @@ auto visualization_query_actor_behaviour(
       )
       {
         const auto& to_pid = *(current_query_intent->to_pid());
-        send(to_pid, "query_results", response->body()->string_view());
+        send(
+          to_pid,
+          "query_results",
+          string_view{
+            reinterpret_cast<const char*>(response->body()),
+            response->body()->size()
+          }
+        );
       }
 
       return {Result::Ok};

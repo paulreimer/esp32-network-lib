@@ -113,7 +113,10 @@ auto make_request_intent(
     fbb,
     method.empty()? 0 : fbb.CreateString(method),
     uri.empty()? 0 : fbb.CreateString(uri),
-    body.empty()? 0 : fbb.CreateString(body),
+    body.empty()? 0 : fbb.CreateVector(
+      reinterpret_cast<const uint8_t*>(body.data()),
+      body.size()
+    ),
     query.empty()? 0 : query_vec,
     headers.empty()? 0 : headers_vec
   );
@@ -224,7 +227,7 @@ auto set_request_header(
     flatbuffers::ResizeVector<flatbuffers::Offset<HeaderPair>>(
       *(state.schema),
       previous_hdr_count + 1,
-      0,
+      0x00,
       *(resizing_headers_field),
       &request_intent_mutable_buf
     );
@@ -323,7 +326,7 @@ auto set_request_query_arg(
     flatbuffers::ResizeVector<flatbuffers::Offset<QueryPair>>(
       *(state.schema),
       previous_arg_count + 1,
-      0,
+      0x00,
       *(resizing_query_field),
       &request_intent_mutable_buf
     );
@@ -437,11 +440,59 @@ auto set_request_body(
   const string_view body
 ) -> bool
 {
-  return _set_request_field_by_name(
-    request_intent_mutable_buf,
-    "body",
-    body
+  if (not state.request_intent_fields)
+  {
+    _parse_requests_schema();
+  }
+
+  const auto request_field = state.request_intent_fields->LookupByKey(
+    "request"
   );
+
+  const auto request_table = state.schema->objects()->Get(
+    request_field->type()->index()
+  );
+
+  const auto request_body_field = request_table->fields()->LookupByKey(
+    "body"
+  );
+
+  auto resizing_root = flatbuffers::piv(
+    flatbuffers::GetAnyRoot(
+      flatbuffers::vector_data(request_intent_mutable_buf)
+    ),
+    request_intent_mutable_buf
+  );
+
+  auto resizing_request_field = flatbuffers::piv(
+    flatbuffers::GetFieldT(
+      **(resizing_root),
+      *(request_field)
+    ),
+    request_intent_mutable_buf
+  );
+
+  auto resizing_body_field = flatbuffers::piv(
+    flatbuffers::GetFieldV<uint8_t>(
+      **(resizing_request_field),
+      *(request_body_field)
+    ),
+    request_intent_mutable_buf
+  );
+
+  // Resize request.body field to fit the provided data
+  flatbuffers::ResizeVector<uint8_t>(
+    *(state.schema),
+    body.size(),
+    0x00,
+    *(resizing_body_field),
+    &request_intent_mutable_buf
+  );
+
+  // Copy the data into the vector
+  memcpy(resizing_body_field->data(), body.data(), body.size());
+
+  return true;
 }
 
 auto matches(
