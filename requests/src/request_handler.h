@@ -14,7 +14,10 @@
 
 #if REQUESTS_SUPPORT_JSON
 #include "json_emitter.h"
+
+#if REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #include "json_to_flatbuffers_converter.h"
+#endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
 
 #include <experimental/string_view>
@@ -97,8 +100,10 @@ private:
   using JsonEmitter = Json::JsonEmitter;
   std::unique_ptr<JsonEmitter> json_path_emitter;
 
+#if REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
   using JsonToFlatbuffersConverter = JsonFlatbuffers::JsonToFlatbuffersConverter;
   std::unique_ptr<JsonToFlatbuffersConverter> flatbuffers_path_emitter;
+#endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
 
   string _req_url;

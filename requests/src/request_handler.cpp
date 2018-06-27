@@ -61,6 +61,7 @@ RequestHandler::RequestHandler(
         break;
       }
 
+#if REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
       case ResponseFilter::JsonPathAsFlatbuffers:
       {
         if (
@@ -79,6 +80,7 @@ RequestHandler::RequestHandler(
           );
         }
       }
+#endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
 
       case ResponseFilter::PartialResponseChunks:
@@ -182,6 +184,7 @@ auto RequestHandler::write_callback(const string_view chunk)
         break;
       }
 
+#if REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
       case ResponseFilter::JsonPathAsFlatbuffers:
       {
         if (flatbuffers_path_emitter)
@@ -228,6 +231,7 @@ auto RequestHandler::write_callback(const string_view chunk)
           break;
         }
       }
+#endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
     }
   }
