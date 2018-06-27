@@ -11,7 +11,7 @@
 
 #include <cstdio>
 
-namespace Requests {
+namespace Json {
 
 using string_view = std::experimental::string_view;
 using string = std::string;
@@ -313,7 +313,6 @@ auto JsonEmitter::on_json_parse_null()
   if (is_emitting_at_path(match_path, current_path))
   {
     auto* g = json_gen.get();
-    //TODO: null is proper behaviour, but not accepted by flatbuffers parsing
     //ok = (yajl_gen_status_ok == yajl_gen_null(g));
     ok = (yajl_gen_status_ok == yajl_gen_map_open(g));
     ok = (yajl_gen_status_ok == yajl_gen_map_close(g));
@@ -679,4 +678,4 @@ auto JsonEmitter::parse_json_path(const string_view json_path_str)
   return json_path;
 }
 
-} // namespace Requests
+} // namespace Json

@@ -21,9 +21,7 @@
 #include "yajl/yajl_parse.h"
 #include "yajl/yajl_gen.h"
 
-#include "requests_generated.h"
-
-namespace Requests {
+namespace Json {
 
 class JsonEmitter
 {
@@ -33,6 +31,10 @@ public:
 
   using JsonPathComponent = stx::variant<int, string>;
   using JsonPath = std::vector<JsonPathComponent>;
+
+  using PostCallbackAction = bool;
+  static constexpr PostCallbackAction AbortProcessing = false;
+  static constexpr PostCallbackAction ContinueProcessing = false;
 
   using Callback = delegate<PostCallbackAction(string_view)>;
   using Errback = delegate<PostCallbackAction(string_view)>;
@@ -107,4 +109,4 @@ private:
   JsonGenPtr json_gen;
 };
 
-} // namespace Requests
+} // namespace Json

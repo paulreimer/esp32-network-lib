@@ -19,20 +19,25 @@
 
 #include "esp_log.h"
 
-namespace Requests {
+namespace JsonFlatbuffers {
 
 class JsonToFlatbuffersConverter
 {
 public:
   using string_view = std::experimental::string_view;
 
+  using PostCallbackAction = Json::JsonEmitter::PostCallbackAction;
+
   using Callback = delegate<PostCallbackAction(string_view)>;
   using Errback = delegate<PostCallbackAction(string_view)>;
+
+  using JsonEmitter = Json::JsonEmitter;
+  using JsonPath = JsonEmitter::JsonPath;
 
   JsonToFlatbuffersConverter(
     const string_view _flatbuffers_schema_text,
     const string_view _flatbuffers_root_type,
-    const JsonEmitter::JsonPath& _match_path={}
+    const JsonPath& _match_path={}
   );
 
   JsonToFlatbuffersConverter(
@@ -63,4 +68,4 @@ private:
   flatbuffers::Parser flatbuffers_parser;
 };
 
-} // namespace Requests
+} // namespace JsonFlatbuffers

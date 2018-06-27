@@ -9,7 +9,7 @@
  */
 #include "json_to_flatbuffers_converter.h"
 
-namespace Requests {
+namespace JsonFlatbuffers {
 
 using string_view = std::experimental::string_view;
 using string = std::string;
@@ -90,7 +90,7 @@ auto JsonToFlatbuffersConverter::parse(
         }
       }
 
-      return PostCallbackAction::ContinueProcessing;
+      return JsonEmitter::ContinueProcessing;
     },
 
     [&]
@@ -103,9 +103,9 @@ auto JsonToFlatbuffersConverter::parse(
         json_str.data()
       );
 
-      return PostCallbackAction::ContinueProcessing;
+      return JsonEmitter::ContinueProcessing;
     }
   );
 }
 
-} // namespace Requests
+} // namespace JsonFlatbuffers

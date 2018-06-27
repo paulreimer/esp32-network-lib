@@ -23,7 +23,7 @@
 
 #include "esp_log.h"
 
-namespace Requests {
+namespace JsonFlatbuffers {
 
 class FlatbufferToJsonConverter
 {
@@ -117,4 +117,4 @@ public:
   }
 };
 
-} // namespace Requests
+} // namespace JsonFlatbuffers
