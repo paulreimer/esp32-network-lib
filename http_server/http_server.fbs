@@ -1,0 +1,23 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License.
+ * To view a copy of this license, visit
+ * https://creativecommons.org/licenses/by-nc-sa/4.0/
+ * or send a letter to
+ * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+ */
+
+include "uuid.fbs";
+
+table HTTPServerConfiguration
+{
+  port:uint16 = 80;
+  to_pid:UUID.UUID;
+}
+
+namespace HTTPServer;
+
+root_type HTTPServerConfiguration;
+file_extension "fb";
+file_identifier "H11S";
