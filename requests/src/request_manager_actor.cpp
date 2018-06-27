@@ -64,14 +64,17 @@ auto request_manager_actor_behaviour(
     {
       if (request_intent and request_intent->request())
       {
-        const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
-          const_cast<uint8_t*>(message.payload()->data()),
-          message.payload()->size()
-        };
-        requests.fetch(request_intent_buf_ref);
+        if (message.payload()->size() > 0)
+        {
+          const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
+            const_cast<uint8_t*>(message.payload()->data()),
+            message.payload()->size()
+          };
+          requests.fetch(request_intent_buf_ref);
 
-        // Re-trigger ourselves immediately with an arbitrary message
-        send(self, "tick", "");
+          // Re-trigger ourselves immediately with an arbitrary message
+          send(self, "tick", "");
+        }
       }
 
       return {Result::Ok};
