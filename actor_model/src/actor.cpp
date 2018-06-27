@@ -124,7 +124,7 @@ Actor::~Actor()
   if (receive_semaphore)
   {
     // Delete the semaphore within a critical section
-    taskENTER_CRITICAL(&receive_multicore_mutex);
+    portENTER_CRITICAL(&receive_multicore_mutex);
 
     // Acquire the semaphore before deleting it
     if (xSemaphoreTake(receive_semaphore, timeout(10s)) == pdTRUE)
@@ -137,7 +137,7 @@ Actor::~Actor()
         "Unable to delete receive semaphore in ~Actor destructor"
       );
     }
-    taskEXIT_CRITICAL(&receive_multicore_mutex);
+    portEXIT_CRITICAL(&receive_multicore_mutex);
   }
 
   // Stop the actor's execution context
