@@ -548,9 +548,12 @@ auto firmware_update_actor_behaviour(
   }
 
   {
-    string_view firmware_update_check_request_intent;
-    if (matches(message, "check", firmware_update_check_request_intent))
+    if (matches(message, "check"))
     {
+      const auto firmware_update_check_request_intent = string_view{
+        reinterpret_cast<const char*>(message.payload()->data()),
+        message.payload()->size()
+      };
       if (not firmware_update_check_request_intent.empty())
       {
         // Parse (& copy) the firmware update check request intent flatbuffer
