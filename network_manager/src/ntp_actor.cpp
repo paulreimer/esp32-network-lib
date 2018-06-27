@@ -58,7 +58,7 @@ auto ntp_actor_behaviour(
   auto& state = *(std::static_pointer_cast<NTPActorState>(_state));
 
   {
-    if (matches(message, "ntpdate", state.ntp_config_mutable_buf))
+    if (matches(message, "ntp_client_start", state.ntp_config_mutable_buf))
     {
       if (not state.ntp_config_mutable_buf.empty())
       {
