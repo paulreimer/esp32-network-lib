@@ -11,7 +11,7 @@
     "headers": [
       { "k": "Content-Type", "v": "application/json" }
     ],
-    "body": ""
+    "body": []
   },
   "desired_format": "JsonPath",
   "object_path": ".updates.updatedRows"
