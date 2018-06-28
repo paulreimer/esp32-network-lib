@@ -590,9 +590,9 @@ auto firmware_update_actor_behaviour(
         );
       }
       else {
-        printf("not authenticated for firmware update check, requesting reauth\n");
-        auto reauth_actor_pid = *(whereis("reauth"));
-        send(reauth_actor_pid, "reauth");
+        printf("not authenticated for firmware update check, requesting re-auth\n");
+        auto auth_actor_pid = *(whereis("auth"));
+        send(auth_actor_pid, "auth");
       }
 
       return {Result::Ok};

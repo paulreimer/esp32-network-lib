@@ -383,8 +383,8 @@ auto visualization_query_actor_behaviour(
     {
       if (response->code() == 401)
       {
-        auto auth_actor_pid = *(whereis("reauth"));
-        send(auth_actor_pid, "reauth");
+        auto auth_actor_pid = *(whereis("auth"));
+        send(auth_actor_pid, "auth");
       }
 
       return {Result::Ok};
@@ -397,8 +397,8 @@ auto visualization_query_actor_behaviour(
     {
       if (response->code() == 401)
       {
-        auto auth_actor_pid = *(whereis("reauth"));
-        send(auth_actor_pid, "reauth");
+        auto auth_actor_pid = *(whereis("auth"));
+        send(auth_actor_pid, "auth");
       }
 
       return {Result::Ok};
