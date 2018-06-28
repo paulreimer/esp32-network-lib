@@ -135,32 +135,6 @@ auto Mailbox::send(
   return false;
 }
 
-auto Mailbox::receive()
-  -> const Message*
-{
-  const Message* message = nullptr;
-
-  if (impl)
-  {
-    // Extract an item from the ringbuffer
-    size_t size;
-    auto* flatbuf = static_cast<uint8_t*>(
-      xRingbufferReceive(impl, &size, timeout(10s))
-    );
-
-    if (flatbuf)
-    {
-      // Make a copy of the flatbuffer data into a new C++ object
-      message = flatbuffers::GetRoot<Message>(flatbuf);
-
-      // Return the memory to the ringbuffer
-      vRingbufferReturnItem(impl, flatbuf);
-    }
-  }
-
-  return message;
-}
-
 auto Mailbox::receive_raw()
   -> string_view
 {
