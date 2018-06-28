@@ -26,8 +26,6 @@ using string = std::string;
 
 using ActorModel::send;
 
-using namespace Json;
-
 RequestHandler::RequestHandler(
   const RequestIntentFlatbufferRef& _request_intent_buf_ref
 )
