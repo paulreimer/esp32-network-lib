@@ -177,7 +177,7 @@ auto matches(
   std::experimental::string_view& payload
 ) -> bool
 {
-  if (matches(message, type))
+  if (matches(message, type) and (message.payload()->size() > 0))
   {
     payload = std::experimental::string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
@@ -197,7 +197,7 @@ auto matches(
   std::string& payload
 ) -> bool
 {
-  if (matches(message, type))
+  if (matches(message, type) and (message.payload()->size() > 0))
   {
     payload.assign(
       reinterpret_cast<const char*>(message.payload()->data()),
@@ -217,7 +217,7 @@ auto matches(
   MutableFlatbuffer& payload
 ) -> bool
 {
-  if (matches(message, type))
+  if (matches(message, type) and (message.payload()->size() > 0))
   {
     payload.assign(
       message.payload()->data(),
@@ -238,7 +238,7 @@ auto matches(
   const TableT*& payload_ptr
 ) -> bool
 {
-  if (matches(message, type))
+  if (matches(message, type) and (message.payload()->size() > 0))
   {
     auto fb = flatbuffers::GetRoot<TableT>(
       message.payload()->data()
@@ -262,7 +262,7 @@ auto matches(
   TableObjT& obj
 ) -> bool
 {
-  if (matches(message, type))
+  if (matches(message, type) and (message.payload()->size() > 0))
   {
     auto fb = flatbuffers::GetRoot<typename TableObjT::TableType>(
       message.payload()->data()
