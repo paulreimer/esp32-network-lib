@@ -63,7 +63,7 @@ struct FirmwareUpdateActorState
   FILE* current_download_file_fp = nullptr;
   string current_download_file_path;
   string current_download_file_checksum;
-  bool has_updated_files = false;
+  bool did_update_any_files = false;
 
   // ESP-IDF OTA
   esp_ota_handle_t ota_handle = 0;
@@ -506,7 +506,7 @@ auto firmware_update_actor_behaviour(
             state.current_download_file_path.c_str(),
             md5sum_hex_str.c_str()
           );
-          state.has_updated_files = true;
+          state.did_update_any_files = true;
         }
       }
       else {
@@ -515,7 +515,7 @@ auto firmware_update_actor_behaviour(
           "Downloaded file %s",
           state.current_download_file_path.c_str()
         );
-        state.has_updated_files = true;
+        state.did_update_any_files = true;
       }
 
       // Reset current file state
@@ -742,9 +742,9 @@ auto firmware_update_actor_behaviour(
             cancel(state.tick_timer_ref);
             state.tick_timer_ref = NullTRef;
 
-            if (state.has_updated_files)
+            if (state.did_update_any_files)
             {
-              state.has_updated_files = false;
+              state.did_update_any_files = false;
               ESP_LOGW(TAG, "Successfully updated all files, rebooting\n");
 
               reboot();
