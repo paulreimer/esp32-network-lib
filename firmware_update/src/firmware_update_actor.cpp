@@ -649,20 +649,71 @@ auto firmware_update_actor_behaviour(
         {
           auto current_version = get_current_firmware_version();
           auto new_version = firmware_update_metadata->version();
-          auto all_files_valid = true;
 
-          if (firmware_update_metadata->files())
+          if (new_version > current_version)
           {
-            for (const auto* file : *(firmware_update_metadata->files()))
-            {
-              auto file_exists = (access(file->path()->c_str(), F_OK ) != -1);
-              if (not file_exists)
-              {
-                all_files_valid = false;
+            auto all_files_valid = true;
 
-                auto download_file_request_intent_buffer = make_request_intent(
+            if (firmware_update_metadata->files())
+            {
+              for (const auto* file : *(firmware_update_metadata->files()))
+              {
+                auto file_exists = (access(file->path()->c_str(), F_OK ) != -1);
+                if (not file_exists)
+                {
+                  all_files_valid = false;
+
+                  auto download_file_request_intent_buffer = make_request_intent(
+                    "GET",
+                    file->url()->string_view(),
+                    {},
+                    {{"Authorization", string{"Bearer "} + state.access_token}},
+                    "",
+                    self,
+                    ResponseFilter::PartialResponseChunks
+                  );
+
+                  state.current_download_file_path = file->path()->str();
+                  if (file->checksum())
+                  {
+                    state.current_download_file_checksum = file->checksum()->str();
+                  }
+
+                  state.download_file_request_intent_id = get_request_intent_id(
+                    download_file_request_intent_buffer
+                  );
+
+                  state.download_file_request_in_progress = true;
+
+                  auto request_manager_actor_pid = *(whereis("request_manager"));
+                  send(
+                    request_manager_actor_pid,
+                    "request",
+                    download_file_request_intent_buffer
+                  );
+                }
+              }
+            }
+
+            if (all_files_valid and (new_version > current_version))
+            {
+              printf("Newer firmware update version %d available, downloading\n", new_version);
+
+              if (firmware_update_metadata->checksum())
+              {
+                state.ota_checksum_hex_str = (
+                  firmware_update_metadata->checksum()->str()
+                );
+              }
+              else {
+                ESP_LOGW(TAG, "Firmware update missing checksum for verification");
+              }
+
+              if (firmware_update_metadata->url())
+              {
+                auto download_image_request_intent_buffer = make_request_intent(
                   "GET",
-                  file->url()->string_view(),
+                  firmware_update_metadata->url()->string_view(),
                   {},
                   {{"Authorization", string{"Bearer "} + state.access_token}},
                   "",
@@ -670,71 +721,22 @@ auto firmware_update_actor_behaviour(
                   ResponseFilter::PartialResponseChunks
                 );
 
-                state.current_download_file_path = file->path()->str();
-                if (file->checksum())
-                {
-                  state.current_download_file_checksum = file->checksum()->str();
-                }
-
-                state.download_file_request_intent_id = get_request_intent_id(
-                  download_file_request_intent_buffer
+                state.download_image_request_intent_id = get_request_intent_id(
+                  download_image_request_intent_buffer
                 );
 
-                state.download_file_request_in_progress = true;
+                state.download_image_request_in_progress = true;
 
                 auto request_manager_actor_pid = *(whereis("request_manager"));
                 send(
                   request_manager_actor_pid,
                   "request",
-                  download_file_request_intent_buffer
+                  download_image_request_intent_buffer
                 );
               }
             }
           }
-
-          if (all_files_valid and (new_version > current_version))
-          {
-            printf("Newer firmware update version %d available, downloading\n", new_version);
-
-            if (firmware_update_metadata->checksum())
-            {
-              state.ota_checksum_hex_str = (
-                firmware_update_metadata->checksum()->str()
-              );
-            }
-            else {
-              ESP_LOGW(TAG, "Firmware update missing checksum for verification");
-            }
-
-            if (firmware_update_metadata->url())
-            {
-              auto download_image_request_intent_buffer = make_request_intent(
-                "GET",
-                firmware_update_metadata->url()->string_view(),
-                {},
-                {{"Authorization", string{"Bearer "} + state.access_token}},
-                "",
-                self,
-                ResponseFilter::PartialResponseChunks
-              );
-
-              state.download_image_request_intent_id = get_request_intent_id(
-                download_image_request_intent_buffer
-              );
-
-              state.download_image_request_in_progress = true;
-
-              auto request_manager_actor_pid = *(whereis("request_manager"));
-              send(
-                request_manager_actor_pid,
-                "request",
-                download_image_request_intent_buffer
-              );
-            }
-          }
-
-          if (all_files_valid and (new_version == current_version))
-          {
+          else {
             // Clear pending firmware metadata, if everything is up-to-date
             state.pending_firmware_metadata.clear();
 
