@@ -186,7 +186,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const QueryIntent* query_intent;
+    const QueryIntent* query_intent = nullptr;
     if (matches(message, "update_columns", query_intent))
     {
       if (
@@ -229,7 +229,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (matches(message, "response_chunk", response, state.current_update_columns_request_id))
     {
       if (
@@ -260,7 +260,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (matches(message, "response_chunk", response, state.current_query_request_id))
     {
       const auto* query_results = flatbuffers::GetRoot<Datatable>(
@@ -292,7 +292,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (matches(message, "response_finished", response, state.current_query_request_id))
     {
       if (response->code() < 0)
@@ -339,7 +339,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (matches(message, "response_finished", response, state.current_update_columns_request_id))
     {
       if (response->code() < 0)
@@ -378,7 +378,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (matches(message, "response_error", response, state.current_query_request_id))
     {
       if (response->code() == 401)
@@ -392,7 +392,7 @@ auto visualization_query_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (matches(message, "response_error", response, state.current_update_columns_request_id))
     {
       if (response->code() == 401)

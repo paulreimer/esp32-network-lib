@@ -103,7 +103,7 @@ auto mdns_actor_behaviour(
   }
 
   {
-    const mDNSService* mdns_service;
+    const mDNSService* mdns_service = nullptr;
     if (matches(message, "mdns_server_publish", mdns_service))
     {
       if (

@@ -59,7 +59,7 @@ auto request_manager_actor_behaviour(
   }
 
   {
-    const RequestIntent* request_intent;
+    const RequestIntent* request_intent = nullptr;
     if (matches(message, "request", request_intent))
     {
       if (request_intent and request_intent->request())

@@ -101,7 +101,7 @@ auto firmware_update_actor_behaviour(
   auto& state = *(std::static_pointer_cast<FirmwareUpdateActorState>(_state));
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -135,7 +135,7 @@ auto firmware_update_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -153,7 +153,7 @@ auto firmware_update_actor_behaviour(
 
   // Check for firmware update check results, parse the Firmware flatbuffer
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -189,7 +189,7 @@ auto firmware_update_actor_behaviour(
 
   // Check for firmware image chunk, write it to flash
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -242,7 +242,7 @@ auto firmware_update_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -260,7 +260,7 @@ auto firmware_update_actor_behaviour(
 
   // Check for firmware image complete, switch to the new partition and reboot
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -337,7 +337,7 @@ auto firmware_update_actor_behaviour(
 
   // Check for file chunk, write it to filesystem
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -415,7 +415,7 @@ auto firmware_update_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,
@@ -456,7 +456,7 @@ auto firmware_update_actor_behaviour(
 
   // Downloaded config file complete, close the file and (optionally) verify it
   {
-    const Response* response;
+    const Response* response = nullptr;
     if (
       matches(
         message,

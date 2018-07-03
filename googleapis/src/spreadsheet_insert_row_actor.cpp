@@ -98,7 +98,7 @@ auto spreadsheet_insert_row_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
@@ -109,7 +109,7 @@ auto spreadsheet_insert_row_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
@@ -161,7 +161,7 @@ auto spreadsheet_insert_row_actor_behaviour(
   }
 
   {
-    const Response* response;
+    const Response* response = nullptr;
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
