@@ -358,6 +358,7 @@ struct IDLOptions {
   bool strict_json;
   bool skip_js_exports;
   bool use_goog_js_export_format;
+  bool use_ES6_js_export_format;
   bool output_default_scalars_in_json;
   int indent_step;
   bool output_enum_identifiers;
@@ -406,6 +407,9 @@ struct IDLOptions {
     kBinary = 1 << 8,
     kTs = 1 << 9,
     kJsonSchema = 1 << 10,
+    kDart = 1 << 11,
+    kLua = 1 << 12,
+    kLobster = 1 << 13,
     kMAX
   };
 
@@ -419,10 +423,15 @@ struct IDLOptions {
   // for code generation.
   unsigned long lang_to_generate;
 
+  // If set (default behavior), empty string and vector fields will be set to
+  // nullptr to make the flatbuffer more compact.
+  bool set_empty_to_null;
+
   IDLOptions()
       : strict_json(false),
         skip_js_exports(false),
         use_goog_js_export_format(false),
+        use_ES6_js_export_format(false),
         output_default_scalars_in_json(false),
         indent_step(2),
         output_enum_identifiers(true),
@@ -453,7 +462,8 @@ struct IDLOptions {
         force_defaults(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
-        lang_to_generate(0) {}
+        lang_to_generate(0),
+        set_empty_to_null(true) {}
 };
 
 // This encapsulates where the parser is in the current source file.
@@ -524,7 +534,8 @@ class Parser : public ParserState {
         opts(options),
         uses_flexbuffers_(false),
         source_(nullptr),
-        anonymous_counter(0) {
+        anonymous_counter(0),
+        recurse_protection_counter(0) {
     if (opts.force_defaults) {
       builder_.ForceDefaults(true);
     }
@@ -553,6 +564,7 @@ class Parser : public ParserState {
     known_attributes_["native_type"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
+    known_attributes_["private"] = true;
   }
 
   ~Parser() {
@@ -706,6 +718,15 @@ class Parser : public ParserState {
   bool SupportsVectorOfUnions() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
+  enum { kMaxParsingDepth = 64 };
+  FLATBUFFERS_CHECKED_ERROR RecurseError();
+  template<typename F> CheckedError Recurse(F f) {
+    if (++recurse_protection_counter >= kMaxParsingDepth) return RecurseError();
+    auto ce = f();
+    recurse_protection_counter--;
+    return ce;
+  }
+
  public:
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
@@ -738,6 +759,7 @@ class Parser : public ParserState {
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 
   int anonymous_counter;
+  int recurse_protection_counter;
 };
 
 // Utility functions for multiple generators:
@@ -772,6 +794,10 @@ extern bool GenerateCPP(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 
+extern bool GenerateDart(const Parser &parser,
+                         const std::string &path,
+                         const std::string &file_name);
+
 // Generate JavaScript or TypeScript code from the definitions in the Parser object.
 // See idl_gen_js.
 extern bool GenerateJS(const Parser &parser,
@@ -795,6 +821,18 @@ extern bool GeneratePhp(const Parser &parser,
 extern bool GeneratePython(const Parser &parser,
                            const std::string &path,
                            const std::string &file_name);
+
+// Generate Lobster files from the definitions in the Parser object.
+// See idl_gen_lobster.cpp.
+extern bool GenerateLobster(const Parser &parser,
+                            const std::string &path,
+                            const std::string &file_name);
+
+// Generate Lua files from the definitions in the Parser object.
+// See idl_gen_lua.cpp.
+extern bool GenerateLua(const Parser &parser,
+	                    const std::string &path,
+	                    const std::string &file_name);
 
 // Generate Json schema file
 // See idl_gen_json_schema.cpp.
@@ -827,6 +865,12 @@ extern std::string JSMakeRule(const Parser &parser,
 extern std::string CPPMakeRule(const Parser &parser,
                                const std::string &path,
                                const std::string &file_name);
+
+// Generate a make rule for the generated Dart code
+// see idl_gen_dart.cpp
+extern std::string DartMakeRule(const Parser &parser,
+                                const std::string &path,
+                                const std::string &file_name);
 
 // Generate a make rule for the generated Java/C#/... files.
 // See idl_gen_general.cpp.
