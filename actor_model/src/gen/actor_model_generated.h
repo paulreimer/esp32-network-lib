@@ -229,12 +229,12 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TYPE) &&
-           verifier.Verify(type()) &&
+           verifier.VerifyString(type()) &&
            VerifyField<uint64_t>(verifier, VT_TIMESTAMP) &&
            VerifyField<UUID::UUID>(verifier, VT_FROM_PID) &&
            VerifyField<uint32_t>(verifier, VT_PAYLOAD_ALIGNMENT) &&
            VerifyOffset(verifier, VT_PAYLOAD) &&
-           verifier.Verify(payload()) &&
+           verifier.VerifyVector(payload()) &&
            verifier.EndTable();
   }
 };
@@ -354,7 +354,7 @@ struct Error FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_REASON) &&
-           verifier.Verify(reason()) &&
+           verifier.VerifyString(reason()) &&
            verifier.EndTable();
   }
 };
@@ -454,7 +454,7 @@ struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyField<UUID::UUID>(verifier, VT_FROM_PID) &&
            VerifyOffset(verifier, VT_REASON) &&
-           verifier.Verify(reason()) &&
+           verifier.VerifyString(reason()) &&
            verifier.EndTable();
   }
 };

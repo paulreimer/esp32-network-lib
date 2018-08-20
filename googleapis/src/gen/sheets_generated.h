@@ -64,11 +64,11 @@ struct InsertRowIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<UUID::UUID>(verifier, VT_ID) &&
            VerifyField<UUID::UUID>(verifier, VT_TO_PID) &&
            VerifyOffset(verifier, VT_SPREADSHEET_ID) &&
-           verifier.Verify(spreadsheet_id()) &&
+           verifier.VerifyString(spreadsheet_id()) &&
            VerifyOffset(verifier, VT_SHEET_NAME) &&
-           verifier.Verify(sheet_name()) &&
+           verifier.VerifyString(sheet_name()) &&
            VerifyOffset(verifier, VT_VALUES_JSON) &&
-           verifier.Verify(values_json()) &&
+           verifier.VerifyString(values_json()) &&
            verifier.EndTable();
   }
 };
