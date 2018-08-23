@@ -12,32 +12,10 @@
 
 #include "curl/curl.h"
 
-#include "esp_log.h"
-
 namespace Requests {
 
-bool
-has_feature(const auto features, const auto feature_flag)
-{
-  return (features & feature_flag);
-}
-
-bool
-print_check_feature(
-  const auto TAG,
-  const auto features,
-  const auto feature_flag,
-  const auto feature_name
-)
-{
-  auto supported = has_feature(features, feature_flag);
-  ESP_LOGI(TAG, "- %s%s supported", feature_name, supported? "" : " NOT");
-
-  return supported;
-}
-
-void
-print_curl_library_info()
+auto print_curl_library_info()
+  -> void
 {
   curl_version_info_data *data = curl_version_info(CURLVERSION_NOW);
 

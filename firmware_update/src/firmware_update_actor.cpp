@@ -24,6 +24,8 @@
 
 #include "esp_log.h"
 
+#include <unistd.h>
+
 namespace FirmwareUpdate {
 
 using namespace ActorModel;

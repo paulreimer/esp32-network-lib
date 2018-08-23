@@ -95,7 +95,7 @@ auto checksum_partition_md5(
   constexpr size_t buffer_size = 32;
   uint8_t buffer[buffer_size] = {0};
 
-  MD5Sum md5sum = {0};
+  MD5Sum md5sum = {{0}};
 
   mbedtls_md5_context ctx;
   mbedtls_md5_init(&ctx);
@@ -133,7 +133,7 @@ auto checksum_file_md5(
   const string_view path
 ) -> MD5Sum
 {
-  MD5Sum md5sum = {0};
+  MD5Sum md5sum = {{0}};
 
   auto file = fopen(path.data(), "rb");
   if (file != nullptr)

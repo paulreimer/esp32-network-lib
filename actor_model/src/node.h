@@ -29,7 +29,7 @@ namespace ActorModel {
 using ExecConfigCallback = delegate<void(ActorExecutionConfigBuilder&)>;
 using Time = std::chrono::milliseconds;
 
-using TRef = uint32_t;
+using TRef = size_t;
 using TTL = int;
 
 constexpr TRef NullTRef = 0;

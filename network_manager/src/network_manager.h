@@ -49,9 +49,9 @@ auto event_handler(void* ctx, system_event_t* event)
 // The event group allows multiple bits for each event,
 // but we only care about one event - are we connected
 // to the AP with an IP?
-constexpr int NETWORK_IS_CONNECTED = BIT0;
-constexpr int NETWORK_IS_CONNECTED_IPV4 = BIT1;
-constexpr int NETWORK_IS_CONNECTED_IPV6 = BIT2;
-constexpr int NETWORK_TIME_AVAILABLE = BIT3;
+constexpr int NETWORK_IS_CONNECTED = (1<<0);
+constexpr int NETWORK_IS_CONNECTED_IPV4 = (1<<1);
+constexpr int NETWORK_IS_CONNECTED_IPV6 = (1<<2);
+constexpr int NETWORK_TIME_AVAILABLE = (1<<3);
 
 } // namespace NetworkManager

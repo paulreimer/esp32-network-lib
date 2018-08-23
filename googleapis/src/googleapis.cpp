@@ -12,6 +12,8 @@
 
 #include "uuid.h"
 
+#include <algorithm>
+
 #include <stdio.h>
 
 namespace googleapis {
@@ -106,7 +108,7 @@ auto mutate_value(
   strncpy(
     to_value->data(),
     from_value.data(),
-    std::min(from_value.size(), to_value->size())
+    std::min(from_value.size(), static_cast<size_t>(to_value->size()))
   );
 
   did_update = true;

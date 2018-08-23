@@ -17,6 +17,7 @@
 #include <chrono>
 #include <vector>
 
+#include "lwip/ip_addr.h"
 #include "mdns.h"
 
 #include "esp_log.h"

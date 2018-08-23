@@ -75,7 +75,8 @@ Actor::Actor(
     link(*initial_link_pid);
   }
 
-  auto task_name = get_uuid_str(pid).c_str();
+  auto pid_str = get_uuid_str(pid);
+  auto task_name = pid_str.c_str();
 
   const auto task_prio = execution_config.task_prio();
   const auto task_stack_size = execution_config.task_stack_size();

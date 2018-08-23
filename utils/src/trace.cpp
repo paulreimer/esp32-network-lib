@@ -23,7 +23,8 @@ auto heap_check(const std::experimental::string_view msg)
 {
   printf(
     "%.*s (%d heap bytes remaining)\n",
-    msg.size(), msg.data(),
+    msg.size(),
+    msg.data(),
     get_free_heap_size()
   );
 }

@@ -10,15 +10,30 @@
 
 #pragma once
 
+#include "esp_log.h"
+
 namespace Requests {
 
-bool has_feature(const auto features, const auto feature_flag);
-bool print_check_feature(
+auto has_feature = [](const auto features, const auto feature_flag)
+  -> bool
+{
+  return (features & feature_flag);
+};
+
+auto print_check_feature = [](
   const auto TAG,
   const auto features,
   const auto feature_flag,
   const auto feature_name
-);
-void print_curl_library_info();
+) -> bool
+{
+  auto supported = has_feature(features, feature_flag);
+  ESP_LOGI(TAG, "- %s%s supported", feature_name, supported? "" : " NOT");
+
+  return supported;
+};
+
+auto print_curl_library_info()
+  -> void;
 
 } // namespace Requests
