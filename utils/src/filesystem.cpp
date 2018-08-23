@@ -65,3 +65,57 @@ auto filesystem_read(string_view path)
 
   return {};
 }
+
+auto filesystem_write(
+  string_view path,
+  const std::vector<uint8_t>& contents
+) -> bool
+{
+  return filesystem_write(
+    path,
+    string_view(reinterpret_cast<const char*>(contents.data()), contents.size())
+  );
+}
+
+auto filesystem_write(
+  string_view path,
+  string_view contents
+) -> bool
+{
+  auto file = fopen(path.data(), "wb");
+  if (file != nullptr)
+  {
+    auto bytes_written = fwrite(
+      contents.data(),
+      sizeof(char),
+      contents.size(),
+      file
+    );
+
+    fclose(file);
+
+    if (bytes_written == contents.size())
+    {
+      return true;
+    }
+    else {
+      ESP_LOGW(
+        TAG,
+        "Invalid write %d bytes to file %.*s",
+        bytes_written,
+        path.size(),
+        path.data()
+      );
+    }
+  }
+  else {
+    ESP_LOGE(
+      TAG,
+      "Failed to open file %.*s for writing",
+      path.size(),
+      path.data()
+    );
+  }
+
+  return false;
+}

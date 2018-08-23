@@ -13,5 +13,16 @@
 #include <experimental/string_view>
 #include <vector>
 
-auto filesystem_read(std::experimental::string_view path)
-  -> std::vector<uint8_t>;
+auto filesystem_read(
+  std::experimental::string_view path
+) -> std::vector<uint8_t>;
+
+auto filesystem_write(
+  std::experimental::string_view path,
+  const std::vector<uint8_t>& contents
+) -> bool;
+
+auto filesystem_write(
+  std::experimental::string_view path,
+  std::experimental::string_view contents
+) -> bool;
