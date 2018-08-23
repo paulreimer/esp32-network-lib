@@ -32,15 +32,18 @@ using string = std::string;
 
 using MutableNTPConfigurationFlatbuffer = std::vector<uint8_t>;
 
+using Timestamp = std::chrono::time_point<std::chrono::system_clock>;
+
 struct NTPActorState
 {
   // Cancellable timer
   TRef tick_timer_ref = NullTRef;
 
-  ssize_t retry_count = 10;
-  size_t initial_retry_count = 10;
   bool did_setup = false;
   MutableNTPConfigurationFlatbuffer ntp_config_mutable_buf;
+
+  Timestamp last_ntp_connect_timestamp;
+  static constexpr auto ntp_connect_wait_interval = 10s;
 };
 
 constexpr char TAG[] = "NTP";
@@ -60,6 +63,9 @@ auto ntp_actor_behaviour(
   {
     if (matches(message, "ntp_client_start", state.ntp_config_mutable_buf))
     {
+      auto now = std::chrono::system_clock::now();
+      state.last_ntp_connect_timestamp = now;
+
       if (not state.ntp_config_mutable_buf.empty())
       {
         const auto* ntp_config = flatbuffers::GetRoot<NTPConfiguration>(
@@ -113,14 +119,13 @@ auto ntp_actor_behaviour(
           // Cancel the tick timer
           cancel(state.tick_timer_ref);
           state.tick_timer_ref = NullTRef;
-
-          // Re-initialize the retry count for next time
-          state.retry_count = state.initial_retry_count;
         }
         else {
-          if ((--state.retry_count) > 0)
+          auto now = std::chrono::system_clock::now();
+          auto elapsed = (now - state.last_ntp_connect_timestamp);
+          if (elapsed < state.ntp_connect_wait_interval)
           {
-            ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", state.retry_count, state.initial_retry_count);
+            ESP_LOGI(TAG, "Waiting for system time to be set... ");
           }
           else {
             ESP_LOGW(TAG, "Failed to set system time from NTP");
