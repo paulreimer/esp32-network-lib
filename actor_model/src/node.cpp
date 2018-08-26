@@ -333,24 +333,30 @@ auto Node::start_timer(
 auto Node::cancel(const TRef tref)
   -> bool
 {
+  bool stopped_timer = false;
   auto timed_message = timed_messages.find(tref);
   if (timed_message != timed_messages.end())
   {
-    const auto* message = flatbuffers::GetRoot<Message>(timed_message->second.message_buf.data());
+    const auto* message = flatbuffers::GetRoot<Message>(
+      timed_message->second.message_buf.data()
+    );
     ESP_LOGW("Node", "Cancel timer for %s", message->type()->c_str());
 
     if (timed_message->second.timer_handle)
     {
       auto ret = xTimerStop(timed_message->second.timer_handle, timeout(10s));
-      if (ret != pdTRUE)
+      if (ret == pdTRUE)
       {
+        stopped_timer = true;
+      }
+      else {
         ESP_LOGW("Node", "Could not stop timer %zu", tref);
       }
     }
   }
 
-  auto erased = timed_messages.erase(tref);
-  return (erased > 0);
+  cancelled_trefs.insert(tref);
+  return stopped_timer;
 }
 
 auto Node::timer_callback(const TRef tref)
@@ -369,10 +375,12 @@ auto Node::timer_callback(const TRef tref)
       if (process_iter->second)
       {
         const auto* message = flatbuffers::GetRoot<Message>(_message.data());
-        auto result = process_iter->second->process_message(string_view{
-          reinterpret_cast<const char*>(_message.data()),
-          _message.size()
-        });
+        auto result = process_iter->second->process_message(
+          string_view{
+            reinterpret_cast<const char*>(_message.data()),
+            _message.size()
+          }
+        );
 
         did_process_message = true;
       }
@@ -381,6 +389,23 @@ auto Node::timer_callback(const TRef tref)
     if (not timed_message->second.is_recurring)
     {
       cancel(tref);
+    }
+
+    // Garbage collect cancelled TRef if it was marked for cancellation
+    // It should be safe to delete here
+    auto cancelled_tref = cancelled_trefs.find(tref);
+    if (cancelled_tref != cancelled_trefs.end())
+    {
+      // Check if the message is actually removed
+      auto erased = timed_messages.erase(tref);
+      if (erased > 0)
+      {
+        // Remove the TRef cancellation request
+        cancelled_trefs.erase(cancelled_tref);
+      }
+      else {
+        ESP_LOGW("Node", "Could not erase cancelled timer %zu", tref);
+      }
     }
   }
 

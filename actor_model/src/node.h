@@ -17,8 +17,9 @@
 
 #include "delegate.hpp"
 
-#include <experimental/string_view>
 #include <chrono>
+#include <experimental/string_view>
+#include <set>
 #include <unordered_map>
 
 #include "freertos/FreeRTOS.h"
@@ -190,6 +191,7 @@ protected:
   TimedMessages timed_messages;
   TRef next_tref = 1;
   TRef invalid_tref = 0;
+  std::set<TRef> cancelled_trefs;
 
 private:
 };
