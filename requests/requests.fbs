@@ -52,8 +52,17 @@ enum ResponseFilter:short
 {
   FullResponseBody,
   PartialResponseChunks,
+  ServerSentEvents,
   JsonPath,
   JsonPathAsFlatbuffers,
+}
+
+table ServerSentEvent
+{
+  event:string;
+  data:string;
+  id:string;
+  retry:int32;
 }
 
 table RequestIntent

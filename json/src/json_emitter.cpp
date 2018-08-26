@@ -257,8 +257,7 @@ auto JsonEmitter::parse(
   const string_view chunk,
   Callback&& _callback,
   Errback&& _errback
-)
-  -> bool
+) -> bool
 {
   callback = _callback;
   errback = _errback;

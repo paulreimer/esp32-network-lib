@@ -12,6 +12,8 @@
 
 #include "requests.h"
 
+#include "server_sent_events_emitter.h"
+
 #if REQUESTS_SUPPORT_JSON
 #include "json_emitter.h"
 
@@ -32,6 +34,7 @@ using curl_slist = struct curl_slist;
 namespace Requests {
 
 using ResponseFlatbuffer = flatbuffers::DetachedBuffer;
+using ServerSentEventFlatbuffer = flatbuffers::DetachedBuffer;
 
 class RequestManager;
 
@@ -60,8 +63,7 @@ struct RequestHandler
 
   string errbuf;
   short response_code = -1;
-  // Only used for ResponseFilter::FullResponseBody:
-  string response_body;
+  string response_buffer;
 
 #ifdef REQUESTS_USE_CURL
   curl_slist *slist = nullptr;
@@ -91,7 +93,7 @@ struct RequestHandler
   auto finish_callback()
     -> void;
 
-protected:
+private:
   auto create_partial_response(const string_view chunk)
     -> ResponseFlatbuffer;
 

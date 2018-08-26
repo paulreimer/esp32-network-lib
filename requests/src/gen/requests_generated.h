@@ -18,6 +18,8 @@ struct Request;
 
 struct Response;
 
+struct ServerSentEvent;
+
 struct RequestIntent;
 
 inline const flatbuffers::TypeTable *QueryPairTypeTable();
@@ -27,6 +29,8 @@ inline const flatbuffers::TypeTable *HeaderPairTypeTable();
 inline const flatbuffers::TypeTable *RequestTypeTable();
 
 inline const flatbuffers::TypeTable *ResponseTypeTable();
+
+inline const flatbuffers::TypeTable *ServerSentEventTypeTable();
 
 inline const flatbuffers::TypeTable *RequestIntentTypeTable();
 
@@ -62,16 +66,18 @@ inline const char *EnumNamePostCallbackAction(PostCallbackAction e) {
 enum class ResponseFilter : int16_t {
   FullResponseBody = 0,
   PartialResponseChunks = 1,
-  JsonPath = 2,
-  JsonPathAsFlatbuffers = 3,
+  ServerSentEvents = 2,
+  JsonPath = 3,
+  JsonPathAsFlatbuffers = 4,
   MIN = FullResponseBody,
   MAX = JsonPathAsFlatbuffers
 };
 
-inline const ResponseFilter (&EnumValuesResponseFilter())[4] {
+inline const ResponseFilter (&EnumValuesResponseFilter())[5] {
   static const ResponseFilter values[] = {
     ResponseFilter::FullResponseBody,
     ResponseFilter::PartialResponseChunks,
+    ResponseFilter::ServerSentEvents,
     ResponseFilter::JsonPath,
     ResponseFilter::JsonPathAsFlatbuffers
   };
@@ -82,6 +88,7 @@ inline const char * const *EnumNamesResponseFilter() {
   static const char * const names[] = {
     "FullResponseBody",
     "PartialResponseChunks",
+    "ServerSentEvents",
     "JsonPath",
     "JsonPathAsFlatbuffers",
     nullptr
@@ -487,6 +494,111 @@ inline flatbuffers::Offset<Response> CreateResponseDirect(
       request_id);
 }
 
+struct ServerSentEvent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ServerSentEventTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "Requests.ServerSentEvent";
+  }
+  enum {
+    VT_EVENT = 4,
+    VT_DATA = 6,
+    VT_ID = 8,
+    VT_RETRY = 10
+  };
+  const flatbuffers::String *event() const {
+    return GetPointer<const flatbuffers::String *>(VT_EVENT);
+  }
+  flatbuffers::String *mutable_event() {
+    return GetPointer<flatbuffers::String *>(VT_EVENT);
+  }
+  const flatbuffers::String *data() const {
+    return GetPointer<const flatbuffers::String *>(VT_DATA);
+  }
+  flatbuffers::String *mutable_data() {
+    return GetPointer<flatbuffers::String *>(VT_DATA);
+  }
+  const flatbuffers::String *id() const {
+    return GetPointer<const flatbuffers::String *>(VT_ID);
+  }
+  flatbuffers::String *mutable_id() {
+    return GetPointer<flatbuffers::String *>(VT_ID);
+  }
+  int32_t retry() const {
+    return GetField<int32_t>(VT_RETRY, 0);
+  }
+  bool mutate_retry(int32_t _retry) {
+    return SetField<int32_t>(VT_RETRY, _retry, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_EVENT) &&
+           verifier.VerifyString(event()) &&
+           VerifyOffset(verifier, VT_DATA) &&
+           verifier.VerifyString(data()) &&
+           VerifyOffset(verifier, VT_ID) &&
+           verifier.VerifyString(id()) &&
+           VerifyField<int32_t>(verifier, VT_RETRY) &&
+           verifier.EndTable();
+  }
+};
+
+struct ServerSentEventBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_event(flatbuffers::Offset<flatbuffers::String> event) {
+    fbb_.AddOffset(ServerSentEvent::VT_EVENT, event);
+  }
+  void add_data(flatbuffers::Offset<flatbuffers::String> data) {
+    fbb_.AddOffset(ServerSentEvent::VT_DATA, data);
+  }
+  void add_id(flatbuffers::Offset<flatbuffers::String> id) {
+    fbb_.AddOffset(ServerSentEvent::VT_ID, id);
+  }
+  void add_retry(int32_t retry) {
+    fbb_.AddElement<int32_t>(ServerSentEvent::VT_RETRY, retry, 0);
+  }
+  explicit ServerSentEventBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ServerSentEventBuilder &operator=(const ServerSentEventBuilder &);
+  flatbuffers::Offset<ServerSentEvent> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<ServerSentEvent>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<ServerSentEvent> CreateServerSentEvent(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> event = 0,
+    flatbuffers::Offset<flatbuffers::String> data = 0,
+    flatbuffers::Offset<flatbuffers::String> id = 0,
+    int32_t retry = 0) {
+  ServerSentEventBuilder builder_(_fbb);
+  builder_.add_retry(retry);
+  builder_.add_id(id);
+  builder_.add_data(data);
+  builder_.add_event(event);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<ServerSentEvent> CreateServerSentEventDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *event = nullptr,
+    const char *data = nullptr,
+    const char *id = nullptr,
+    int32_t retry = 0) {
+  return Requests::CreateServerSentEvent(
+      _fbb,
+      event ? _fbb.CreateString(event) : 0,
+      data ? _fbb.CreateString(data) : 0,
+      id ? _fbb.CreateString(id) : 0,
+      retry);
+}
+
 struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RequestIntentTypeTable();
@@ -691,6 +803,7 @@ inline const flatbuffers::TypeTable *ResponseFilterTypeTable() {
     { flatbuffers::ET_SHORT, 0, 0 },
     { flatbuffers::ET_SHORT, 0, 0 },
     { flatbuffers::ET_SHORT, 0, 0 },
+    { flatbuffers::ET_SHORT, 0, 0 },
     { flatbuffers::ET_SHORT, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
@@ -699,11 +812,12 @@ inline const flatbuffers::TypeTable *ResponseFilterTypeTable() {
   static const char * const names[] = {
     "FullResponseBody",
     "PartialResponseChunks",
+    "ServerSentEvents",
     "JsonPath",
     "JsonPathAsFlatbuffers"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 5, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -784,6 +898,25 @@ inline const flatbuffers::TypeTable *ResponseTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ServerSentEventTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char * const names[] = {
+    "event",
+    "data",
+    "id",
+    "retry"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }

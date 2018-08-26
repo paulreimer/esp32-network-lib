@@ -16,9 +16,9 @@
 
 #include "embedded_files_string_view_wrapper.h"
 
-#include <utility>
-
 #include "flatbuffers/reflection.h"
+
+#include <utility>
 
 namespace Requests {
 

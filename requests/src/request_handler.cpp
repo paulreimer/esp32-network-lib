@@ -14,8 +14,8 @@
 
 #include "http_utils.h"
 
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
 #include "esp_log.h"
 
@@ -44,6 +44,14 @@ RequestHandler::RequestHandler(
   {
     switch (request_intent->desired_format())
     {
+      case ResponseFilter::ServerSentEvents:
+      {
+        server_sent_events_emitter.reset(
+          new ServerSentEventsEmitter{}
+        );
+        break;
+      }
+
 #if REQUESTS_SUPPORT_JSON
       case ResponseFilter::JsonPath:
       {
@@ -77,17 +85,22 @@ RequestHandler::RequestHandler(
             }
           );
         }
+        break;
       }
 #endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
 
-      case ResponseFilter::PartialResponseChunks:
       case ResponseFilter::FullResponseBody:
+      case ResponseFilter::PartialResponseChunks:
       default:
       {
         break;
       }
     }
+  }
+  else {
+    const auto& tag = request_intent->request()->uri()->c_str();
+    ESP_LOGW(tag, "RequestHandler(), Missing to_pid");
   }
 }
 
@@ -113,13 +126,13 @@ auto RequestHandler::write_callback(const string_view chunk)
     {
       // Do not attempt to parse if HTTP error code returned
       // Just buffer all chunks to a final body sent in finish_callback
-      response_body.append(chunk.data(), chunk.size());
+      response_buffer.append(chunk.data(), chunk.size());
     }
     else switch (request_intent->desired_format())
     {
       case ResponseFilter::FullResponseBody:
       {
-        response_body.append(chunk.data(), chunk.size());
+        response_buffer.append(chunk.data(), chunk.size());
 
         break;
       }
@@ -129,6 +142,26 @@ auto RequestHandler::write_callback(const string_view chunk)
       {
         auto partial_response = create_partial_response(chunk);
         send(*(request_intent->to_pid()), "response_chunk", partial_response);
+
+        break;
+      }
+
+      case ResponseFilter::ServerSentEvents:
+      {
+        server_sent_events_emitter->parse(chunk,
+          [this]
+          (string_view server_sent_event_str)
+            -> ServerSentEventsEmitter::PostCallbackAction
+          {
+            send(
+              *(request_intent->to_pid()),
+              "server_sent_event",
+              server_sent_event_str
+            );
+
+            return ServerSentEventsEmitter::ContinueProcessing;
+          }
+        );
 
         break;
       }
@@ -256,20 +289,20 @@ auto RequestHandler::finish_callback()
       // If response has already been processed by streaming messages
       if (request_intent->desired_format() != ResponseFilter::FullResponseBody)
       {
-        response_body.clear();
+        response_buffer.clear();
       }
     }
     // Copy the contents of errbuf for an internal failure
     else if (
       is_internal_failure
-      and response_body.empty()
+      and response_buffer.empty()
       and not errbuf.empty()
     )
     {
-      response_body = errbuf.data();
+      response_buffer = errbuf.data();
     }
 
-    auto partial_response = create_partial_response(response_body);
+    auto partial_response = create_partial_response(response_buffer);
     // Send an "response_error" message
     if (not is_success_code)
     {
