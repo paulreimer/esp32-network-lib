@@ -74,6 +74,12 @@ auto send(
 auto send(
   const Pid& pid,
   const std::experimental::string_view type,
+  const flatbuffers::Vector<uint8_t>& payload_fbvec
+) -> bool;
+
+auto send(
+  const Pid& pid,
+  const std::experimental::string_view type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool;
 

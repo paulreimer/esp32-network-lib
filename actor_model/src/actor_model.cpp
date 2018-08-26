@@ -117,6 +117,21 @@ auto send(
 auto send(
   const Pid& pid,
   const string_view type,
+  const flatbuffers::Vector<uint8_t>& payload_fbvec
+) -> bool
+{
+  auto& node = Actor::get_default_node();
+  const auto payload = string_view{
+    reinterpret_cast<const char*>(payload_fbvec.data()),
+    payload_fbvec.size()
+  };
+
+  return node.send(pid, type, payload);
+}
+
+auto send(
+  const Pid& pid,
+  const string_view type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool
 {
