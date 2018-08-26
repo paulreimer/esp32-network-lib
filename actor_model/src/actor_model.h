@@ -154,13 +154,6 @@ auto whereis(const std::experimental::string_view name)
 
 inline
 auto matches(
-) -> bool
-{
-  return true;
-}
-
-inline
-auto matches(
   const ActorModel::Message& message
 ) -> bool
 {
