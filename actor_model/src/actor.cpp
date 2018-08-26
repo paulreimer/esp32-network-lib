@@ -329,7 +329,7 @@ auto Actor::send(const Message& message)
   {
     ESP_LOGE(
       get_uuid_str(pid).c_str(),
-      "Unable to send message (payload size %d)",
+      "Unable to send message (payload size %zu)",
       message.payload()->size()
     );
   }
@@ -344,7 +344,7 @@ auto Actor::send(const string_view type, const string_view payload)
   {
     ESP_LOGE(
       get_uuid_str(pid).c_str(),
-      "Unable to send message (payload size %d)",
+      "Unable to send message (payload size %zu)",
       payload.size()
     );
   }

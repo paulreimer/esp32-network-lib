@@ -320,11 +320,11 @@ auto Node::start_timer(
       }
     }
     else {
-      ESP_LOGE("Node", "Could not insert TimedMessage for timer %d", tref);
+      ESP_LOGE("Node", "Could not insert TimedMessage for timer %zu", tref);
     }
   }
   else {
-    ESP_LOGE("Node", "Could not create timer %d", tref);
+    ESP_LOGE("Node", "Could not create timer %zu", tref);
   }
 
   return invalid_tref;
@@ -344,7 +344,7 @@ auto Node::cancel(const TRef tref)
       auto ret = xTimerStop(timed_message->second.timer_handle, timeout(10s));
       if (ret != pdTRUE)
       {
-        ESP_LOGW("Node", "Could not stop timer %d", tref);
+        ESP_LOGW("Node", "Could not stop timer %zu", tref);
       }
     }
   }

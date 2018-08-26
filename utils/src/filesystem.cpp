@@ -26,12 +26,12 @@ auto filesystem_read(string_view path)
   {
     // Seek to end of file to determine its size
     fseek(file, 0L, SEEK_END);
-    auto file_len = ftell(file);
+    ssize_t file_len = ftell(file);
     rewind(file);
 
     std::vector<uint8_t> file_contents(file_len, 0x00);
 
-    auto bytes_read = fread(
+    ssize_t bytes_read = fread(
       const_cast<uint8_t*>(file_contents.data()),
       sizeof(uint8_t),
       file_len,
@@ -47,7 +47,7 @@ auto filesystem_read(string_view path)
     else {
       ESP_LOGW(
         TAG,
-        "Invalid read %d bytes from file %.*s",
+        "Invalid read %zu bytes from file %.*s",
         bytes_read,
         path.size(),
         path.data()
