@@ -12,11 +12,15 @@ namespace MQTT {
 
 struct Subscription;
 
+struct SubscriptionBuffer;
+
 struct MQTTClientConfiguration;
 
 struct MQTTMessage;
 
 inline const flatbuffers::TypeTable *SubscriptionTypeTable();
+
+inline const flatbuffers::TypeTable *SubscriptionBufferTypeTable();
 
 inline const flatbuffers::TypeTable *MQTTClientConfigurationTypeTable();
 
@@ -62,7 +66,8 @@ struct Subscription FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return "MQTT.Subscription";
   }
   enum {
-    VT_TOPIC = 4
+    VT_TOPIC = 4,
+    VT_QOS = 6
   };
   const flatbuffers::String *topic() const {
     return GetPointer<const flatbuffers::String *>(VT_TOPIC);
@@ -70,10 +75,17 @@ struct Subscription FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::String *mutable_topic() {
     return GetPointer<flatbuffers::String *>(VT_TOPIC);
   }
+  MQTT_QOS qos() const {
+    return static_cast<MQTT_QOS>(GetField<int8_t>(VT_QOS, 0));
+  }
+  bool mutate_qos(MQTT_QOS _qos) {
+    return SetField<int8_t>(VT_QOS, static_cast<int8_t>(_qos), 0);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TOPIC) &&
            verifier.VerifyString(topic()) &&
+           VerifyField<int8_t>(verifier, VT_QOS) &&
            verifier.EndTable();
   }
 };
@@ -83,6 +95,9 @@ struct SubscriptionBuilder {
   flatbuffers::uoffset_t start_;
   void add_topic(flatbuffers::Offset<flatbuffers::String> topic) {
     fbb_.AddOffset(Subscription::VT_TOPIC, topic);
+  }
+  void add_qos(MQTT_QOS qos) {
+    fbb_.AddElement<int8_t>(Subscription::VT_QOS, static_cast<int8_t>(qos), 0);
   }
   explicit SubscriptionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -98,18 +113,83 @@ struct SubscriptionBuilder {
 
 inline flatbuffers::Offset<Subscription> CreateSubscription(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> topic = 0) {
+    flatbuffers::Offset<flatbuffers::String> topic = 0,
+    MQTT_QOS qos = MQTT_QOS::AtMostOnce) {
   SubscriptionBuilder builder_(_fbb);
   builder_.add_topic(topic);
+  builder_.add_qos(qos);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Subscription> CreateSubscriptionDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *topic = nullptr) {
+    const char *topic = nullptr,
+    MQTT_QOS qos = MQTT_QOS::AtMostOnce) {
   return MQTT::CreateSubscription(
       _fbb,
-      topic ? _fbb.CreateString(topic) : 0);
+      topic ? _fbb.CreateString(topic) : 0,
+      qos);
+}
+
+struct SubscriptionBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return SubscriptionBufferTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MQTT.SubscriptionBuffer";
+  }
+  enum {
+    VT_SUBSCRIPTION = 4
+  };
+  const flatbuffers::Vector<uint8_t> *subscription() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_SUBSCRIPTION);
+  }
+  flatbuffers::Vector<uint8_t> *mutable_subscription() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_SUBSCRIPTION);
+  }
+  const MQTT::Subscription *subscription_nested_root() const {
+    return flatbuffers::GetRoot<MQTT::Subscription>(subscription()->Data());
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SUBSCRIPTION) &&
+           verifier.VerifyVector(subscription()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SubscriptionBufferBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_subscription(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> subscription) {
+    fbb_.AddOffset(SubscriptionBuffer::VT_SUBSCRIPTION, subscription);
+  }
+  explicit SubscriptionBufferBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  SubscriptionBufferBuilder &operator=(const SubscriptionBufferBuilder &);
+  flatbuffers::Offset<SubscriptionBuffer> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SubscriptionBuffer>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SubscriptionBuffer> CreateSubscriptionBuffer(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> subscription = 0) {
+  SubscriptionBufferBuilder builder_(_fbb);
+  builder_.add_subscription(subscription);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SubscriptionBuffer> CreateSubscriptionBufferDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *subscription = nullptr) {
+  return MQTT::CreateSubscriptionBuffer(
+      _fbb,
+      subscription ? _fbb.CreateVector<uint8_t>(*subscription) : 0);
 }
 
 struct MQTTClientConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -178,11 +258,11 @@ struct MQTTClientConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   flatbuffers::String *mutable_root_certificate_path() {
     return GetPointer<flatbuffers::String *>(VT_ROOT_CERTIFICATE_PATH);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Subscription>> *subscriptions() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Subscription>> *>(VT_SUBSCRIPTIONS);
+  const flatbuffers::Vector<flatbuffers::Offset<SubscriptionBuffer>> *subscriptions() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SubscriptionBuffer>> *>(VT_SUBSCRIPTIONS);
   }
-  flatbuffers::Vector<flatbuffers::Offset<Subscription>> *mutable_subscriptions() {
-    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Subscription>> *>(VT_SUBSCRIPTIONS);
+  flatbuffers::Vector<flatbuffers::Offset<SubscriptionBuffer>> *mutable_subscriptions() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<SubscriptionBuffer>> *>(VT_SUBSCRIPTIONS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -235,7 +315,7 @@ struct MQTTClientConfigurationBuilder {
   void add_root_certificate_path(flatbuffers::Offset<flatbuffers::String> root_certificate_path) {
     fbb_.AddOffset(MQTTClientConfiguration::VT_ROOT_CERTIFICATE_PATH, root_certificate_path);
   }
-  void add_subscriptions(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Subscription>>> subscriptions) {
+  void add_subscriptions(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SubscriptionBuffer>>> subscriptions) {
     fbb_.AddOffset(MQTTClientConfiguration::VT_SUBSCRIPTIONS, subscriptions);
   }
   explicit MQTTClientConfigurationBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -260,7 +340,7 @@ inline flatbuffers::Offset<MQTTClientConfiguration> CreateMQTTClientConfiguratio
     flatbuffers::Offset<flatbuffers::String> client_certificate_path = 0,
     flatbuffers::Offset<flatbuffers::String> client_private_key_path = 0,
     flatbuffers::Offset<flatbuffers::String> root_certificate_path = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Subscription>>> subscriptions = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SubscriptionBuffer>>> subscriptions = 0) {
   MQTTClientConfigurationBuilder builder_(_fbb);
   builder_.add_subscriptions(subscriptions);
   builder_.add_root_certificate_path(root_certificate_path);
@@ -284,7 +364,7 @@ inline flatbuffers::Offset<MQTTClientConfiguration> CreateMQTTClientConfiguratio
     const char *client_certificate_path = nullptr,
     const char *client_private_key_path = nullptr,
     const char *root_certificate_path = nullptr,
-    const std::vector<flatbuffers::Offset<Subscription>> *subscriptions = nullptr) {
+    const std::vector<flatbuffers::Offset<SubscriptionBuffer>> *subscriptions = nullptr) {
   return MQTT::CreateMQTTClientConfiguration(
       _fbb,
       host ? _fbb.CreateString(host) : 0,
@@ -295,7 +375,7 @@ inline flatbuffers::Offset<MQTTClientConfiguration> CreateMQTTClientConfiguratio
       client_certificate_path ? _fbb.CreateString(client_certificate_path) : 0,
       client_private_key_path ? _fbb.CreateString(client_private_key_path) : 0,
       root_certificate_path ? _fbb.CreateString(root_certificate_path) : 0,
-      subscriptions ? _fbb.CreateVector<flatbuffers::Offset<Subscription>>(*subscriptions) : 0);
+      subscriptions ? _fbb.CreateVector<flatbuffers::Offset<SubscriptionBuffer>>(*subscriptions) : 0);
 }
 
 struct MQTTMessage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -424,10 +504,28 @@ inline const flatbuffers::TypeTable *MQTT_QOSTypeTable() {
 
 inline const flatbuffers::TypeTable *SubscriptionTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_STRING, 0, -1 }
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MQTT_QOSTypeTable
   };
   static const char * const names[] = {
-    "topic"
+    "topic",
+    "qos"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *SubscriptionBufferTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UCHAR, 1, -1 }
+  };
+  static const char * const names[] = {
+    "subscription"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
@@ -448,7 +546,7 @@ inline const flatbuffers::TypeTable *MQTTClientConfigurationTypeTable() {
     { flatbuffers::ET_SEQUENCE, 1, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    SubscriptionTypeTable
+    SubscriptionBufferTypeTable
   };
   static const char * const names[] = {
     "host",

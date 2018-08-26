@@ -1,0 +1,68 @@
+/*
+ * Copyright Paul Reimer, 2018
+ *
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License.
+ * To view a copy of this license, visit
+ * https://creativecommons.org/licenses/by-nc-sa/4.0/
+ * or send a letter to
+ * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+ */
+
+include "uuid.fbs";
+
+namespace MQTT;
+
+enum MQTT_QOS : byte {
+  AtMostOnce=0,
+  AtLeastOnce=1,
+  ExactlyOnce=2,
+}
+
+table Subscription {
+  topic:string;
+  qos:MQTT_QOS = AtMostOnce;
+}
+
+table SubscriptionBuffer {
+  subscription:[ubyte] (nested_flatbuffer: "Subscription");
+}
+
+table MQTTClientConfiguration {
+  host:string;
+  port:uint16;
+  client_id:string;
+  client_username:string;
+  client_password:string;
+  client_certificate_path:string;
+  client_private_key_path:string;
+  root_certificate_path:string;
+  subscriptions:[SubscriptionBuffer];
+}
+
+/*
+table MQTTRequest {
+  id:UUID.UUID;
+  to_pid:UUID.UUID;
+  topic:string;
+  payload:string;
+}
+
+table MQTTResponse {
+  id:UUID.UUID;
+  request_id:UUID.UUID;
+  to_pid:UUID.UUID;
+  topic:string;
+  payload:string;
+}
+*/
+
+table MQTTMessage {
+  topic:string;
+  payload:string;
+  qos:MQTT_QOS = AtMostOnce;
+  retain:bool = false;
+}
+
+root_type MQTTClientConfiguration;
+file_identifier "mqtt";
+file_extension "fb";

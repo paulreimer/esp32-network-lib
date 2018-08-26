@@ -1,0 +1,49 @@
+menu "MQTT Client Configuration"
+  depends on AWS_IOT_SDK
+
+config MQTT_HOST
+  string "MQTT Hostname/IP address"
+  depends on AWS_IOT_SDK
+  default "mqtt.googleapis.com"
+
+config MQTT_PORT
+  int "MQTT port"
+  depends on AWS_IOT_SDK
+  default 443
+
+config MQTT_CLIENT_ID
+  string "MQTT Client ID"
+  depends on AWS_IOT_SDK
+  default "projects/{project-id}/locations/{cloud-region}/registries/{registry-id}/devices/{device-id}"
+
+config MQTT_CLIENT_USERNAME
+  string "MQTT Client Username"
+  depends on AWS_IOT_SDK
+  default "unused"
+
+config MQTT_CLIENT_PASSWORD
+  string "MQTT Client Password"
+  depends on AWS_IOT_SDK
+  default ""
+
+config MQTT_CLIENT_CERTIFICATE_PATH
+  string "Client Certificate Path"
+  depends on AWS_IOT_SDK
+  default "/spiflash/mqtt_client_certificate.pem"
+
+config MQTT_CLIENT_PRIVATE_KEY_PATH
+  string "Client Private Key Path"
+  depends on AWS_IOT_SDK
+  default "/spiflash/mqtt_client_private_key.pem"
+
+config MQTT_ROOT_CERTIFICATE_PATH
+  string "Root/CA Certificate Path"
+  depends on AWS_IOT_SDK
+  default "/spiflash/mqtt_root_certificate.pem"
+
+config MQTT_INITIAL_SUBSCRIPTION_TOPIC
+  string "Initial MQTT Subscription Topic"
+  depends on AWS_IOT_SDK
+  default "/devices/<device_id>/config"
+
+endmenu
