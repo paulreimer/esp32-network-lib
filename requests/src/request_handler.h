@@ -97,7 +97,8 @@ private:
   auto create_partial_response(const string_view chunk)
     -> ResponseFlatbuffer;
 
-private:
+  std::unique_ptr<ServerSentEventsEmitter> server_sent_events_emitter;
+
 #if REQUESTS_SUPPORT_JSON
   using JsonEmitter = Json::JsonEmitter;
   std::unique_ptr<JsonEmitter> json_path_emitter;
