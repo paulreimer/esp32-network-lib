@@ -1,0 +1,25 @@
+menu "StatsD Configuration"
+
+config STATSD_SERVER_IP
+  string "StatsD Server IP"
+  default "127.0.0.1"
+  help
+    StatsD Server IP for uploading metrics to.
+
+config STATSD_SERVER_PORT
+  int "StatsD Server Port"
+  default "8125"
+  help
+    StatsD port to connect to.
+    Should be chosen not to conflict with any other port used
+    on the system.
+
+config STATSD_MAX_PKTSIZE
+  int "StatsD max packet size"
+  default "512"
+  help
+    Aggregate metrics until this packet size is reached,
+    or no more metrics can be added within it.
+    Send the packet at the point this condition is reached,
+    then reset the buffer and begin collecting again.
+endmenu
