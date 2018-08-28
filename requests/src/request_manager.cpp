@@ -144,9 +144,11 @@ auto header_recv_cb(
 #endif // REQUESTS_USE_SH2LIB
 
 RequestManager::RequestManager()
-: requests{}
 #ifdef REQUESTS_USE_CURL
-, multi_handle(curl_multi_init(), curl_multi_cleanup)
+: multi_handle(curl_multi_init(), curl_multi_cleanup)
+, requests{}
+#else
+: requests{}
 #endif // REQUESTS_USE_CURL
 {
 #ifdef REQUESTS_USE_CURL
@@ -172,6 +174,13 @@ RequestManager::RequestManager()
 
 RequestManager::~RequestManager()
 {
+  for (const auto& req : requests)
+  {
+    auto& handle = req.first;
+    // Remove the request handle from the multi handle
+    curl_multi_remove_handle(multi_handle.get(), handle.get());
+  }
+
   mbedtls_x509_crt_free(&cacerts);
 }
 

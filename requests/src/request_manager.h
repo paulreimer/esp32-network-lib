@@ -38,6 +38,14 @@ namespace Requests {
 
 class RequestManager
 {
+#ifdef REQUESTS_USE_CURL
+private:
+  // C++ will initialize members in the declared order (more importantly)
+  // Destruct the members in the reverse order
+  // Create the curl_multi_handle first, then the handle map
+  std::unique_ptr<CURLM, CURLMcode(*)(CURLM*)> multi_handle;
+#endif // REQUESTS_USE_CURL
+
 public:
 #ifdef REQUESTS_USE_CURL
   using HandleImpl = CURL;
@@ -83,11 +91,6 @@ protected:
 
   auto get_existing_request_handler(const UUID::UUID* request_intent_id)
     -> RequestMap::const_iterator;
-
-private:
-#ifdef REQUESTS_USE_CURL
-  std::unique_ptr<CURLM, CURLMcode(*)(CURLM*)> multi_handle;
-#endif // REQUESTS_USE_CURL
 };
 
 } // namespace Requests
