@@ -17,6 +17,7 @@
 #include "delegate.hpp"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace ActorModel {
@@ -29,16 +30,16 @@ struct ResultUnion
   ResultUnion(
     const Result& _type = Result::Unhandled,
     const EventTerminationAction& _action = EventTerminationAction::StopProcessing,
-    const flatbuffers::Offset<void>& _data = 0
+    const std::string& _reason = ""
   )
   : type(_type)
   , action(_action)
-  , data(_data)
+  , reason(_reason)
   {}
 
   Result type;
   EventTerminationAction action;
-  flatbuffers::Offset<void> data;
+  std::string reason;
 };
 
 using Behaviour = delegate<ResultUnion(

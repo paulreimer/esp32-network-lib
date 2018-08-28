@@ -110,16 +110,12 @@ Actor::Actor(
 Actor::~Actor()
 {
   printf("Terminating PID %s\n", get_uuid_str(pid).c_str());
+  auto& node = get_current_node();
 
   // Send exit reason to links
   for (const auto& pid2 : links)
   {
-    printf("Send exit message to linked PID %s\n", get_uuid_str(pid2).c_str());
-    auto exit_reason = string_view{
-      poison_pill->reason()->data(),
-      poison_pill->reason()->size()
-    };
-    exit(pid2, exit_reason);
+    node.exit(pid, pid2, exit_reason);
   }
 
   if (receive_semaphore)
@@ -156,91 +152,13 @@ auto Actor::exit(const Reason exit_reason)
 
   // Store the reason why this process is being killed
   // So it can be sent to each linked process
-  flatbuffers::FlatBufferBuilder fbb;
-
-  auto exit_reason_str = fbb.CreateString(exit_reason);
-
-  auto poison_pill_offset = CreateSignal(
-    fbb,
-    &pid,
-    exit_reason_str
-  );
-
-  fbb.Finish(poison_pill_offset);
-
-  poison_pill_flatbuf = flatbuf(
-    fbb.GetBufferPointer(),
-    fbb.GetBufferPointer() + fbb.GetSize()
-  );
-
-  poison_pill = flatbuffers::GetRoot<Signal>(poison_pill_flatbuf.data());
+  this->exit_reason.assign(exit_reason.begin(), exit_reason.end());
 
   // Remove this pid from process_registry unconditionally (deleting it),
   // and remove from named_process_registry if present
   // This is the last thing this Actor can call before dying
   // It will send exit signals to all of its links
   return node.terminate(pid);
-}
-
-// Send a signal as if the caller had exited, but do not affect the caller
-auto Actor::exit(const Pid& pid2, const Reason exit_reason)
-  -> bool
-{
-  auto& node = get_current_node();
-
-  flatbuffers::FlatBufferBuilder fbb;
-
-  auto exit_reason_str = fbb.CreateString(exit_reason);
-
-  auto exit_signal_offset = CreateSignal(
-    fbb,
-    &pid,
-    exit_reason_str
-  );
-
-  fbb.Finish(exit_signal_offset);
-
-  const auto* exit_signal = flatbuffers::GetRoot<Signal>(fbb.GetBufferPointer());
-
-  return node.signal(pid2, *(exit_signal));
-}
-
-auto Actor::loop()
-  -> ResultUnion
-{
-  ResultUnion result;
-
-  // Check for poison pill
-  if (poison_pill and poison_pill->reason()->size() > 0)
-  {
-    auto exit_reason = string_view{
-      poison_pill->reason()->data(),
-      poison_pill->reason()->size()
-    };
-
-    exit(exit_reason);
-
-    ResultUnion poison_pill_behaviour;
-    poison_pill_behaviour.type = Result::Error;
-
-    // Exit the process gracefully, but immediately
-    // Do not process any more messages
-    return poison_pill_behaviour;
-  }
-
-  // Wait for and obtain a reference to a message
-  // (which must be released afterwards)
-  auto _message = mailbox.receive_raw();
-
-  if (not _message.empty())
-  {
-    result = process_message(_message);
-
-    // Release the memory back to the buffer
-    mailbox.release(_message);
-  }
-
-  return result;
 }
 
 auto Actor::process_message(const string_view _message)
@@ -264,14 +182,12 @@ auto Actor::process_message(const string_view _message)
 
         if (result.type == Result::Error)
         {
-          string_view reason = "normal";
-          if (reason == "normal")
-          {
-            exit(reason);
-          }
+          // Exit behaviours loop immediately
+          break;
         }
 
-        // Exit the loop, unless behaviour did not handle this message
+        // Exit behaviours loop immediately
+        // Unless behaviour did not handle this message
         if (
           not (
             result.type == Result::Unhandled
@@ -296,28 +212,47 @@ auto Actor::process_message(const string_view _message)
   return result;
 }
 
+auto Actor::loop()
+  -> bool
+{
+  ResultUnion result;
+
+  // Check for exit reason not already set (e.g. from timer callback)
+  if (exit_reason.empty())
+  {
+    // Wait for and obtain a reference to a message
+    // (which must be released afterwards)
+    auto _message = mailbox.receive_raw();
+
+    if (not _message.empty())
+    {
+      result = process_message(_message);
+
+      // Release the memory back to the buffer
+      mailbox.release(_message);
+    }
+  }
+
+  bool did_error = (result.type == Result::Error);
+  if (did_error)
+  {
+    exit(result.reason);
+  }
+
+  // Continue to loop unless an error was encountered
+  return (not did_error);
+}
+
 auto actor_task(void* user_data)
   -> void
 {
   auto* actor = static_cast<Actor*>(user_data);
 
-  if (actor)
+  if (actor != nullptr)
   {
-    for (;;)
-    {
-      auto result = actor->loop();
-      if (result.type == Result::Error)
-      {
-        string_view reason = "normal";
-        if (reason == "normal")
-        {
-          break;
-        }
-        else {
-          break;
-        }
-      }
-    }
+    // Run forever until loop error or forced exit
+    while(actor->loop())
+    {}
   }
 }
 

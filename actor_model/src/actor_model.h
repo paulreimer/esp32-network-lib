@@ -31,8 +31,8 @@ auto spawn(
 ) -> Pid;
 
 auto spawn_link(
-  const Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
+  const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
@@ -43,8 +43,8 @@ auto spawn(
 ) -> Pid;
 
 auto spawn_link(
-  const Behaviours&& _behaviours,
   const Pid& _initial_link_pid,
+  const Behaviours&& _behaviours,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
@@ -138,6 +138,9 @@ auto send_interval(
 ) -> TRef;
 
 auto cancel(const TRef tref)
+  -> bool;
+
+auto exit(const Pid& pid, const Pid& pid2, const Actor::Reason exit_reason)
   -> bool;
 
 auto register_name(const std::experimental::string_view name, const Pid& pid)

@@ -13,6 +13,7 @@
 namespace ActorModel {
 
 using string_view = std::experimental::string_view;
+using Reason = Actor::Reason;
 
 // free functions bound to default node
 
@@ -30,15 +31,15 @@ auto spawn(
 }
 
 auto spawn_link(
-  const Behaviour&& _behaviour,
   const Pid& _initial_link_pid,
+  const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   auto& node = Actor::get_default_node();
   return node.spawn_link(
-    {std::move(_behaviour)},
     _initial_link_pid,
+    {std::move(_behaviour)},
     std::move(_exec_config_callback)
   );
 }
@@ -57,15 +58,15 @@ auto spawn(
 }
 
 auto spawn_link(
-  const Behaviours&& _behaviours,
   const Pid& _initial_link_pid,
+  const Behaviours&& _behaviours,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   auto& node = Actor::get_default_node();
   return node.spawn_link(
-    std::move(_behaviours),
     _initial_link_pid,
+    std::move(_behaviours),
     std::move(_exec_config_callback)
   );
 }
@@ -280,6 +281,13 @@ auto whereis(const string_view name)
 {
   auto& node = Actor::get_default_node();
   return node.whereis(name);
+}
+
+auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
+  -> bool
+{
+  auto& node = Actor::get_default_node();
+  return node.exit(pid, pid2, exit_reason);
 }
 
 } // namespace ActorModel

@@ -78,7 +78,7 @@ public:
 
   // public methods:
   auto loop()
-    -> ResultUnion;
+    -> bool;
 
   auto timer_callback(const TRef tref)
     -> ResultUnion;
@@ -118,8 +118,6 @@ protected:
 
   auto exit(const Reason exit_reason)
     -> bool;
-  auto exit(const Pid& pid2, const Reason exit_reason)
-    -> bool;
   auto send(const Message& message)
     -> bool;
   auto send(const string_view type, const string_view payload)
@@ -147,8 +145,6 @@ protected:
   //SupervisionStrategy supervision_strategy = SupervisionStrategy::one_for_one;
   //TODO (@paulreimer): implement supervisor
   //SupervisorFlags supervisor_flags;
-  const Signal* poison_pill = nullptr;
-  flatbuf poison_pill_flatbuf;
 
   Node* const current_node = nullptr;
 
@@ -157,6 +153,7 @@ private:
   SemaphoreHandle_t receive_semaphore = nullptr;
   portMUX_TYPE receive_multicore_mutex;
   bool started = false;
+  std::string exit_reason;
 
 // static methods:
 public:

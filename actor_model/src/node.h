@@ -31,28 +31,31 @@ using ExecConfigCallback = delegate<void(ActorExecutionConfigBuilder&)>;
 using Time = std::chrono::milliseconds;
 
 using TRef = size_t;
+using SignalRef = size_t;
 using TTL = int;
+using Reason = std::experimental::string_view;
 
 constexpr TRef NullTRef = 0;
+constexpr SignalRef NullSignalRef = 0;
 
-class TimedMessage
+class TimedBufferDelivery
 {
 public:
-  TimedMessage(
+  TimedBufferDelivery(
     const Pid& _pid,
-    flatbuffers::DetachedBuffer&& _message_buf,
+    flatbuffers::DetachedBuffer&& _buf,
     const bool _is_recurring,
     const TimerHandle_t _timer_handle
   )
   : pid(_pid)
-  , message_buf(std::move(_message_buf))
+  , buf(std::move(_buf))
   , is_recurring(_is_recurring)
   , timer_handle(_timer_handle)
   {
   }
 
   Pid pid;
-  flatbuffers::DetachedBuffer message_buf;
+  flatbuffers::DetachedBuffer buf;
   bool is_recurring;
   TimerHandle_t timer_handle;
 };
@@ -76,7 +79,8 @@ public:
     UUID::UUIDEqualFunc
   >;
   using NamedProcessRegistry = std::unordered_map<string, Pid>;
-  using TimedMessages = std::unordered_map<TRef, TimedMessage>;
+  using TimedMessages = std::unordered_map<TRef, TimedBufferDelivery>;
+  using TimedSignals = std::unordered_map<SignalRef, TimedBufferDelivery>;
 
   // public constructors/destructors:
   Node();
@@ -88,8 +92,8 @@ public:
   ) -> Pid;
 
   auto spawn_link(
-    const Behaviour&& _behaviour,
     const Pid& _initial_link_pid,
+    const Behaviour&& _behaviour,
     const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
 
@@ -100,8 +104,8 @@ public:
   ) -> Pid;
 
   auto spawn_link(
-    const Behaviours&& _behaviours,
     const Pid& _initial_link_pid,
+    const Behaviours&& _behaviours,
     const ExecConfigCallback&& _exec_config_callback
   ) -> Pid;
 
@@ -151,6 +155,12 @@ public:
   auto cancel(const TRef tref)
     -> bool;
 
+  auto cancel_signal(const SignalRef signal_ref)
+    -> bool;
+
+  auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
+    -> bool;
+
   auto register_name(const string_view name, const Pid& pid)
     -> bool;
 
@@ -166,6 +176,9 @@ public:
   auto timer_callback(const TRef tref)
     -> bool;
 
+  auto signal_timer_callback(const SignalRef signal_ref)
+    -> bool;
+
 protected:
   auto _spawn(
     const Behaviours&& _behaviours,
@@ -176,7 +189,10 @@ protected:
   auto terminate(const Pid& pid)
     -> bool;
 
-  auto signal(const Pid& pid, const Signal& sig)
+  auto signal(const Pid& pid, flatbuffers::DetachedBuffer&& signal_buf)
+    -> SignalRef;
+
+  auto process_signal(const Pid& pid, const Signal& sig)
     -> bool;
 
   auto start_timer(
@@ -190,9 +206,11 @@ protected:
   NamedProcessRegistry named_process_registry;
   TimedMessages timed_messages;
   TRef next_tref = 1;
-  TRef invalid_tref = 0;
+
   std::set<TRef> cancelled_trefs;
 
+  TimedSignals timed_signals;
+  SignalRef next_signal_ref = 1;
 private:
 };
 
