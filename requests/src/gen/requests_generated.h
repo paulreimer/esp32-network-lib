@@ -275,11 +275,11 @@ struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::String *mutable_uri() {
     return GetPointer<flatbuffers::String *>(VT_URI);
   }
-  const flatbuffers::String *body() const {
-    return GetPointer<const flatbuffers::String *>(VT_BODY);
+  const flatbuffers::Vector<uint8_t> *body() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BODY);
   }
-  flatbuffers::String *mutable_body() {
-    return GetPointer<flatbuffers::String *>(VT_BODY);
+  flatbuffers::Vector<uint8_t> *mutable_body() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_BODY);
   }
   const flatbuffers::Vector<flatbuffers::Offset<QueryPair>> *query() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<QueryPair>> *>(VT_QUERY);
@@ -300,7 +300,7 @@ struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_URI) &&
            verifier.VerifyString(uri()) &&
            VerifyOffset(verifier, VT_BODY) &&
-           verifier.VerifyString(body()) &&
+           verifier.VerifyVector(body()) &&
            VerifyOffset(verifier, VT_QUERY) &&
            verifier.VerifyVector(query()) &&
            verifier.VerifyVectorOfTables(query()) &&
@@ -320,7 +320,7 @@ struct RequestBuilder {
   void add_uri(flatbuffers::Offset<flatbuffers::String> uri) {
     fbb_.AddOffset(Request::VT_URI, uri);
   }
-  void add_body(flatbuffers::Offset<flatbuffers::String> body) {
+  void add_body(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body) {
     fbb_.AddOffset(Request::VT_BODY, body);
   }
   void add_query(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<QueryPair>>> query) {
@@ -345,7 +345,7 @@ inline flatbuffers::Offset<Request> CreateRequest(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> method = 0,
     flatbuffers::Offset<flatbuffers::String> uri = 0,
-    flatbuffers::Offset<flatbuffers::String> body = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<QueryPair>>> query = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<HeaderPair>>> headers = 0) {
   RequestBuilder builder_(_fbb);
@@ -361,14 +361,14 @@ inline flatbuffers::Offset<Request> CreateRequestDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *method = nullptr,
     const char *uri = nullptr,
-    const char *body = nullptr,
+    const std::vector<uint8_t> *body = nullptr,
     const std::vector<flatbuffers::Offset<QueryPair>> *query = nullptr,
     const std::vector<flatbuffers::Offset<HeaderPair>> *headers = nullptr) {
   return Requests::CreateRequest(
       _fbb,
       method ? _fbb.CreateString(method) : 0,
       uri ? _fbb.CreateString(uri) : 0,
-      body ? _fbb.CreateString(body) : 0,
+      body ? _fbb.CreateVector<uint8_t>(*body) : 0,
       query ? _fbb.CreateVector<flatbuffers::Offset<QueryPair>>(*query) : 0,
       headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0);
 }
@@ -399,11 +399,11 @@ struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<flatbuffers::Offset<HeaderPair>> *mutable_headers() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<HeaderPair>> *>(VT_HEADERS);
   }
-  const flatbuffers::String *body() const {
-    return GetPointer<const flatbuffers::String *>(VT_BODY);
+  const flatbuffers::Vector<uint8_t> *body() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BODY);
   }
-  flatbuffers::String *mutable_body() {
-    return GetPointer<flatbuffers::String *>(VT_BODY);
+  flatbuffers::Vector<uint8_t> *mutable_body() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_BODY);
   }
   const flatbuffers::String *errbuf() const {
     return GetPointer<const flatbuffers::String *>(VT_ERRBUF);
@@ -424,7 +424,7 @@ struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(headers()) &&
            verifier.VerifyVectorOfTables(headers()) &&
            VerifyOffset(verifier, VT_BODY) &&
-           verifier.VerifyString(body()) &&
+           verifier.VerifyVector(body()) &&
            VerifyOffset(verifier, VT_ERRBUF) &&
            verifier.VerifyString(errbuf()) &&
            VerifyField<UUID::UUID>(verifier, VT_REQUEST_ID) &&
@@ -441,7 +441,7 @@ struct ResponseBuilder {
   void add_headers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<HeaderPair>>> headers) {
     fbb_.AddOffset(Response::VT_HEADERS, headers);
   }
-  void add_body(flatbuffers::Offset<flatbuffers::String> body) {
+  void add_body(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body) {
     fbb_.AddOffset(Response::VT_BODY, body);
   }
   void add_errbuf(flatbuffers::Offset<flatbuffers::String> errbuf) {
@@ -466,7 +466,7 @@ inline flatbuffers::Offset<Response> CreateResponse(
     flatbuffers::FlatBufferBuilder &_fbb,
     int16_t code = -1,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<HeaderPair>>> headers = 0,
-    flatbuffers::Offset<flatbuffers::String> body = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> body = 0,
     flatbuffers::Offset<flatbuffers::String> errbuf = 0,
     const UUID::UUID *request_id = 0) {
   ResponseBuilder builder_(_fbb);
@@ -482,14 +482,14 @@ inline flatbuffers::Offset<Response> CreateResponseDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     int16_t code = -1,
     const std::vector<flatbuffers::Offset<HeaderPair>> *headers = nullptr,
-    const char *body = nullptr,
+    const std::vector<uint8_t> *body = nullptr,
     const char *errbuf = nullptr,
     const UUID::UUID *request_id = 0) {
   return Requests::CreateResponse(
       _fbb,
       code,
       headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0,
-      body ? _fbb.CreateString(body) : 0,
+      body ? _fbb.CreateVector<uint8_t>(*body) : 0,
       errbuf ? _fbb.CreateString(errbuf) : 0,
       request_id);
 }
@@ -856,7 +856,7 @@ inline const flatbuffers::TypeTable *RequestTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_STRING, 0, -1 },
-    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_UCHAR, 1, -1 },
     { flatbuffers::ET_SEQUENCE, 1, 0 },
     { flatbuffers::ET_SEQUENCE, 1, 1 }
   };
@@ -881,7 +881,7 @@ inline const flatbuffers::TypeTable *ResponseTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SHORT, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 1, 0 },
-    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_UCHAR, 1, -1 },
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 1 }
   };
