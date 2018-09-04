@@ -22,7 +22,7 @@ struct Signal;
 
 struct SupervisorFlags;
 
-struct ActorExecutionConfig;
+struct ProcessExecutionConfig;
 
 inline const flatbuffers::TypeTable *MessageTypeTable();
 
@@ -36,7 +36,7 @@ inline const flatbuffers::TypeTable *SignalTypeTable();
 
 inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable();
 
-inline const flatbuffers::TypeTable *ActorExecutionConfigTypeTable();
+inline const flatbuffers::TypeTable *ProcessExecutionConfigTypeTable();
 
 enum class SupervisionStrategy : int8_t {
   one_for_one = 0,
@@ -575,17 +575,18 @@ inline flatbuffers::Offset<SupervisorFlags> CreateSupervisorFlags(
   return builder_.Finish();
 }
 
-struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return ActorExecutionConfigTypeTable();
+    return ProcessExecutionConfigTypeTable();
   }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "ActorModel.ActorExecutionConfig";
+    return "ActorModel.ProcessExecutionConfig";
   }
   enum {
     VT_TASK_PRIO = 4,
     VT_TASK_STACK_SIZE = 6,
-    VT_MAILBOX_SIZE = 8
+    VT_MAILBOX_SIZE = 8,
+    VT_DELETE_DELAY_MICROSECONDS = 10
   };
   int32_t task_prio() const {
     return GetField<int32_t>(VT_TASK_PRIO, 5);
@@ -605,45 +606,57 @@ struct ActorExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
   bool mutate_mailbox_size(uint32_t _mailbox_size) {
     return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 2048);
   }
+  uint32_t delete_delay_microseconds() const {
+    return GetField<uint32_t>(VT_DELETE_DELAY_MICROSECONDS, 1000000);
+  }
+  bool mutate_delete_delay_microseconds(uint32_t _delete_delay_microseconds) {
+    return SetField<uint32_t>(VT_DELETE_DELAY_MICROSECONDS, _delete_delay_microseconds, 1000000);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TASK_PRIO) &&
            VerifyField<uint32_t>(verifier, VT_TASK_STACK_SIZE) &&
            VerifyField<uint32_t>(verifier, VT_MAILBOX_SIZE) &&
+           VerifyField<uint32_t>(verifier, VT_DELETE_DELAY_MICROSECONDS) &&
            verifier.EndTable();
   }
 };
 
-struct ActorExecutionConfigBuilder {
+struct ProcessExecutionConfigBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_task_prio(int32_t task_prio) {
-    fbb_.AddElement<int32_t>(ActorExecutionConfig::VT_TASK_PRIO, task_prio, 5);
+    fbb_.AddElement<int32_t>(ProcessExecutionConfig::VT_TASK_PRIO, task_prio, 5);
   }
   void add_task_stack_size(uint32_t task_stack_size) {
-    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 2560);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_TASK_STACK_SIZE, task_stack_size, 2560);
   }
   void add_mailbox_size(uint32_t mailbox_size) {
-    fbb_.AddElement<uint32_t>(ActorExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 2048);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 2048);
   }
-  explicit ActorExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  void add_delete_delay_microseconds(uint32_t delete_delay_microseconds) {
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_DELETE_DELAY_MICROSECONDS, delete_delay_microseconds, 1000000);
+  }
+  explicit ProcessExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ActorExecutionConfigBuilder &operator=(const ActorExecutionConfigBuilder &);
-  flatbuffers::Offset<ActorExecutionConfig> Finish() {
+  ProcessExecutionConfigBuilder &operator=(const ProcessExecutionConfigBuilder &);
+  flatbuffers::Offset<ProcessExecutionConfig> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ActorExecutionConfig>(end);
+    auto o = flatbuffers::Offset<ProcessExecutionConfig>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ActorExecutionConfig> CreateActorExecutionConfig(
+inline flatbuffers::Offset<ProcessExecutionConfig> CreateProcessExecutionConfig(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t task_prio = 5,
     uint32_t task_stack_size = 2560,
-    uint32_t mailbox_size = 2048) {
-  ActorExecutionConfigBuilder builder_(_fbb);
+    uint32_t mailbox_size = 2048,
+    uint32_t delete_delay_microseconds = 1000000) {
+  ProcessExecutionConfigBuilder builder_(_fbb);
+  builder_.add_delete_delay_microseconds(delete_delay_microseconds);
   builder_.add_mailbox_size(mailbox_size);
   builder_.add_task_stack_size(task_stack_size);
   builder_.add_task_prio(task_prio);
@@ -852,19 +865,21 @@ inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable() {
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *ActorExecutionConfigTypeTable() {
+inline const flatbuffers::TypeTable *ProcessExecutionConfigTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
   static const char * const names[] = {
     "task_prio",
     "task_stack_size",
-    "mailbox_size"
+    "mailbox_size",
+    "delete_delay_microseconds"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }

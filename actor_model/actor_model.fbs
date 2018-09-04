@@ -67,7 +67,7 @@ table SupervisorFlags
   period:uint;
 }
 
-table ActorExecutionConfig
+table ProcessExecutionConfig
 {
   task_prio:int = 5;
   task_stack_size:uint = 2560;

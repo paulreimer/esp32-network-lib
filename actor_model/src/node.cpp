@@ -25,7 +25,7 @@ using UUID::uuidgen;
 auto _timer_callback(TimerHandle_t timer_handle)
   -> void
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   auto tref = reinterpret_cast<TRef>(pvTimerGetTimerID(timer_handle));
   node.timer_callback(tref);
 }
@@ -33,7 +33,7 @@ auto _timer_callback(TimerHandle_t timer_handle)
 auto _signal_timer_callback(TimerHandle_t timer_handle)
   -> void
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   auto signal_ref = reinterpret_cast<SignalRef>(
     pvTimerGetTimerID(timer_handle)
   );
@@ -107,7 +107,7 @@ auto Node::_spawn(
   // Create an custom (larger) execution config for RequestManager actor
   flatbuffers::FlatBufferBuilder execution_config_fbb;
   {
-    ActorExecutionConfigBuilder builder(execution_config_fbb);
+    ProcessExecutionConfigBuilder builder(execution_config_fbb);
     if (_exec_config_callback)
     {
       _exec_config_callback(builder);
@@ -115,7 +115,7 @@ auto Node::_spawn(
     execution_config_fbb.Finish(builder.Finish());
   }
   auto* execution_config = (
-    flatbuffers::GetRoot<ActorExecutionConfig>(
+    flatbuffers::GetRoot<ProcessExecutionConfig>(
       execution_config_fbb.GetBufferPointer()
     )
   );
@@ -123,7 +123,7 @@ auto Node::_spawn(
   printf("Spawn Pid %s\n", get_uuid_str(child_pid).c_str());
   auto inserted = process_registry.emplace(
     child_pid,
-    ActorPtr{
+    ProcessPtr{
       new Actor{
         child_pid,
         std::move(_behaviours),
@@ -484,8 +484,6 @@ auto Node::exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   );
 
   fbb.Finish(exit_signal_offset);
-
-  const auto* exit_signal = flatbuffers::GetRoot<Signal>(fbb.GetBufferPointer());
 
   return signal(pid2, fbb.Release());
 }

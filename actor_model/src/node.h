@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "behaviour.h"
 #include "pid.h"
+#include "process.h"
 
 #include "actor_model_generated.h"
 
@@ -27,7 +27,7 @@
 
 namespace ActorModel {
 
-using ExecConfigCallback = delegate<void(ActorExecutionConfigBuilder&)>;
+using ExecConfigCallback = delegate<void(ProcessExecutionConfigBuilder&)>;
 using Time = std::chrono::milliseconds;
 
 using TRef = size_t;
@@ -60,21 +60,21 @@ public:
   TimerHandle_t timer_handle;
 };
 
-class Actor;
+class Process;
 class Node
 {
-  friend class Actor;
+  friend class Process;
 
 public:
   // type aliases:
   using string = std::string;
   using string_view = std::experimental::string_view;
 
-  using ActorPtr = std::unique_ptr<Actor>;
+  using ProcessPtr = std::unique_ptr<Process>;
 
   using ProcessRegistry = std::unordered_map<
     Pid,
-    ActorPtr,
+    ProcessPtr,
     UUID::UUIDHashFunc,
     UUID::UUIDEqualFunc
   >;
