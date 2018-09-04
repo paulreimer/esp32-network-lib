@@ -499,26 +499,16 @@ auto Node::timer_callback(const TRef tref)
     const auto& process_iter = process_registry.find(pid);
     const auto& _message = timed_message->second.buf;
 
-    if (process_iter != process_registry.end())
+    // Enqueue the message to the process' mailbox
+    if (
+      process_iter != process_registry.end()
+      and process_iter->second
+    )
     {
-      if (process_iter->second)
+      const auto* message = flatbuffers::GetRoot<Message>(_message.data());
+      if (message)
       {
-        auto result = process_iter->second->process_message(
-          string_view{
-            reinterpret_cast<const char*>(_message.data()),
-            _message.size()
-          }
-        );
-
-        did_process_message = true;
-
-        bool did_error = (result.type == Result::Error);
-        if (did_error)
-        {
-          process_iter->second->exit(result.reason);
-          // Immediate return, exit() has cleaned up all resources
-          return did_process_message;
-        }
+        process_iter->second->send(*(message));
       }
     }
 
