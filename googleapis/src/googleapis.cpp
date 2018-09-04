@@ -181,7 +181,7 @@ auto update_columns(
   if (from_cols and to_cols)
   {
     // Iterate 'to' cols first, attempt to match each with one from 'from'
-    for (auto to_col_idx = 0; to_col_idx < to_cols->Length(); ++to_col_idx)
+    for (size_t to_col_idx = 0; to_col_idx < to_cols->Length(); ++to_col_idx)
     {
       auto* to_col = to_cols->GetMutableObject(to_col_idx);
       auto did_update = update_column(from_cols, to_col);
@@ -219,7 +219,7 @@ auto update_query_intent_columns(
 
       if (query->where())
       {
-        for (auto i = 0; i < query->where()->size(); ++i)
+        for (size_t i = 0; i < query->where()->size(); ++i)
         {
           auto* to_col = query->where()->GetMutableObject(i)->mutable_column();
           auto did_update = update_column(from_cols, to_col);
@@ -270,7 +270,7 @@ auto build_column_list(
 
   if (cols)
   {
-    for (auto col_idx = 0; col_idx < cols->Length(); ++col_idx)
+    for (size_t col_idx = 0; col_idx < cols->Length(); ++col_idx)
     {
       auto* col = cols->Get(col_idx);
 
@@ -294,7 +294,7 @@ auto build_where_clauses(
 
   if (where)
   {
-    for (auto clause_idx = 0; clause_idx < where->Length(); ++clause_idx)
+    for (size_t clause_idx = 0; clause_idx < where->Length(); ++clause_idx)
     {
       auto* where_clause = where->Get(clause_idx);
       auto* col = where_clause->column();

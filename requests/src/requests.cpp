@@ -201,7 +201,7 @@ auto set_request_header(
   );
 
   // Check for existing key, resize its value
-  for (auto hdr_idx = 0; hdr_idx < resizing_headers_field->size(); ++hdr_idx)
+  for (size_t hdr_idx = 0; hdr_idx < resizing_headers_field->size(); ++hdr_idx)
   {
     const auto* hdr = resizing_headers_field->Get(hdr_idx);
     if (hdr->k()->string_view() == k)
@@ -300,7 +300,7 @@ auto set_request_query_arg(
   );
 
   // Check for existing key, resize its value
-  for (auto arg_idx = 0; arg_idx < resizing_query_field->size(); ++arg_idx)
+  for (size_t arg_idx = 0; arg_idx < resizing_query_field->size(); ++arg_idx)
   {
     const auto* arg = resizing_query_field->Get(arg_idx);
     if (arg->k()->string_view() == k)
