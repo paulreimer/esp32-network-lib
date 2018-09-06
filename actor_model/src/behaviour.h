@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "mailbox.h"
 #include "pid.h"
 
 #include "actor_model_generated.h"
@@ -29,12 +30,23 @@ struct ResultUnion
 {
   ResultUnion(
     const Result& _type = Result::Unhandled,
-    const EventTerminationAction& _action = EventTerminationAction::StopProcessing,
-    const std::string& _reason = ""
+    const EventTerminationAction& _action = EventTerminationAction::ContinueProcessing,
+    const std::string& _reason = "normal"
   )
   : type(_type)
   , action(_action)
   , reason(_reason)
+  {}
+
+  ResultUnion(
+    const Result& _type,
+    const std::string& _reason
+  )
+  : ResultUnion{
+    _type,
+    EventTerminationAction::StopProcessing,
+    _reason
+  }
   {}
 
   Result type;
@@ -42,12 +54,17 @@ struct ResultUnion
   std::string reason;
 };
 
-using Behaviour = delegate<ResultUnion(
+using ActorBehaviour = delegate<ResultUnion(
   const Pid&,
   StatePtr& state,
   const Message&
 )>;
 
-using Behaviours = std::vector<Behaviour>;
+using ActorBehaviours = std::vector<ActorBehaviour>;
+
+using Behaviour = delegate<ResultUnion(
+  const Pid&,
+  Mailbox&
+)>;
 
 } // namespace ActorModel

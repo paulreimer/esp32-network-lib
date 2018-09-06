@@ -12,6 +12,7 @@
 
 #include "actor.h"
 #include "node.h"
+#include "process.h"
 
 #include "actor_model_generated.h"
 
@@ -24,7 +25,7 @@ using MutableFlatbuffer = std::vector<uint8_t>;
 
 // free functions bound to default node
 
-// Single behaviour convenience function
+// Generic behaviour convenience functions
 auto spawn(
   const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback = nullptr
@@ -33,18 +34,6 @@ auto spawn(
 auto spawn_link(
   const Pid& _initial_link_pid,
   const Behaviour&& _behaviour,
-  const ExecConfigCallback&& _exec_config_callback = nullptr
-) -> Pid;
-
-// Multiple chained behaviours
-auto spawn(
-  const Behaviours&& _behaviours,
-  const ExecConfigCallback&& _exec_config_callback = nullptr
-) -> Pid;
-
-auto spawn_link(
-  const Pid& _initial_link_pid,
-  const Behaviours&& _behaviours,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
@@ -140,7 +129,7 @@ auto send_interval(
 auto cancel(const TRef tref)
   -> bool;
 
-auto exit(const Pid& pid, const Pid& pid2, const Actor::Reason exit_reason)
+auto exit(const Pid& pid, const Pid& pid2, const Process::Reason exit_reason)
   -> bool;
 
 auto register_name(const std::experimental::string_view name, const Pid& pid)

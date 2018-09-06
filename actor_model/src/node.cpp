@@ -44,14 +44,14 @@ Node::Node()
 {
 }
 
-// Single behaviour convenience function
+// Generic behaviour convenience functions
 auto Node::spawn(
   const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
   return _spawn(
-    {std::move(_behaviour)},
+    std::move(_behaviour),
     std::experimental::nullopt,
     std::move(_exec_config_callback)
   );
@@ -64,47 +64,21 @@ auto Node::spawn_link(
 ) -> Pid
 {
   return _spawn(
-    {std::move(_behaviour)},
-    _initial_link_pid,
-    std::move(_exec_config_callback)
-  );
-}
-
-// Multiple chained behaviours
-auto Node::spawn(
-  const Behaviours&& _behaviours,
-  const ExecConfigCallback&& _exec_config_callback
-) -> Pid
-{
-  return _spawn(
-    std::move(_behaviours),
-    std::experimental::nullopt,
-    std::move(_exec_config_callback)
-  );
-}
-
-auto Node::spawn_link(
-  const Pid& _initial_link_pid,
-  const Behaviours&& _behaviours,
-  const ExecConfigCallback&& _exec_config_callback
-) -> Pid
-{
-  return _spawn(
-    std::move(_behaviours),
+    std::move(_behaviour),
     _initial_link_pid,
     std::move(_exec_config_callback)
   );
 }
 
 auto Node::_spawn(
-  const Behaviours&& _behaviours,
+  const Behaviour&& _behaviour,
   const MaybePid& _initial_link_pid,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
-  auto child_pid = uuidgen();
+  auto pid = uuidgen();
 
-  // Create an custom (larger) execution config for RequestManager actor
+
   flatbuffers::FlatBufferBuilder execution_config_fbb;
   {
     ProcessExecutionConfigBuilder builder(execution_config_fbb);
@@ -114,19 +88,20 @@ auto Node::_spawn(
     }
     execution_config_fbb.Finish(builder.Finish());
   }
+
   auto* execution_config = (
     flatbuffers::GetRoot<ProcessExecutionConfig>(
       execution_config_fbb.GetBufferPointer()
     )
   );
 
-  printf("Spawn Pid %s\n", get_uuid_str(child_pid).c_str());
+  printf("Spawn Pid %s\n", get_uuid_str(pid).c_str());
   auto inserted = process_registry.emplace(
-    child_pid,
+    pid,
     ProcessPtr{
-      new Actor{
-        child_pid,
-        std::move(_behaviours),
+      new Process{
+        pid,
+        std::move(_behaviour),
         *(execution_config),
         _initial_link_pid
       }
@@ -135,14 +110,14 @@ auto Node::_spawn(
 
   if (inserted.second)
   {
-    return child_pid;
+    return pid;
   }
   else {
     printf("Could not spawn Pid\n");
   }
 
   //TODO (@paulreimer): verify if pid was actually inserted
-  return child_pid;
+  return pid;
 }
 
 auto Node::process_flag(
@@ -470,6 +445,7 @@ auto Node::cancel_signal(const SignalRef signal_ref)
 
   return (stopped_timer and deleted_timer);
 }
+
 auto Node::exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   -> bool
 {
@@ -491,7 +467,7 @@ auto Node::exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
 auto Node::timer_callback(const TRef tref)
   -> bool
 {
-  auto did_process_message = false;
+  auto did_send_message = false;
   auto timed_message = timed_messages.find(tref);
   if (timed_message != timed_messages.end())
   {
@@ -509,6 +485,7 @@ auto Node::timer_callback(const TRef tref)
       if (message)
       {
         process_iter->second->send(*(message));
+        did_send_message = true;
       }
     }
 
@@ -535,7 +512,7 @@ auto Node::timer_callback(const TRef tref)
     }
   }
 
-  return did_process_message;
+  return did_send_message;
 }
 
 auto Node::signal_timer_callback(const SignalRef signal_ref)

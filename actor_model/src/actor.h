@@ -15,47 +15,28 @@
 
 namespace ActorModel {
 
-class Actor
-: public Process
-{
-  friend class Node;
-public:
-  using StatePtrs = std::vector<StatePtr>;
+// Single actor behaviour convenience function
+auto spawn(
+  const ActorBehaviour&& _actor_behaviour,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
 
-  auto execute()
-    -> ResultUnion override;
+auto spawn_link(
+  const Pid& _initial_link_pid,
+  const ActorBehaviour&& _actor_behaviour,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
 
-  // public methods:
-protected:
-  // Single behaviour convenience function
-  Actor(
-    const Pid& _pid,
-    const Behaviour&& _behaviour,
-    const ProcessExecutionConfig& execution_config,
-    const MaybePid& initial_link_pid = std::experimental::nullopt,
-    const ProcessDictionary::AncestorList&& _ancestors = {},
-    Node* const _current_node = nullptr
-  );
+// Multiple chained actor behaviours
+auto spawn(
+  const ActorBehaviours&& _actor_behaviours,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
 
-  // Multiple chained behaviours
-  Actor(
-    const Pid& _pid,
-    const Behaviours&& _behaviours,
-    const ProcessExecutionConfig& execution_config,
-    const MaybePid& initial_link_pid = std::experimental::nullopt,
-    const ProcessDictionary::AncestorList&& _ancestors = {},
-    Node* const _current_node = nullptr
-  );
-
-  auto loop()
-    -> bool;
-
-  auto process_message(const string_view _message)
-    -> ResultUnion;
-
-  // Actor implementation:
-  StatePtrs state_ptrs;
-  Behaviours behaviours;
-};
+auto spawn_link(
+  const Pid& _initial_link_pid,
+  const ActorBehaviours&& _actor_behaviours,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
 
 } // namespace ActorModel

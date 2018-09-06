@@ -14,6 +14,8 @@
 
 #include <chrono>
 
+#include "esp_log.h"
+
 namespace ActorModel {
 
 using namespace std::chrono_literals;
@@ -24,17 +26,56 @@ using UUID::uuidgen;
 
 Mailbox::AddressRegistry Mailbox::address_registry;
 
-Mailbox::Mailbox(const size_t _mailbox_size)
+Mailbox::Mailbox(
+  const size_t _mailbox_size,
+  const size_t _send_timeout_microseconds,
+  const size_t _receive_timeout_microseconds,
+  const size_t _receive_lock_timeout_microseconds
+)
 : address(uuidgen())
 , mailbox_size(_mailbox_size)
+, send_timeout_ticks(pdMS_TO_TICKS(_send_timeout_microseconds / 1000))
+, receive_timeout_ticks(pdMS_TO_TICKS(_receive_timeout_microseconds / 1000))
+, receive_lock_timeout_ticks(pdMS_TO_TICKS(_receive_lock_timeout_microseconds / 1000))
 , impl{xRingbufferCreate(mailbox_size, RINGBUF_TYPE_NOSPLIT)}
+, receive_semaphore(xSemaphoreCreateBinary())
 {
+  // Semaphore to indicate safe-to-receive
+  if (receive_semaphore)
+  {
+    // Set initial semaphore state
+    xSemaphoreGive(receive_semaphore);
+  }
+
+  // Create extra mutex for SMP safety
+  vPortCPUInitializeMutex(&receive_multicore_mutex);
+
   address_registry.insert({address, this});
 }
 
 Mailbox::~Mailbox()
 {
-  vRingbufferDelete(impl);
+  if (receive_semaphore)
+  {
+    // Delete the semaphore within a critical section
+    portENTER_CRITICAL(&receive_multicore_mutex);
+
+    // Acquire the semaphore before deleting it
+    if (xSemaphoreTake(receive_semaphore, receive_timeout_ticks) == pdTRUE)
+    {
+      vSemaphoreDelete(receive_semaphore);
+    }
+    else {
+      ESP_LOGE(
+        get_uuid_str(address).c_str(),
+        "Unable to delete receive semaphore in ~Mailbox destructor"
+      );
+    }
+
+    vRingbufferDelete(impl);
+
+    portEXIT_CRITICAL(&receive_multicore_mutex);
+  }
 }
 
 auto Mailbox::create_message(
@@ -122,7 +163,7 @@ auto Mailbox::send(
         impl,
         message.data(),
         message.size(),
-        timeout(10s)
+        send_timeout_ticks
       );
 
       if (retval == pdTRUE)
@@ -135,6 +176,44 @@ auto Mailbox::send(
   return false;
 }
 
+auto Mailbox::receive(bool verify)
+  -> Mailbox::ReceivedMessagePtr
+{
+  if (impl)
+  {
+    // Extract an item from the ringbuffer
+    size_t size = -1;
+    auto* flatbuf = xRingbufferReceive(impl, &size, receive_timeout_ticks);
+
+    if (flatbuf and size != -1)
+    {
+      if (xSemaphoreTake(receive_semaphore, receive_lock_timeout_ticks) == pdTRUE)
+      {
+        const auto message = string_view{reinterpret_cast<char*>(flatbuf), size};
+        return std::make_unique<ReceivedMessage>(*this, message, verify);
+      }
+      else {
+        ESP_LOGW(
+          get_uuid_str(address).c_str(),
+          "Unable to acquire receive semaphore in Mailbox::receive"
+        );
+      }
+    }
+    else if (
+      receive_timeout_ticks > 0
+      and receive_timeout_ticks < portMAX_DELAY
+    )
+    {
+      ESP_LOGE(
+        get_uuid_str(address).c_str(),
+        "Invalid Message flatbuffer in Mailbox::receive"
+      );
+    }
+  }
+
+  return nullptr;
+}
+
 auto Mailbox::receive_raw()
   -> string_view
 {
@@ -144,9 +223,9 @@ auto Mailbox::receive_raw()
   {
     // Extract an item from the ringbuffer
     size_t size = -1;
-    auto* flatbuf = xRingbufferReceive(impl, &size, portMAX_DELAY);
+    auto* flatbuf = xRingbufferReceive(impl, &size, receive_timeout_ticks);
 
-    if (flatbuf and size >= 0)
+    if (flatbuf and size != -1)
     {
       message = string_view{reinterpret_cast<char*>(flatbuf), size};
     }
@@ -160,6 +239,8 @@ auto Mailbox::release(const string_view message)
 {
   if (impl)
   {
+    xSemaphoreGive(receive_semaphore);
+
     // Return the memory to the ringbuffer
     vRingbufferReturnItem(impl, const_cast<char*>(message.data()));
     return true;

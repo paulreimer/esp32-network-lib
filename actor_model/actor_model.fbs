@@ -72,6 +72,9 @@ table ProcessExecutionConfig
   task_prio:int = 5;
   task_stack_size:uint = 2560;
   mailbox_size:uint = 2048;
+  send_timeout_microseconds:uint = 10000000;
+  receive_timeout_microseconds:uint = 10000000;
+  receive_lock_timeout_microseconds:uint = 10000000;
 }
 
 root_type Message;

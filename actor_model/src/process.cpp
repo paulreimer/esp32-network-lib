@@ -24,6 +24,8 @@ using namespace std::chrono_literals;
 
 static Node default_node;
 
+const ProcessExecutionConfig* Process::_default_execution_config = nullptr;
+
 using string = std::string;
 using string_view = std::experimental::string_view;
 
@@ -32,13 +34,20 @@ void process_task(void* user_data = nullptr);
 // Multiple chained behaviours
 Process::Process(
   const Pid& _pid,
+  const Behaviour&& _behaviour,
   const ProcessExecutionConfig& execution_config,
   const MaybePid& initial_link_pid,
   const Process::ProcessDictionary::AncestorList&& _ancestors,
   Node* const _current_node
 )
 : pid(_pid)
-, mailbox(execution_config.mailbox_size())
+, mailbox(
+    execution_config.mailbox_size(),
+    execution_config.send_timeout_microseconds(),
+    execution_config.receive_timeout_microseconds(),
+    execution_config.receive_lock_timeout_microseconds()
+  )
+, behaviour(_behaviour)
 , current_node(_current_node)
 , started(false)
 {
@@ -69,17 +78,7 @@ Process::Process(
 
   if (retval == pdPASS)
   {
-    // Create semaphore to indicate safe-to-receive
-    receive_semaphore = xSemaphoreCreateBinary();
-    if (receive_semaphore)
-    {
-      // Set initial semaphore state
-      xSemaphoreGive(receive_semaphore);
-
-      // Create extra mutex for SMP safety
-      vPortCPUInitializeMutex(&receive_multicore_mutex);
-      started = true;
-    }
+    started = true;
   }
 }
 
@@ -92,25 +91,6 @@ Process::~Process()
   for (const auto& pid2 : links)
   {
     node.exit(pid, pid2, exit_reason);
-  }
-
-  if (receive_semaphore)
-  {
-    // Delete the semaphore within a critical section
-    portENTER_CRITICAL(&receive_multicore_mutex);
-
-    // Acquire the semaphore before deleting it
-    if (xSemaphoreTake(receive_semaphore, timeout(10s)) == pdTRUE)
-    {
-      vSemaphoreDelete(receive_semaphore);
-    }
-    else {
-      ESP_LOGE(
-        get_uuid_str(pid).c_str(),
-        "Unable to delete receive semaphore in ~Process destructor"
-      );
-    }
-    portEXIT_CRITICAL(&receive_multicore_mutex);
   }
 
   // Stop the actor's execution context
@@ -247,6 +227,36 @@ auto Process::get_default_node()
   return default_node;
 }
 
+auto Process::get_default_execution_config()
+  -> const ProcessExecutionConfig&
+{
+  if (_default_execution_config == nullptr)
+  {
+    _default_execution_config_fbb.Finish(
+      CreateProcessExecutionConfig(
+       _default_execution_config_fbb
+      )
+    );
+
+    _default_execution_config = flatbuffers::GetRoot<ProcessExecutionConfig>(
+      _default_execution_config_fbb.GetBufferPointer()
+    );
+  }
+
+  return *(_default_execution_config);
+}
+
+auto Process::_execute()
+  -> ResultUnion
+{
+  auto result = behaviour(pid, mailbox);
+  if (result.type == Result::Error)
+  {
+    exit(result.reason);
+  }
+  return result;
+}
+
 auto process_task(void* user_data)
   -> void
 {
@@ -254,7 +264,7 @@ auto process_task(void* user_data)
 
   if (process != nullptr)
   {
-    process->execute();
+    process->_execute();
   }
 }
 

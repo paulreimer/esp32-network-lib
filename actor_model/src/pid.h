@@ -19,4 +19,6 @@ namespace ActorModel {
 using Pid = UUID::UUID;
 using MaybePid = std::experimental::optional<Pid>;
 
+static Pid& NullPid = UUID::NullUUID;
+
 } // namespace ActorModel

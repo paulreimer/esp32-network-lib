@@ -23,7 +23,6 @@
 #include <unordered_set>
 
 #include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
 
@@ -71,14 +70,14 @@ public:
 
   virtual ~Process();
 
-  virtual
-  auto execute()
-    -> ResultUnion = 0;
+  auto _execute()
+    -> ResultUnion;
 
 protected:
   Process(
     const Pid& _pid,
-    const ProcessExecutionConfig& execution_config,
+    const Behaviour&& _behaviour,
+    const ProcessExecutionConfig& execution_config = get_default_execution_config(),
     const MaybePid& initial_link_pid = std::experimental::nullopt,
     const ProcessDictionary::AncestorList&& _ancestors = {},
     Node* const _current_node = nullptr
@@ -109,6 +108,7 @@ protected:
   const Pid pid;
 
   Mailbox mailbox;
+  Behaviour behaviour;
 
   // References to other processes:
   LinkList links;
@@ -125,13 +125,18 @@ protected:
 
 private:
   TaskHandle_t impl = nullptr;
-  portMUX_TYPE receive_multicore_mutex;
   bool started = false;
+
+  static flatbuffers::FlatBufferBuilder _default_execution_config_fbb;
+  static const ProcessExecutionConfig* _default_execution_config;
 
 // static methods:
 public:
   static auto get_default_node()
     -> Node&;
+
+  static auto get_default_execution_config()
+    -> const ProcessExecutionConfig&;
 };
 
 } // namespace ActorModel

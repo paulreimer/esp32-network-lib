@@ -12,145 +12,142 @@
 
 #include "delay.h"
 
-#include <chrono>
-
 #include "esp_log.h"
 
 namespace ActorModel {
 
-using namespace std::chrono_literals;
+// Helper factory function
+auto _actor_spawn(
+  const ActorBehaviours&& _actor_behaviours,
+  const MaybePid& _initial_link_pid = std::experimental::nullopt,
+  const ExecConfigCallback&& _exec_config_callback = nullptr
+) -> Pid;
 
-// Single behaviour convenience function
-Actor::Actor(
-  const Pid& _pid,
-  const Behaviour&& _behaviour,
-  const ProcessExecutionConfig& execution_config,
-  const MaybePid& initial_link_pid,
-  const Process::ProcessDictionary::AncestorList&& _ancestors,
-  Node* const _current_node
-)
-: Actor(
-  _pid,
-  Behaviours{std::move(_behaviour)},
-  execution_config,
-  initial_link_pid,
-  std::move(_ancestors),
-  _current_node
-)
+// Single actor behaviour convenience function
+auto spawn(
+  const ActorBehaviour&& _actor_behaviour,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
 {
+  return _actor_spawn(
+    {std::move(_actor_behaviour)},
+    std::experimental::nullopt,
+    std::move(_exec_config_callback)
+  );
 }
 
-// Multiple chained behaviours
-Actor::Actor(
-  const Pid& _pid,
-  const Behaviours&& _behaviours,
-  const ProcessExecutionConfig& execution_config,
-  const MaybePid& initial_link_pid,
-  const Process::ProcessDictionary::AncestorList&& _ancestors,
-  Node* const _current_node
-)
-: Process(
-  _pid,
-  execution_config,
-  initial_link_pid,
-  std::move(_ancestors),
-  _current_node
-)
-, state_ptrs(_behaviours.size(), nullptr)
-, behaviours(_behaviours)
+auto spawn_link(
+  const Pid& _initial_link_pid,
+  const ActorBehaviour&& _actor_behaviour,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
 {
+  return _actor_spawn(
+    {std::move(_actor_behaviour)},
+    _initial_link_pid,
+    std::move(_exec_config_callback)
+  );
 }
 
-auto Actor::execute()
-  -> ResultUnion
+// Multiple chained actor behaviours
+auto spawn(
+  const ActorBehaviours&& _actor_behaviours,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
 {
-  // Run forever until loop error or forced exit
-  while(loop())
-  {}
-
-  return {Result::Error, EventTerminationAction::StopProcessing, exit_reason};
+  return _actor_spawn(
+    std::move(_actor_behaviours),
+    std::experimental::nullopt,
+    std::move(_exec_config_callback)
+  );
 }
 
-auto Actor::loop()
-  -> bool
+auto spawn_link(
+  const Pid& _initial_link_pid,
+  const ActorBehaviours&& _actor_behaviours,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
 {
-  ResultUnion result;
+  return _actor_spawn(
+    std::move(_actor_behaviours),
+    _initial_link_pid,
+    std::move(_exec_config_callback)
+  );
+}
 
-  // Check for exit reason not already set (e.g. from timer callback)
-  if (exit_reason.empty())
-  {
-    // Wait for and obtain a reference to a message
-    // (which must be released afterwards)
-    auto _message = mailbox.receive_raw();
-
-    if (not _message.empty())
+auto _actor_spawn(
+  const ActorBehaviours&& _actor_behaviours,
+  const MaybePid& _initial_link_pid,
+  const ExecConfigCallback&& _exec_config_callback
+) -> Pid
+{
+  auto&& actor_behaviour = (
+    [actor_behaviours{std::move(_actor_behaviours)}]
+    (const Pid& pid, Mailbox& mailbox)
+      -> ResultUnion
     {
-      result = process_message(_message);
+      std::vector<StatePtr> state_ptrs(actor_behaviours.size(), nullptr);
 
-      // Release the memory back to the buffer
-      mailbox.release(_message);
-    }
-  }
+      ResultUnion result;
 
-  bool did_error = (result.type == Result::Error);
-  if (did_error)
-  {
-    exit(result.reason);
-  }
-
-  // Continue to loop unless an error was encountered
-  return (not did_error);
-}
-
-auto Actor::process_message(const string_view _message)
-  -> ResultUnion
-{
-  ResultUnion result;
-
-  // Acquire the semaphore before processing this message
-  if (xSemaphoreTake(receive_semaphore, timeout(10s)) == pdTRUE)
-  {
-    if (not _message.empty())
-    {
-      const auto* message = flatbuffers::GetRoot<Message>(_message.data());
-
-      auto idx = 0;
-      for (const auto& behaviour : behaviours)
+      // Run forever until error
+      while (result.type != Result::Error)
       {
-        auto& state = state_ptrs[idx++];
+        // Wait for and obtain a reference to a message
+        const Mailbox::ReceivedMessagePtr& received_message{mailbox.receive()};
 
-        result = behaviour(pid, state, *(message));
-
-        if (result.type == Result::Error)
+        if (received_message)
         {
-          // Exit behaviours loop immediately
-          break;
-        }
+          const auto& _message = received_message->ref();
+          const auto* message = flatbuffers::GetRoot<Message>(_message.data());
 
-        // Exit behaviours loop immediately
-        // Unless behaviour did not handle this message
-        if (
-          not (
-            result.type == Result::Unhandled
-            or result.action == EventTerminationAction::ContinueProcessing
-          )
-        )
-        {
-          break;
+          auto idx = 0;
+          for (const auto& actor_behaviour : actor_behaviours)
+          {
+            auto& state = state_ptrs[idx++];
+
+            result = actor_behaviour(pid, state, *(message));
+
+            if (result.type == Result::Error)
+            {
+              // Exit behaviours loop immediately
+              break;
+            }
+
+            // Exit behaviours loop immediately
+            // Unless behaviour did not handle this message
+            if (
+              not (
+                result.type == Result::Unhandled
+                or result.action == EventTerminationAction::ContinueProcessing
+              )
+            )
+            {
+              break;
+            }
+          }
         }
       }
 
-      xSemaphoreGive(receive_semaphore);
+      return result;
     }
-  }
-  else {
-    ESP_LOGW(
-      get_uuid_str(pid).c_str(),
-      "Unable to acquire receive semaphore in process_message"
+  );
+
+  auto& node = Process::get_default_node();
+  if (_initial_link_pid)
+  {
+    return node.spawn_link(
+      *(_initial_link_pid),
+      actor_behaviour,
+      std::move(_exec_config_callback)
     );
   }
-
-  return result;
+  else {
+    return node.spawn(
+      actor_behaviour,
+      std::move(_exec_config_callback)
+    );
+  }
 }
 
 } // namespace ActorModel

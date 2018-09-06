@@ -8,24 +8,25 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 
+#include "actor.h"
 #include "actor_model.h"
 
 namespace ActorModel {
 
 using string_view = std::experimental::string_view;
-using Reason = Actor::Reason;
+using Reason = Process::Reason;
 
 // free functions bound to default node
 
-// Single behaviour convenience function
+// Generic behaviour convenience functions
 auto spawn(
   const Behaviour&& _behaviour,
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.spawn(
-    {std::move(_behaviour)},
+    std::move(_behaviour),
     std::move(_exec_config_callback)
   );
 }
@@ -36,37 +37,10 @@ auto spawn_link(
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.spawn_link(
     _initial_link_pid,
-    {std::move(_behaviour)},
-    std::move(_exec_config_callback)
-  );
-}
-
-// Multiple chained behaviours
-auto spawn(
-  const Behaviours&& _behaviours,
-  const ExecConfigCallback&& _exec_config_callback
-) -> Pid
-{
-  auto& node = Actor::get_default_node();
-  return node.spawn(
-    std::move(_behaviours),
-    std::move(_exec_config_callback)
-  );
-}
-
-auto spawn_link(
-  const Pid& _initial_link_pid,
-  const Behaviours&& _behaviours,
-  const ExecConfigCallback&& _exec_config_callback
-) -> Pid
-{
-  auto& node = Actor::get_default_node();
-  return node.spawn_link(
-    _initial_link_pid,
-    std::move(_behaviours),
+    std::move(_behaviour),
     std::move(_exec_config_callback)
   );
 }
@@ -77,7 +51,7 @@ auto process_flag(
   const bool flag_setting
 ) -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.process_flag(pid, flag, flag_setting);
 }
 
@@ -86,7 +60,7 @@ auto send(
   const Message& message
 ) -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.send(pid, message);
 }
 
@@ -96,7 +70,7 @@ auto send(
   const string_view payload
 ) -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.send(pid, type, payload);
 }
 
@@ -106,7 +80,7 @@ auto send(
   const std::vector<uint8_t>& payload_vec
 ) -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   const auto payload = string_view{
     reinterpret_cast<const char*>(payload_vec.data()),
     payload_vec.size()
@@ -121,7 +95,7 @@ auto send(
   const flatbuffers::Vector<uint8_t>& payload_fbvec
 ) -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   const auto payload = string_view{
     reinterpret_cast<const char*>(payload_fbvec.data()),
     payload_fbvec.size()
@@ -136,7 +110,7 @@ auto send(
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   auto payload = string_view(
     reinterpret_cast<const char*>(payload_flatbuffer.data()),
     payload_flatbuffer.size()
@@ -150,7 +124,7 @@ auto send_after(
   const Message& message
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.send_after(time, pid, message);
 }
 
@@ -161,7 +135,7 @@ auto send_after(
   const string_view payload
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.send_after(time, pid, type, payload);
 }
 
@@ -172,7 +146,7 @@ auto send_after(
   const std::vector<uint8_t>& payload_vec
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   const auto payload = string_view{
     reinterpret_cast<const char*>(payload_vec.data()),
     payload_vec.size()
@@ -188,7 +162,7 @@ auto send_after(
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   auto payload = string_view(
     reinterpret_cast<const char*>(payload_flatbuffer.data()),
     payload_flatbuffer.size()
@@ -202,7 +176,7 @@ auto send_interval(
   const Message& message
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.send_interval(time, pid, message);
 }
 
@@ -213,7 +187,7 @@ auto send_interval(
   const string_view payload
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.send_interval(time, pid, type, payload);
 }
 
@@ -224,7 +198,7 @@ auto send_interval(
   const std::vector<uint8_t>& payload_vec
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   const auto payload = string_view{
     reinterpret_cast<const char*>(payload_vec.data()),
     payload_vec.size()
@@ -240,7 +214,7 @@ auto send_interval(
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   auto payload = string_view(
     reinterpret_cast<const char*>(payload_flatbuffer.data()),
     payload_flatbuffer.size()
@@ -251,42 +225,42 @@ auto send_interval(
 auto cancel(const TRef tref)
   -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.cancel(tref);
 }
 
 auto register_name(const string_view name, const Pid& pid)
   -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.register_name(name, pid);
 }
 
 auto unregister(const string_view name)
   -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.unregister(name);
 }
 
 auto registered()
   -> const Node::NamedProcessRegistry
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.registered();
 }
 
 auto whereis(const string_view name)
   -> MaybePid
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.whereis(name);
 }
 
 auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   -> bool
 {
-  auto& node = Actor::get_default_node();
+  auto& node = Process::get_default_node();
   return node.exit(pid, pid2, exit_reason);
 }
 

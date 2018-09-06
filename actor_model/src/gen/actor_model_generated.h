@@ -586,7 +586,9 @@ struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tab
     VT_TASK_PRIO = 4,
     VT_TASK_STACK_SIZE = 6,
     VT_MAILBOX_SIZE = 8,
-    VT_DELETE_DELAY_MICROSECONDS = 10
+    VT_SEND_TIMEOUT_MICROSECONDS = 10,
+    VT_RECEIVE_TIMEOUT_MICROSECONDS = 12,
+    VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS = 14
   };
   int32_t task_prio() const {
     return GetField<int32_t>(VT_TASK_PRIO, 5);
@@ -606,18 +608,32 @@ struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tab
   bool mutate_mailbox_size(uint32_t _mailbox_size) {
     return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 2048);
   }
-  uint32_t delete_delay_microseconds() const {
-    return GetField<uint32_t>(VT_DELETE_DELAY_MICROSECONDS, 1000000);
+  uint32_t send_timeout_microseconds() const {
+    return GetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, 4294967295);
   }
-  bool mutate_delete_delay_microseconds(uint32_t _delete_delay_microseconds) {
-    return SetField<uint32_t>(VT_DELETE_DELAY_MICROSECONDS, _delete_delay_microseconds, 1000000);
+  bool mutate_send_timeout_microseconds(uint32_t _send_timeout_microseconds) {
+    return SetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, _send_timeout_microseconds, 4294967295);
+  }
+  uint32_t receive_timeout_microseconds() const {
+    return GetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, 4294967295);
+  }
+  bool mutate_receive_timeout_microseconds(uint32_t _receive_timeout_microseconds) {
+    return SetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, _receive_timeout_microseconds, 4294967295);
+  }
+  uint32_t receive_lock_timeout_microseconds() const {
+    return GetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, 4294967295);
+  }
+  bool mutate_receive_lock_timeout_microseconds(uint32_t _receive_lock_timeout_microseconds) {
+    return SetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, _receive_lock_timeout_microseconds, 4294967295);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TASK_PRIO) &&
            VerifyField<uint32_t>(verifier, VT_TASK_STACK_SIZE) &&
            VerifyField<uint32_t>(verifier, VT_MAILBOX_SIZE) &&
-           VerifyField<uint32_t>(verifier, VT_DELETE_DELAY_MICROSECONDS) &&
+           VerifyField<uint32_t>(verifier, VT_SEND_TIMEOUT_MICROSECONDS) &&
+           VerifyField<uint32_t>(verifier, VT_RECEIVE_TIMEOUT_MICROSECONDS) &&
+           VerifyField<uint32_t>(verifier, VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS) &&
            verifier.EndTable();
   }
 };
@@ -634,8 +650,14 @@ struct ProcessExecutionConfigBuilder {
   void add_mailbox_size(uint32_t mailbox_size) {
     fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 2048);
   }
-  void add_delete_delay_microseconds(uint32_t delete_delay_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_DELETE_DELAY_MICROSECONDS, delete_delay_microseconds, 1000000);
+  void add_send_timeout_microseconds(uint32_t send_timeout_microseconds) {
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_SEND_TIMEOUT_MICROSECONDS, send_timeout_microseconds, 4294967295);
+  }
+  void add_receive_timeout_microseconds(uint32_t receive_timeout_microseconds) {
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_TIMEOUT_MICROSECONDS, receive_timeout_microseconds, 4294967295);
+  }
+  void add_receive_lock_timeout_microseconds(uint32_t receive_lock_timeout_microseconds) {
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, receive_lock_timeout_microseconds, 4294967295);
   }
   explicit ProcessExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -654,9 +676,13 @@ inline flatbuffers::Offset<ProcessExecutionConfig> CreateProcessExecutionConfig(
     int32_t task_prio = 5,
     uint32_t task_stack_size = 2560,
     uint32_t mailbox_size = 2048,
-    uint32_t delete_delay_microseconds = 1000000) {
+    uint32_t send_timeout_microseconds = 4294967295,
+    uint32_t receive_timeout_microseconds = 4294967295,
+    uint32_t receive_lock_timeout_microseconds = 4294967295) {
   ProcessExecutionConfigBuilder builder_(_fbb);
-  builder_.add_delete_delay_microseconds(delete_delay_microseconds);
+  builder_.add_receive_lock_timeout_microseconds(receive_lock_timeout_microseconds);
+  builder_.add_receive_timeout_microseconds(receive_timeout_microseconds);
+  builder_.add_send_timeout_microseconds(send_timeout_microseconds);
   builder_.add_mailbox_size(mailbox_size);
   builder_.add_task_stack_size(task_stack_size);
   builder_.add_task_prio(task_prio);
@@ -870,16 +896,20 @@ inline const flatbuffers::TypeTable *ProcessExecutionConfigTypeTable() {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 },
     { flatbuffers::ET_UINT, 0, -1 }
   };
   static const char * const names[] = {
     "task_prio",
     "task_stack_size",
     "mailbox_size",
-    "delete_delay_microseconds"
+    "send_timeout_microseconds",
+    "receive_timeout_microseconds",
+    "receive_lock_timeout_microseconds"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 6, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }

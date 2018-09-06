@@ -11,6 +11,7 @@
 #pragma once
 
 #include "pid.h"
+#include "received_message.h"
 #include "uuid.h"
 
 #include "actor_model_generated.h"
@@ -21,14 +22,20 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/ringbuf.h"
+#include "freertos/semphr.h"
 
 namespace ActorModel {
 
+class ReceivedMessage;
+
 class Mailbox
 {
+  friend class ReceivedMessage;
 public:
   using string = std::string;
   using string_view = std::experimental::string_view;
+
+  using ReceivedMessagePtr = std::unique_ptr<ReceivedMessage>;
 
   using Address = UUID::UUID;
 
@@ -39,7 +46,12 @@ public:
     UUID::UUIDEqualFunc
   >;
 
-  explicit Mailbox(const size_t _mailbox_size = 2048);
+  explicit Mailbox(
+    const size_t _mailbox_size = 2048,
+    const size_t _send_timeout_microseconds = 0,
+    const size_t _receive_timeout_microseconds = 0,
+    const size_t _receive_lock_timeout_microseconds = 0
+  );
   ~Mailbox();
 
   static auto create_message(
@@ -57,20 +69,29 @@ public:
     const size_t payload_alignment = sizeof(uint64_t)
   ) -> bool;
 
-  auto receive_raw()
-    -> string_view;
-
-  auto release(const string_view message)
-    -> bool;
+  auto receive(bool verify = false)
+    -> ReceivedMessagePtr;
 
   const Address address;
 
 private:
   size_t mailbox_size;
+  size_t send_timeout_ticks;
+  size_t receive_timeout_ticks;
+  size_t receive_lock_timeout_ticks;
   RingbufHandle_t impl;
+  SemaphoreHandle_t receive_semaphore = nullptr;
+  portMUX_TYPE receive_multicore_mutex;
+
+protected:
+  auto release(const string_view message)
+    -> bool;
+
+private:
+  auto receive_raw()
+    -> string_view;
 
 //static methods:
-protected:
   static auto send(const Address& address, const Message& message)
     -> bool;
 
