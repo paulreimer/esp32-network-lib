@@ -247,7 +247,12 @@ auto RequestManager::send(
       char delim = (handler._req_url.find_first_of('?') == string::npos)? '?' : '&';
       for (const auto* arg : *(req->query()))
       {
-        handler._req_url += delim + urlencode(arg->k()->string_view()) + '=' + urlencode(arg->v()->string_view());
+        handler._req_url += (
+          delim
+          + urlencode(arg->k()->string_view())
+          + '='
+          + urlencode(arg->v()->string_view())
+        );
         delim = '&';
       }
     }
