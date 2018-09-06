@@ -24,6 +24,7 @@ using namespace std::chrono_literals;
 
 static Node default_node;
 
+flatbuffers::FlatBufferBuilder Process::_default_execution_config_fbb;
 const ProcessExecutionConfig* Process::_default_execution_config = nullptr;
 
 using string = std::string;
