@@ -65,6 +65,19 @@ constexpr char TAG[] = "mqtt_client";
 #if CONFIG_AWS_IOT_SDK
 extern "C"
 auto disconnect_callback(AWS_IoT_Client *pClient, void *data)
+  -> void;
+
+extern "C"
+auto subscribed_callback(
+  AWS_IoT_Client *pClient,
+  char *topicName,
+  uint16_t topicNameLen,
+  IoT_Publish_Message_Params *params,
+  void *pData
+) -> void;
+
+extern "C"
+auto disconnect_callback(AWS_IoT_Client *pClient, void *data)
   -> void
 {
   ESP_LOGW(TAG, "disconnect_callback");

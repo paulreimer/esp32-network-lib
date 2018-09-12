@@ -20,8 +20,11 @@ using string_view = std::experimental::string_view;
 
 constexpr char TAG[] = "JWT";
 
-int
-esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
+auto esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
+  -> int;
+
+auto esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
+  -> int
 {
   auto i = 0;
   // Fill up the buffer 32-bits at a time (4 chars each gen)
