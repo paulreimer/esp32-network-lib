@@ -14,5 +14,5 @@ COMPONENT_SRCDIRS := \
 	lib/tinyosc
 
 lib/tinyosc/tinyosc.o: CFLAGS += \
-	-D'htonll(x)=((((uint64_t)htonl(x) & 0xFFFFFFFF) << 32) + htonl((x) >> 32))' \
-	-D'ntohll(x)=((((uint64_t)ntohl(x) & 0xFFFFFFFF) << 32) + ntohl((x) >> 32))'
+	-include "${COMPONENT_PATH}/src/src/htonll_ntohll.h" \
+	-Wno-overflow
