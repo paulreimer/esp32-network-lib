@@ -18,7 +18,7 @@
 #include <chrono>
 #include <string>
 
-#include "apps/sntp/sntp.h"
+#include "lwip/apps/sntp.h"
 
 #include "esp_log.h"
 
