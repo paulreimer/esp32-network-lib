@@ -25,6 +25,10 @@ if(CONFIG_AWS_IOT_SDK)
       PROPERTIES
       GENERATED TRUE
     )
+    add_custom_target(
+      ${mqtt_client_config}_JSON_TARGET
+      DEPENDS "secrets/gen/${mqtt_client_config}.mqtt.json"
+    )
     list(APPEND GENERATED_OUTPUTS "secrets/gen/${mqtt_client_config}.mqtt.json")
 
     add_custom_command(
@@ -36,7 +40,9 @@ if(CONFIG_AWS_IOT_SDK)
         "${PROJECT_PATH}/esp32-network-lib/mqtt/mqtt.fbs"
         --force-defaults
         "secrets/gen/${mqtt_client_config}.mqtt.json"
-      DEPENDS "secrets/gen/${mqtt_client_config}.mqtt.json"
+      DEPENDS
+        ${mqtt_client_config}_JSON_TARGET
+        "secrets/gen/${mqtt_client_config}.mqtt.json"
       WORKING_DIRECTORY "${COMPONENT_PATH}"
       VERBATIM
     )
@@ -45,8 +51,11 @@ if(CONFIG_AWS_IOT_SDK)
       PROPERTIES
       GENERATED TRUE
     )
+    add_custom_target(
+      ${mqtt_client_config}_FB_TARGET
+      DEPENDS "secrets/gen/${mqtt_client_config}.mqtt.fb"
+    )
     list(APPEND GENERATED_OUTPUTS "secrets/gen/${mqtt_client_config}.mqtt.fb")
-
 
     add_custom_command(
       OUTPUT "${PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
@@ -54,7 +63,9 @@ if(CONFIG_AWS_IOT_SDK)
         cp
           "secrets/gen/${mqtt_client_config}.mqtt.fb"
           "${PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
-      DEPENDS "secrets/gen/${mqtt_client_config}.mqtt.fb"
+      DEPENDS
+        ${mqtt_client_config}_FB_TARGET
+        "secrets/gen/${mqtt_client_config}.mqtt.fb"
       WORKING_DIRECTORY "${COMPONENT_PATH}"
       VERBATIM
     )
