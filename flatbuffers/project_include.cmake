@@ -7,16 +7,16 @@ function(FLATBUFFERS_GENERATE_GENERATED_H schema_generated_h)
 
     add_custom_command(
       OUTPUT ${OUT}
-      COMMAND flatc
-      ARGS
-        --cpp -o "${COMPONENT_PATH}/src/gen/"
-        -I "${PROJECT_PATH}/esp32-network-lib/uuid"
-        --scoped-enums
-        --gen-mutable
-        --gen-name-strings
-        --reflect-types
-        --reflect-names
-        "${FILE}"
+      COMMAND
+        flatc
+          --cpp -o "${COMPONENT_PATH}/src/gen/"
+          -I "${PROJECT_PATH}/esp32-network-lib/uuid"
+          --scoped-enums
+          --gen-mutable
+          --gen-name-strings
+          --reflect-types
+          --reflect-names
+          "${FILE}"
       DEPENDS "${FILE}"
       COMMENT "Building flatbuffers C++ header for ${FILE}"
       WORKING_DIRECTORY "${COMPONENT_PATH}"
@@ -44,11 +44,11 @@ function(FLATBUFFERS_GENERATE_BFBS schema_bfbs)
 
     add_custom_command(
       OUTPUT ${OUT}
-      COMMAND flatc
-      ARGS
-        --schema -b -o "${COMPONENT_PATH}/src/gen/"
-        -I "${PROJECT_PATH}/esp32-network-lib/uuid"
-        "${FILE}"
+      COMMAND
+        flatc
+          --schema -b -o "${COMPONENT_PATH}/src/gen/"
+          -I "${PROJECT_PATH}/esp32-network-lib/uuid"
+          "${FILE}"
       DEPENDS "${FILE}"
       COMMENT "Building flatbuffers binary schema for ${FILE}"
       WORKING_DIRECTORY "${COMPONENT_PATH}"
