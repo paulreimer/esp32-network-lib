@@ -2,7 +2,7 @@ menu "FATFS Partition Image Configuration"
 
 config FATFS_PARTITION_BASE_ADDR
   hex "FATFS partition base address"
-  range 100000 1FFE000
+  range 100000 33546240
   default 110000
   help
     Starting address of the FATFS partition
