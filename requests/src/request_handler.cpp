@@ -465,7 +465,8 @@ auto RequestHandler::create_partial_response(const string_view chunk)
       ), // body
       0, // errbuf
       request_intent->id()
-    )
+    ),
+    RequestIntentIdentifier()
   );
 
   return fbb.Release();
