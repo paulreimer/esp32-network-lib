@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES actor_model uuid)
+set(COMPONENT_REQUIRES actor_model lwip)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen)
 
