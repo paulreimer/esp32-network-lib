@@ -20,7 +20,17 @@ struct Unhandled;
 
 struct Signal;
 
+struct Function;
+
+struct Module;
+
+struct MFA;
+
 struct SupervisorFlags;
+
+struct ChildSpec;
+
+struct SupervisorArgs;
 
 struct ProcessExecutionConfig;
 
@@ -34,7 +44,17 @@ inline const flatbuffers::TypeTable *UnhandledTypeTable();
 
 inline const flatbuffers::TypeTable *SignalTypeTable();
 
+inline const flatbuffers::TypeTable *FunctionTypeTable();
+
+inline const flatbuffers::TypeTable *ModuleTypeTable();
+
+inline const flatbuffers::TypeTable *MFATypeTable();
+
 inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable();
+
+inline const flatbuffers::TypeTable *ChildSpecTypeTable();
+
+inline const flatbuffers::TypeTable *SupervisorArgsTypeTable();
 
 inline const flatbuffers::TypeTable *ProcessExecutionConfigTypeTable();
 
@@ -181,6 +201,67 @@ template<> struct ResultTraits<Unhandled> {
 
 bool VerifyResult(flatbuffers::Verifier &verifier, const void *obj, Result type);
 bool VerifyResultVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
+enum class ChildSpecRestartFlag : int8_t {
+  permanent = 0,
+  temporary = 1,
+  transient = 2,
+  MIN = permanent,
+  MAX = transient
+};
+
+inline const ChildSpecRestartFlag (&EnumValuesChildSpecRestartFlag())[3] {
+  static const ChildSpecRestartFlag values[] = {
+    ChildSpecRestartFlag::permanent,
+    ChildSpecRestartFlag::temporary,
+    ChildSpecRestartFlag::transient
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesChildSpecRestartFlag() {
+  static const char * const names[] = {
+    "permanent",
+    "temporary",
+    "transient",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameChildSpecRestartFlag(ChildSpecRestartFlag e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesChildSpecRestartFlag()[index];
+}
+
+enum class ChildSpecTypeFlag : int8_t {
+  worker = 0,
+  supervisor = 1,
+  MIN = worker,
+  MAX = supervisor
+};
+
+inline const ChildSpecTypeFlag (&EnumValuesChildSpecTypeFlag())[2] {
+  static const ChildSpecTypeFlag values[] = {
+    ChildSpecTypeFlag::worker,
+    ChildSpecTypeFlag::supervisor
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesChildSpecTypeFlag() {
+  static const char * const names[] = {
+    "worker",
+    "supervisor",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameChildSpecTypeFlag(ChildSpecTypeFlag e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesChildSpecTypeFlag()[index];
+}
 
 struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -502,6 +583,263 @@ inline flatbuffers::Offset<Signal> CreateSignalDirect(
       reason ? _fbb.CreateString(reason) : 0);
 }
 
+struct Function FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return FunctionTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "ActorModel.Function";
+  }
+  enum {
+    VT_NAME = 4,
+    VT_ADDRESS = 6
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  flatbuffers::String *mutable_name() {
+    return GetPointer<flatbuffers::String *>(VT_NAME);
+  }
+  uint64_t address() const {
+    return GetField<uint64_t>(VT_ADDRESS, 0);
+  }
+  bool mutate_address(uint64_t _address) {
+    return SetField<uint64_t>(VT_ADDRESS, _address, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<uint64_t>(verifier, VT_ADDRESS) &&
+           verifier.EndTable();
+  }
+};
+
+struct FunctionBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(Function::VT_NAME, name);
+  }
+  void add_address(uint64_t address) {
+    fbb_.AddElement<uint64_t>(Function::VT_ADDRESS, address, 0);
+  }
+  explicit FunctionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  FunctionBuilder &operator=(const FunctionBuilder &);
+  flatbuffers::Offset<Function> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Function>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Function> CreateFunction(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    uint64_t address = 0) {
+  FunctionBuilder builder_(_fbb);
+  builder_.add_address(address);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Function> CreateFunctionDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    uint64_t address = 0) {
+  return ActorModel::CreateFunction(
+      _fbb,
+      name ? _fbb.CreateString(name) : 0,
+      address);
+}
+
+struct Module FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ModuleTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "ActorModel.Module";
+  }
+  enum {
+    VT_NAME = 4,
+    VT_EXPORTS = 6,
+    VT_PATH = 8
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  flatbuffers::String *mutable_name() {
+    return GetPointer<flatbuffers::String *>(VT_NAME);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<Function>> *exports() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Function>> *>(VT_EXPORTS);
+  }
+  flatbuffers::Vector<flatbuffers::Offset<Function>> *mutable_exports() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Function>> *>(VT_EXPORTS);
+  }
+  const flatbuffers::String *path() const {
+    return GetPointer<const flatbuffers::String *>(VT_PATH);
+  }
+  flatbuffers::String *mutable_path() {
+    return GetPointer<flatbuffers::String *>(VT_PATH);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_EXPORTS) &&
+           verifier.VerifyVector(exports()) &&
+           verifier.VerifyVectorOfTables(exports()) &&
+           VerifyOffset(verifier, VT_PATH) &&
+           verifier.VerifyString(path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ModuleBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(Module::VT_NAME, name);
+  }
+  void add_exports(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Function>>> exports) {
+    fbb_.AddOffset(Module::VT_EXPORTS, exports);
+  }
+  void add_path(flatbuffers::Offset<flatbuffers::String> path) {
+    fbb_.AddOffset(Module::VT_PATH, path);
+  }
+  explicit ModuleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ModuleBuilder &operator=(const ModuleBuilder &);
+  flatbuffers::Offset<Module> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Module>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Module> CreateModule(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Function>>> exports = 0,
+    flatbuffers::Offset<flatbuffers::String> path = 0) {
+  ModuleBuilder builder_(_fbb);
+  builder_.add_path(path);
+  builder_.add_exports(exports);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Module> CreateModuleDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const std::vector<flatbuffers::Offset<Function>> *exports = nullptr,
+    const char *path = nullptr) {
+  return ActorModel::CreateModule(
+      _fbb,
+      name ? _fbb.CreateString(name) : 0,
+      exports ? _fbb.CreateVector<flatbuffers::Offset<Function>>(*exports) : 0,
+      path ? _fbb.CreateString(path) : 0);
+}
+
+struct MFA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MFATypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "ActorModel.MFA";
+  }
+  enum {
+    VT_MODULE_NAME = 4,
+    VT_FUNCTION_NAME = 6,
+    VT_ARGS = 8
+  };
+  const flatbuffers::String *module_name() const {
+    return GetPointer<const flatbuffers::String *>(VT_MODULE_NAME);
+  }
+  flatbuffers::String *mutable_module_name() {
+    return GetPointer<flatbuffers::String *>(VT_MODULE_NAME);
+  }
+  const flatbuffers::String *function_name() const {
+    return GetPointer<const flatbuffers::String *>(VT_FUNCTION_NAME);
+  }
+  flatbuffers::String *mutable_function_name() {
+    return GetPointer<flatbuffers::String *>(VT_FUNCTION_NAME);
+  }
+  const flatbuffers::Vector<uint8_t> *args() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_ARGS);
+  }
+  flatbuffers::Vector<uint8_t> *mutable_args() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_ARGS);
+  }
+  const ActorModel::Message *args_nested_root() const {
+    return flatbuffers::GetRoot<ActorModel::Message>(args()->Data());
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_MODULE_NAME) &&
+           verifier.VerifyString(module_name()) &&
+           VerifyOffset(verifier, VT_FUNCTION_NAME) &&
+           verifier.VerifyString(function_name()) &&
+           VerifyOffset(verifier, VT_ARGS) &&
+           verifier.VerifyVector(args()) &&
+           verifier.EndTable();
+  }
+};
+
+struct MFABuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_module_name(flatbuffers::Offset<flatbuffers::String> module_name) {
+    fbb_.AddOffset(MFA::VT_MODULE_NAME, module_name);
+  }
+  void add_function_name(flatbuffers::Offset<flatbuffers::String> function_name) {
+    fbb_.AddOffset(MFA::VT_FUNCTION_NAME, function_name);
+  }
+  void add_args(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> args) {
+    fbb_.AddOffset(MFA::VT_ARGS, args);
+  }
+  explicit MFABuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  MFABuilder &operator=(const MFABuilder &);
+  flatbuffers::Offset<MFA> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<MFA>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<MFA> CreateMFA(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> module_name = 0,
+    flatbuffers::Offset<flatbuffers::String> function_name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> args = 0) {
+  MFABuilder builder_(_fbb);
+  builder_.add_args(args);
+  builder_.add_function_name(function_name);
+  builder_.add_module_name(module_name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<MFA> CreateMFADirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *module_name = nullptr,
+    const char *function_name = nullptr,
+    const std::vector<uint8_t> *args = nullptr) {
+  return ActorModel::CreateMFA(
+      _fbb,
+      module_name ? _fbb.CreateString(module_name) : 0,
+      function_name ? _fbb.CreateString(function_name) : 0,
+      args ? _fbb.CreateVector<uint8_t>(*args) : 0);
+}
+
 struct SupervisorFlags FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return SupervisorFlagsTypeTable();
@@ -575,6 +913,203 @@ inline flatbuffers::Offset<SupervisorFlags> CreateSupervisorFlags(
   builder_.add_intensity(intensity);
   builder_.add_strategy(strategy);
   return builder_.Finish();
+}
+
+struct ChildSpec FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ChildSpecTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "ActorModel.ChildSpec";
+  }
+  enum {
+    VT_ID = 4,
+    VT_START = 6,
+    VT_RESTART = 8,
+    VT_SHUTDOWN = 10,
+    VT_TYPE = 12,
+    VT_MODULES = 14
+  };
+  const flatbuffers::String *id() const {
+    return GetPointer<const flatbuffers::String *>(VT_ID);
+  }
+  flatbuffers::String *mutable_id() {
+    return GetPointer<flatbuffers::String *>(VT_ID);
+  }
+  const MFA *start() const {
+    return GetPointer<const MFA *>(VT_START);
+  }
+  MFA *mutable_start() {
+    return GetPointer<MFA *>(VT_START);
+  }
+  ChildSpecRestartFlag restart() const {
+    return static_cast<ChildSpecRestartFlag>(GetField<int8_t>(VT_RESTART, 0));
+  }
+  bool mutate_restart(ChildSpecRestartFlag _restart) {
+    return SetField<int8_t>(VT_RESTART, static_cast<int8_t>(_restart), 0);
+  }
+  uint32_t shutdown() const {
+    return GetField<uint32_t>(VT_SHUTDOWN, 5000);
+  }
+  bool mutate_shutdown(uint32_t _shutdown) {
+    return SetField<uint32_t>(VT_SHUTDOWN, _shutdown, 5000);
+  }
+  ChildSpecTypeFlag type() const {
+    return static_cast<ChildSpecTypeFlag>(GetField<int8_t>(VT_TYPE, 0));
+  }
+  bool mutate_type(ChildSpecTypeFlag _type) {
+    return SetField<int8_t>(VT_TYPE, static_cast<int8_t>(_type), 0);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<Module>> *modules() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Module>> *>(VT_MODULES);
+  }
+  flatbuffers::Vector<flatbuffers::Offset<Module>> *mutable_modules() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<Module>> *>(VT_MODULES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_ID) &&
+           verifier.VerifyString(id()) &&
+           VerifyOffsetRequired(verifier, VT_START) &&
+           verifier.VerifyTable(start()) &&
+           VerifyField<int8_t>(verifier, VT_RESTART) &&
+           VerifyField<uint32_t>(verifier, VT_SHUTDOWN) &&
+           VerifyField<int8_t>(verifier, VT_TYPE) &&
+           VerifyOffset(verifier, VT_MODULES) &&
+           verifier.VerifyVector(modules()) &&
+           verifier.VerifyVectorOfTables(modules()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ChildSpecBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_id(flatbuffers::Offset<flatbuffers::String> id) {
+    fbb_.AddOffset(ChildSpec::VT_ID, id);
+  }
+  void add_start(flatbuffers::Offset<MFA> start) {
+    fbb_.AddOffset(ChildSpec::VT_START, start);
+  }
+  void add_restart(ChildSpecRestartFlag restart) {
+    fbb_.AddElement<int8_t>(ChildSpec::VT_RESTART, static_cast<int8_t>(restart), 0);
+  }
+  void add_shutdown(uint32_t shutdown) {
+    fbb_.AddElement<uint32_t>(ChildSpec::VT_SHUTDOWN, shutdown, 5000);
+  }
+  void add_type(ChildSpecTypeFlag type) {
+    fbb_.AddElement<int8_t>(ChildSpec::VT_TYPE, static_cast<int8_t>(type), 0);
+  }
+  void add_modules(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Module>>> modules) {
+    fbb_.AddOffset(ChildSpec::VT_MODULES, modules);
+  }
+  explicit ChildSpecBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ChildSpecBuilder &operator=(const ChildSpecBuilder &);
+  flatbuffers::Offset<ChildSpec> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<ChildSpec>(end);
+    fbb_.Required(o, ChildSpec::VT_ID);
+    fbb_.Required(o, ChildSpec::VT_START);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<ChildSpec> CreateChildSpec(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> id = 0,
+    flatbuffers::Offset<MFA> start = 0,
+    ChildSpecRestartFlag restart = ChildSpecRestartFlag::permanent,
+    uint32_t shutdown = 5000,
+    ChildSpecTypeFlag type = ChildSpecTypeFlag::worker,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Module>>> modules = 0) {
+  ChildSpecBuilder builder_(_fbb);
+  builder_.add_modules(modules);
+  builder_.add_shutdown(shutdown);
+  builder_.add_start(start);
+  builder_.add_id(id);
+  builder_.add_type(type);
+  builder_.add_restart(restart);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<ChildSpec> CreateChildSpecDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *id = nullptr,
+    flatbuffers::Offset<MFA> start = 0,
+    ChildSpecRestartFlag restart = ChildSpecRestartFlag::permanent,
+    uint32_t shutdown = 5000,
+    ChildSpecTypeFlag type = ChildSpecTypeFlag::worker,
+    const std::vector<flatbuffers::Offset<Module>> *modules = nullptr) {
+  return ActorModel::CreateChildSpec(
+      _fbb,
+      id ? _fbb.CreateString(id) : 0,
+      start,
+      restart,
+      shutdown,
+      type,
+      modules ? _fbb.CreateVector<flatbuffers::Offset<Module>>(*modules) : 0);
+}
+
+struct SupervisorArgs FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return SupervisorArgsTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "ActorModel.SupervisorArgs";
+  }
+  enum {
+    VT_CHILD_SPECS = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<ChildSpec>> *child_specs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ChildSpec>> *>(VT_CHILD_SPECS);
+  }
+  flatbuffers::Vector<flatbuffers::Offset<ChildSpec>> *mutable_child_specs() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<ChildSpec>> *>(VT_CHILD_SPECS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_CHILD_SPECS) &&
+           verifier.VerifyVector(child_specs()) &&
+           verifier.VerifyVectorOfTables(child_specs()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SupervisorArgsBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_child_specs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ChildSpec>>> child_specs) {
+    fbb_.AddOffset(SupervisorArgs::VT_CHILD_SPECS, child_specs);
+  }
+  explicit SupervisorArgsBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  SupervisorArgsBuilder &operator=(const SupervisorArgsBuilder &);
+  flatbuffers::Offset<SupervisorArgs> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SupervisorArgs>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SupervisorArgs> CreateSupervisorArgs(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ChildSpec>>> child_specs = 0) {
+  SupervisorArgsBuilder builder_(_fbb);
+  builder_.add_child_specs(child_specs);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SupervisorArgs> CreateSupervisorArgsDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<ChildSpec>> *child_specs = nullptr) {
+  return ActorModel::CreateSupervisorArgs(
+      _fbb,
+      child_specs ? _fbb.CreateVector<flatbuffers::Offset<ChildSpec>>(*child_specs) : 0);
 }
 
 struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -804,6 +1339,44 @@ inline const flatbuffers::TypeTable *ResultTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *ChildSpecRestartFlagTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    ChildSpecRestartFlagTypeTable
+  };
+  static const char * const names[] = {
+    "permanent",
+    "temporary",
+    "transient"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ChildSpecTypeFlagTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    ChildSpecTypeFlagTypeTable
+  };
+  static const char * const names[] = {
+    "worker",
+    "supervisor"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *MessageTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_STRING, 0, -1 },
@@ -873,6 +1446,58 @@ inline const flatbuffers::TypeTable *SignalTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *FunctionTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_ULONG, 0, -1 }
+  };
+  static const char * const names[] = {
+    "name",
+    "address"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ModuleTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
+    { flatbuffers::ET_STRING, 0, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    FunctionTypeTable
+  };
+  static const char * const names[] = {
+    "name",
+    "exports",
+    "path"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *MFATypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_UCHAR, 1, -1 }
+  };
+  static const char * const names[] = {
+    "module_name",
+    "function_name",
+    "args"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -889,6 +1514,51 @@ inline const flatbuffers::TypeTable *SupervisorFlagsTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ChildSpecTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 1 },
+    { flatbuffers::ET_UINT, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, 2 },
+    { flatbuffers::ET_SEQUENCE, 1, 3 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MFATypeTable,
+    ChildSpecRestartFlagTypeTable,
+    ChildSpecTypeFlagTypeTable,
+    ModuleTypeTable
+  };
+  static const char * const names[] = {
+    "id",
+    "start",
+    "restart",
+    "shutdown",
+    "type",
+    "modules"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 6, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *SupervisorArgsTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 1, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    ChildSpecTypeTable
+  };
+  static const char * const names[] = {
+    "child_specs"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

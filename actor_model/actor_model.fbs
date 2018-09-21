@@ -60,11 +60,55 @@ table Signal
   reason:string;
 }
 
+table Function {
+  name:string;
+  address:uint64;
+}
+
+table Module {
+  name:string;
+  exports:[Function];
+  path:string;
+}
+
+table MFA {
+  module_name:string;
+  function_name:string;
+  args:[ubyte] (nested_flatbuffer: "Message");
+}
+
 table SupervisorFlags
 {
   strategy:SupervisionStrategy = one_for_one;
   intensity:uint;
   period:uint;
+}
+
+enum ChildSpecRestartFlag : byte
+{
+  permanent,
+  temporary,
+  transient,
+}
+
+enum ChildSpecTypeFlag : byte {
+  worker,
+  supervisor,
+}
+
+table ChildSpec
+{
+  id:string (required);
+  start:MFA (required);
+  restart:ChildSpecRestartFlag = permanent;
+  shutdown:uint = 5000;
+  type:ChildSpecTypeFlag = worker;
+  modules:[Module];
+}
+
+table SupervisorArgs
+{
+  child_specs:[ChildSpec];
 }
 
 table ProcessExecutionConfig
