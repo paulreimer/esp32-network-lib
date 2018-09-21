@@ -28,7 +28,7 @@ table SubscriptionBuffer {
 }
 
 table MQTTClientConfiguration {
-  host:string;
+  host:string (required);
   port:uint16;
   client_id:string;
   client_username:string;
@@ -44,7 +44,7 @@ table MQTTRequest {
   id:UUID.UUID;
   to_pid:UUID.UUID;
   topic:string;
-  payload:string;
+  payload:string (required);
 }
 
 table MQTTResponse {
@@ -52,13 +52,13 @@ table MQTTResponse {
   request_id:UUID.UUID;
   to_pid:UUID.UUID;
   topic:string;
-  payload:string;
+  payload:string (required);
 }
 */
 
 table MQTTMessage {
-  topic:string;
-  payload:string;
+  topic:string (required);
+  payload:string (required);
   qos:MQTT_QOS = AtMostOnce;
   retain:bool = false;
 }

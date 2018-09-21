@@ -266,7 +266,7 @@ struct MQTTClientConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_HOST) &&
+           VerifyOffsetRequired(verifier, VT_HOST) &&
            verifier.VerifyString(host()) &&
            VerifyField<uint16_t>(verifier, VT_PORT) &&
            VerifyOffset(verifier, VT_CLIENT_ID) &&
@@ -326,6 +326,7 @@ struct MQTTClientConfigurationBuilder {
   flatbuffers::Offset<MQTTClientConfiguration> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MQTTClientConfiguration>(end);
+    fbb_.Required(o, MQTTClientConfiguration::VT_HOST);
     return o;
   }
 };
@@ -417,9 +418,9 @@ struct MQTTMessage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_TOPIC) &&
+           VerifyOffsetRequired(verifier, VT_TOPIC) &&
            verifier.VerifyString(topic()) &&
-           VerifyOffset(verifier, VT_PAYLOAD) &&
+           VerifyOffsetRequired(verifier, VT_PAYLOAD) &&
            verifier.VerifyString(payload()) &&
            VerifyField<int8_t>(verifier, VT_QOS) &&
            VerifyField<uint8_t>(verifier, VT_RETAIN) &&
@@ -450,6 +451,8 @@ struct MQTTMessageBuilder {
   flatbuffers::Offset<MQTTMessage> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MQTTMessage>(end);
+    fbb_.Required(o, MQTTMessage::VT_TOPIC);
+    fbb_.Required(o, MQTTMessage::VT_PAYLOAD);
     return o;
   }
 };
