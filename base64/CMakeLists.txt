@@ -1,5 +1,3 @@
-set(COMPONENT_REQUIRES)
-
 set(COMPONENT_ADD_INCLUDEDIRS lib/libb64/include src)
 
 set(

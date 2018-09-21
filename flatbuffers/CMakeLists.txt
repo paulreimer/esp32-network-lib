@@ -1,5 +1,3 @@
-set(COMPONENT_REQUIRES)
-
 set(COMPONENT_ADD_INCLUDEDIRS lib/flatbuffers/include)
 
 set(COMPONENT_SRCS "lib/flatbuffers/src/reflection.cpp")
