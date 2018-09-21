@@ -126,9 +126,9 @@ struct QueryPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_K) &&
+           VerifyOffsetRequired(verifier, VT_K) &&
            verifier.VerifyString(k()) &&
-           VerifyOffset(verifier, VT_V) &&
+           VerifyOffsetRequired(verifier, VT_V) &&
            verifier.VerifyString(v()) &&
            verifier.EndTable();
   }
@@ -151,6 +151,8 @@ struct QueryPairBuilder {
   flatbuffers::Offset<QueryPair> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<QueryPair>(end);
+    fbb_.Required(o, QueryPair::VT_K);
+    fbb_.Required(o, QueryPair::VT_V);
     return o;
   }
 };
@@ -200,9 +202,9 @@ struct HeaderPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_K) &&
+           VerifyOffsetRequired(verifier, VT_K) &&
            verifier.VerifyString(k()) &&
-           VerifyOffset(verifier, VT_V) &&
+           VerifyOffsetRequired(verifier, VT_V) &&
            verifier.VerifyString(v()) &&
            verifier.EndTable();
   }
@@ -225,6 +227,8 @@ struct HeaderPairBuilder {
   flatbuffers::Offset<HeaderPair> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<HeaderPair>(end);
+    fbb_.Required(o, HeaderPair::VT_K);
+    fbb_.Required(o, HeaderPair::VT_V);
     return o;
   }
 };
@@ -297,7 +301,7 @@ struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_METHOD) &&
            verifier.VerifyString(method()) &&
-           VerifyOffset(verifier, VT_URI) &&
+           VerifyOffsetRequired(verifier, VT_URI) &&
            verifier.VerifyString(uri()) &&
            VerifyOffset(verifier, VT_BODY) &&
            verifier.VerifyVector(body()) &&
@@ -337,6 +341,7 @@ struct RequestBuilder {
   flatbuffers::Offset<Request> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Request>(end);
+    fbb_.Required(o, Request::VT_URI);
     return o;
   }
 };
@@ -673,7 +678,7 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<UUID::UUID>(verifier, VT_ID) &&
+           VerifyFieldRequired<UUID::UUID>(verifier, VT_ID) &&
            VerifyField<UUID::UUID>(verifier, VT_TO_PID) &&
            VerifyOffset(verifier, VT_REQUEST) &&
            verifier.VerifyTable(request()) &&
@@ -728,6 +733,7 @@ struct RequestIntentBuilder {
   flatbuffers::Offset<RequestIntent> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RequestIntent>(end);
+    fbb_.Required(o, RequestIntent::VT_ID);
     return o;
   }
 };

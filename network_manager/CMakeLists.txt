@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES actor_model lwip mdns)
+set(COMPONENT_REQUIRES actor_model lwip mdns tcpip_adapter)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/date/include)
 

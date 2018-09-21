@@ -14,20 +14,20 @@ namespace Requests;
 
 table QueryPair
 {
-  k:string;
-  v:string;
+  k:string (required);
+  v:string (required);
 }
 
 table HeaderPair
 {
-  k:string;
-  v:string;
+  k:string (required);
+  v:string (required);
 }
 
 table Request
 {
   method:string;
-  uri:string;
+  uri:string (required);
   body:[ubyte];
   query:[QueryPair];
   headers:[HeaderPair];
@@ -67,7 +67,7 @@ table ServerSentEvent
 
 table RequestIntent
 {
-  id:UUID.UUID;
+  id:UUID.UUID (required);
   to_pid:UUID.UUID;
   request:Request;
   desired_format:ResponseFilter = FullResponseBody;
