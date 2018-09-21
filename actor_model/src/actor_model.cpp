@@ -264,4 +264,30 @@ auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   return node.exit(pid, pid2, exit_reason);
 }
 
+auto module(const std::experimental::string_view module_flatbuffer)
+ -> bool
+{
+  auto& node = Process::get_default_node();
+  return node.module(module_flatbuffer);
+}
+
+auto apply(
+  const std::experimental::string_view function_name,
+  const std::experimental::string_view args
+) -> ResultUnion
+{
+  auto& node = Process::get_default_node();
+  return node.apply(function_name, args);
+}
+
+auto apply(
+  const std::experimental::string_view module_name,
+  const std::experimental::string_view function_name,
+  const std::experimental::string_view args
+) -> ResultUnion
+{
+  auto& node = Process::get_default_node();
+  return node.apply(module_name, function_name, args);
+}
+
 } // namespace ActorModel

@@ -697,4 +697,92 @@ auto Node::whereis(const string_view name)
   return std::experimental::nullopt;
 }
 
+auto Node::module(const string_view module_flatbuffer)
+ -> bool
+{
+  flatbuffers::Verifier verifier(
+    reinterpret_cast<const uint8_t*>(module_flatbuffer.data()),
+    module_flatbuffer.size()
+  );
+
+  //if (verifier.VerifyBuffer<Module>(MessageIdentifier()))
+  if (verifier.VerifyBuffer<Module>(nullptr))
+  {
+    printf("verified module\n");
+    const auto* module = flatbuffers::GetRoot<Module>(module_flatbuffer.data());
+    if (
+      module
+      and module->name()
+      and module->name()->size() > 0
+    )
+    {
+      const auto inserted = module_registry.emplace(
+        module->name()->str(),
+        ModuleFlatbuffer{
+          module_flatbuffer.begin(),
+          module_flatbuffer.end()
+        }
+      );
+
+      return inserted.second;
+    }
+    else {
+      ESP_LOGE("Node", "Invalid Module flatbuffer");
+    }
+  }
+
+  return false;
+}
+
+auto Node::apply(
+  const string_view function_name,
+  const string_view args
+) -> ResultUnion
+{
+  return {Result::Error};
+}
+
+auto Node::apply(
+  const string_view module_name,
+  const string_view function_name,
+  const string_view args
+) -> ResultUnion
+{
+  const auto& module_iter = module_registry.find(string{module_name});
+  if (module_iter != module_registry.end())
+  {
+    const auto* module = flatbuffers::GetRoot<Module>(
+      module_iter->second.data()
+    );
+
+    if (module and module->exports())
+    {
+      for (const auto* fun : *(module->exports()))
+      {
+        if (
+          fun
+          and fun->name()
+          and fun->name()->string_view() == function_name
+          and fun->address()
+          and fun->address() <= UINTPTR_MAX
+        )
+        {
+          ResultUnion (*f)(const Pid&, const Message&) = (
+            reinterpret_cast<decltype(f)>(fun->address())
+          );
+
+          const auto* _args = flatbuffers::GetRoot<Message>(args.data());
+          if (_args)
+          {
+            //return f(self, message);
+            return f(NullPid, *(_args));
+          }
+        }
+      }
+    }
+  }
+
+  return {Result::Error, "badmatch"};
+}
+
 } // namespace ActorModel

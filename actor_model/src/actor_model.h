@@ -144,6 +144,20 @@ auto registered()
 auto whereis(const std::experimental::string_view name)
   -> MaybePid;
 
+auto module(const std::experimental::string_view module_flatbuffer)
+ -> bool;
+
+auto apply(
+  const std::experimental::string_view function_name,
+  const std::experimental::string_view args
+) -> ResultUnion;
+
+auto apply(
+  const std::experimental::string_view module_name,
+  const std::experimental::string_view function_name,
+  const std::experimental::string_view args
+) -> ResultUnion;
+
 inline
 auto matches(
   const ActorModel::Message& message

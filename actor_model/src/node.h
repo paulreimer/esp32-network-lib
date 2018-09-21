@@ -35,6 +35,11 @@ using SignalRef = size_t;
 using TTL = int;
 using Reason = std::experimental::string_view;
 
+using ModuleFlatbuffer = std::vector<uint8_t>;
+
+using FunctionFlatbuffer = flatbuffers::DetachedBuffer;
+using FunctionMutableFlatbuffer = std::vector<uint8_t>;
+
 constexpr TRef NullTRef = 0;
 constexpr SignalRef NullSignalRef = 0;
 
@@ -79,6 +84,16 @@ public:
     UUID::UUIDEqualFunc
   >;
   using NamedProcessRegistry = std::unordered_map<string, Pid>;
+
+  using ModuleRegistry = std::unordered_map<
+    string,
+    ModuleFlatbuffer
+  >;
+  using FunctionRegistry = std::unordered_map<
+    string,
+    FunctionMutableFlatbuffer
+  >;
+
   using TimedMessages = std::unordered_map<TRef, TimedBufferDelivery>;
   using TimedSignals = std::unordered_map<SignalRef, TimedBufferDelivery>;
 
@@ -161,6 +176,20 @@ public:
   auto whereis(const string_view name)
     -> MaybePid;
 
+  auto module(const string_view module_flatbuffer)
+   -> bool;
+
+  auto apply(
+    const string_view function_name,
+    const string_view args
+  ) -> ResultUnion;
+
+  auto apply(
+    const string_view module_name,
+    const string_view function_name,
+    const string_view args
+  ) -> ResultUnion;
+
   auto timer_callback(const TRef tref)
     -> bool;
 
@@ -192,6 +221,10 @@ protected:
 
   ProcessRegistry process_registry;
   NamedProcessRegistry named_process_registry;
+
+  ModuleRegistry module_registry;
+  FunctionRegistry function_registry;
+
   TimedMessages timed_messages;
   TRef next_tref = 1;
 
