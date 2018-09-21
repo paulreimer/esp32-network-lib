@@ -3,6 +3,7 @@
 #
 
 COMPONENT_DEPENDS := \
+	esp_ringbuf \
 	uuid
 
 COMPONENT_ADD_INCLUDEDIRS := \

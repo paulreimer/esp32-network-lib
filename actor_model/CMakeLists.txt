@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES utils uuid)
+set(COMPONENT_REQUIRES esp_ringbuf utils uuid)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/delegate)
 
