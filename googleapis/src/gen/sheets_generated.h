@@ -63,11 +63,11 @@ struct InsertRowIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyField<UUID::UUID>(verifier, VT_ID) &&
            VerifyField<UUID::UUID>(verifier, VT_TO_PID) &&
-           VerifyOffset(verifier, VT_SPREADSHEET_ID) &&
+           VerifyOffsetRequired(verifier, VT_SPREADSHEET_ID) &&
            verifier.VerifyString(spreadsheet_id()) &&
-           VerifyOffset(verifier, VT_SHEET_NAME) &&
+           VerifyOffsetRequired(verifier, VT_SHEET_NAME) &&
            verifier.VerifyString(sheet_name()) &&
-           VerifyOffset(verifier, VT_VALUES_JSON) &&
+           VerifyOffsetRequired(verifier, VT_VALUES_JSON) &&
            verifier.VerifyString(values_json()) &&
            verifier.EndTable();
   }
@@ -99,6 +99,9 @@ struct InsertRowIntentBuilder {
   flatbuffers::Offset<InsertRowIntent> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InsertRowIntent>(end);
+    fbb_.Required(o, InsertRowIntent::VT_SPREADSHEET_ID);
+    fbb_.Required(o, InsertRowIntent::VT_SHEET_NAME);
+    fbb_.Required(o, InsertRowIntent::VT_VALUES_JSON);
     return o;
   }
 };
