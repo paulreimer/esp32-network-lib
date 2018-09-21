@@ -12,9 +12,9 @@
 
 #include <chrono>
 
+#include "actor_model.h"
 #include "firmware_update.h"
 #include "requests.h"
-#include "actor_model.h"
 
 #include "timestamp.h"
 
@@ -107,40 +107,6 @@ auto firmware_update_actor_behaviour(
     if (
       matches(
         message,
-        "response_chunk",
-        response,
-        state.download_image_request_intent_id
-      )
-    )
-    {
-      auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
-        response->body()->data()
-      );
-
-      if (firmware_update_metadata)
-      {
-        state.pending_firmware_metadata.assign(
-          response->body()->begin(),
-          response->body()->end()
-        );
-
-        if (not state.tick_timer_ref)
-        {
-          // Re-trigger ourselves periodically (timer will be cancelled later)
-          state.tick_timer_ref = send_interval(500ms, self, "tick");
-        }
-
-      }
-
-      return {Result::Ok};
-    }
-  }
-
-  {
-    const Response* response = nullptr;
-    if (
-      matches(
-        message,
         "response_error",
         response,
         state.firmware_update_check_request_intent_id
@@ -165,22 +131,39 @@ auto firmware_update_actor_behaviour(
       )
     )
     {
-      auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
-        response->body()->data()
+      flatbuffers::Verifier verifier(
+        response->body()->data(),
+        response->body()->size()
       );
+      auto verified = VerifyFirmwareMetadataBuffer(verifier);
 
-      if (firmware_update_metadata)
+      if (verified)
       {
-        state.pending_firmware_metadata.assign(
-          response->body()->begin(),
-          response->body()->end()
+        auto firmware_update_metadata = flatbuffers::GetRoot<FirmwareMetadata>(
+          response->body()->data()
         );
 
-        if (not state.tick_timer_ref)
+        if (firmware_update_metadata)
         {
-          // Re-trigger ourselves periodically (timer will be cancelled later)
-          state.tick_timer_ref = send_interval(500ms, self, "tick");
+          state.pending_firmware_metadata.assign(
+            response->body()->begin(),
+            response->body()->end()
+          );
+
+          if (not state.tick_timer_ref)
+          {
+            // Re-trigger ourselves periodically (timer will be cancelled later)
+            state.tick_timer_ref = send_interval(500ms, self, "tick");
+          }
         }
+      }
+      else {
+        ESP_LOGE(
+          TAG,
+          "Invalid FirmwareMetadata buffer received,  HTTP response code %d",
+          response->code()
+        );
+        ESP_LOG_BUFFER_HEXDUMP("response_finished", response->body()->data(), response->body()->size(), ESP_LOG_WARN);
       }
 
       state.firmware_update_check_request_in_progress = false;
