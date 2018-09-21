@@ -26,7 +26,7 @@ enum ProcessFlag:short
 
 table Message
 {
-  type:string;
+  type:string (required);
   timestamp:ulong;
   from_pid:UUID.UUID;
   payload_alignment:uint;
@@ -45,7 +45,7 @@ table Ok
 
 table Error
 {
-  reason:string;
+  reason:string (required);
 }
 
 table Unhandled
