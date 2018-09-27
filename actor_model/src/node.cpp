@@ -772,8 +772,7 @@ auto Node::apply(
           const auto* _args = flatbuffers::GetRoot<Message>(args.data());
           if (_args)
           {
-            //return f(self, message);
-            return f(NullPid, *(_args));
+            return f(pid, *(_args));
           }
         }
       }
