@@ -25,6 +25,7 @@ using string_view = std::experimental::string_view;
 using string = std::string;
 
 using ActorModel::send;
+using ActorModel::whereis;
 
 RequestHandler::RequestHandler(
   const RequestIntentFlatbufferRef& _request_intent_buf_ref
@@ -311,6 +312,12 @@ auto RequestHandler::finish_callback()
 
     // Always send a "response_finished" message, no matter what the response code/state
     send(*(request_intent->to_pid()), "response_finished", partial_response);
+
+    if (is_internal_failure)
+    {
+      auto request_manager_actor_pid = *(whereis("request_manager"));
+      send(request_manager_actor_pid, "exit", errbuf);
+    }
   }
 
 #ifdef REQUESTS_USE_SH2LIB
