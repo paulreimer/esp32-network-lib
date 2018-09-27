@@ -41,6 +41,7 @@ enum EventTerminationAction:byte
 
 table Ok
 {
+  id:UUID.UUID;
 }
 
 table Error

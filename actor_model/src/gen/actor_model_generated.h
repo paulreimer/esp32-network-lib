@@ -390,8 +390,18 @@ struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Ok";
   }
+  enum {
+    VT_ID = 4
+  };
+  const UUID::UUID *id() const {
+    return GetStruct<const UUID::UUID *>(VT_ID);
+  }
+  UUID::UUID *mutable_id() {
+    return GetStruct<UUID::UUID *>(VT_ID);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<UUID::UUID>(verifier, VT_ID) &&
            verifier.EndTable();
   }
 };
@@ -399,6 +409,9 @@ struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct OkBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_id(const UUID::UUID *id) {
+    fbb_.AddStruct(Ok::VT_ID, id);
+  }
   explicit OkBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -412,8 +425,10 @@ struct OkBuilder {
 };
 
 inline flatbuffers::Offset<Ok> CreateOk(
-    flatbuffers::FlatBufferBuilder &_fbb) {
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const UUID::UUID *id = 0) {
   OkBuilder builder_(_fbb);
+  builder_.add_id(id);
   return builder_.Finish();
 }
 
@@ -1402,8 +1417,17 @@ inline const flatbuffers::TypeTable *MessageTypeTable() {
 }
 
 inline const flatbuffers::TypeTable *OkTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    UUID::UUIDTypeTable
+  };
+  static const char * const names[] = {
+    "id"
+  };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
