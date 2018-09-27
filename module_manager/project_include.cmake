@@ -39,8 +39,6 @@ function(MODULE_GENERATE_ELF generated_elf)
           --discard-all
           --discard-locals
           --remove-section=.comment
-          --remove-section=.got
-          --remove-section=.got.loc
           --remove-section=.interp
           --remove-section=.literal
           --remove-section=.strtab

@@ -1,13 +1,17 @@
-set(COMPONENT_REQUIRES gsl embedded_files)
+set(COMPONENT_REQUIRES actor_model gsl embedded_files requests)
 
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/libelfin lib/frozen/include)
+set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/libelfin)
 set(COMPONENT_PRIV_INCLUDEDIRS lib/libelfin/elf)
 
 set(
   COMPONENT_SRCS
+    "lib/libelfin/elf/elf.cc"
+    "lib/libelfin/elf/to_string.cc"
+    "src/file_buffer_loader.cpp"
     "src/loader.cpp"
-    "src/module.cpp"
-    "src/module_task.cpp"
+    "src/executable.cpp"
+    "src/string_view_buffer_loader.cpp"
+    "${COMPONENT_PATH}/src/gen/symbols.c"
 )
 
 register_component()
@@ -34,9 +38,21 @@ set_property(
 )
 
 set_property(
-  SOURCE module_manager.cpp
+  SOURCE "src/module_manager.cpp"
   APPEND PROPERTY
   OBJECT_DEPENDS "src/gen/symbols.c"
+)
+
+set_property(
+  SOURCE "lib/libelfin/elf/elf.cc"
+  APPEND PROPERTY
+  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+)
+
+set_property(
+  SOURCE "lib/libelfin/elf/to_string.cc"
+  APPEND PROPERTY
+  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
 )
 
 add_custom_target(src_gen_symbols_c DEPENDS "src/gen/symbols.c")
