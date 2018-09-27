@@ -11,6 +11,7 @@ set(
     "src/pid.cpp"
     "src/process.cpp"
     "src/received_message.cpp"
+    "src/supervisor_actor_behaviour.cpp"
 )
 
 register_component()
