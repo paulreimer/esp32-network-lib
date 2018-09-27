@@ -148,11 +148,13 @@ auto module(const std::experimental::string_view module_flatbuffer)
  -> bool;
 
 auto apply(
+  const Pid& pid,
   const std::experimental::string_view function_name,
   const std::experimental::string_view args
 ) -> ResultUnion;
 
 auto apply(
+  const Pid& pid,
   const std::experimental::string_view module_name,
   const std::experimental::string_view function_name,
   const std::experimental::string_view args

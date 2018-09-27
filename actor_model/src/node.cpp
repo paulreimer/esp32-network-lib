@@ -735,6 +735,7 @@ auto Node::module(const string_view module_flatbuffer)
 }
 
 auto Node::apply(
+  const Pid& pid,
   const string_view function_name,
   const string_view args
 ) -> ResultUnion
@@ -743,6 +744,7 @@ auto Node::apply(
 }
 
 auto Node::apply(
+  const Pid& pid,
   const string_view module_name,
   const string_view function_name,
   const string_view args

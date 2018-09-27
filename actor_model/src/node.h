@@ -180,11 +180,13 @@ public:
    -> bool;
 
   auto apply(
+    const Pid& pid,
     const string_view function_name,
     const string_view args
   ) -> ResultUnion;
 
   auto apply(
+    const Pid& pid,
     const string_view module_name,
     const string_view function_name,
     const string_view args
