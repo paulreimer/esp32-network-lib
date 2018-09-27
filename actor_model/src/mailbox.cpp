@@ -81,7 +81,8 @@ Mailbox::~Mailbox()
 auto Mailbox::create_message(
   const string_view type,
   const string_view payload,
-  const size_t payload_alignment
+  const size_t payload_alignment,
+  const Pid* from_pid
 ) -> flatbuffers::DetachedBuffer
 {
   using std::chrono::microseconds;
@@ -118,8 +119,7 @@ auto Mailbox::create_message(
     fbb,
     type_str,
     epoch_microseconds,
-    //message.from_pid.get(),
-    nullptr,
+    from_pid,
     payload_alignment,
     payload_bytes
   );
@@ -139,7 +139,8 @@ auto Mailbox::send(const Message& message)
         reinterpret_cast<const char*>(message.payload()->data()),
         message.payload()->size()
       },
-      message.payload_alignment()
+      message.payload_alignment(),
+      message.from_pid()
     );
   }
 
@@ -149,13 +150,20 @@ auto Mailbox::send(const Message& message)
 auto Mailbox::send(
   const string_view type,
   const string_view payload,
-  const size_t payload_alignment
+  const size_t payload_alignment,
+  const Pid* from_pid
 )
   -> bool
 {
   if (impl)
   {
-    const auto&& message = create_message(type, payload, payload_alignment);
+    const auto& message = create_message(
+      type,
+      payload,
+      payload_alignment,
+      from_pid
+    );
+
     // Manually check that message will fit before attempting to send
     if (message.size() < xRingbufferGetCurFreeSize(impl))
     {

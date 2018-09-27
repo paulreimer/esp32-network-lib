@@ -57,7 +57,8 @@ public:
   static auto create_message(
     const string_view type,
     const string_view payload,
-    const size_t payload_alignment = sizeof(uint64_t)
+    const size_t payload_alignment = sizeof(uint64_t),
+    const Pid* from_pid = nullptr
   ) -> flatbuffers::DetachedBuffer;
 
   auto send(const Message& message)
@@ -66,7 +67,8 @@ public:
   auto send(
     const string_view type,
     const string_view payload,
-    const size_t payload_alignment = sizeof(uint64_t)
+    const size_t payload_alignment = sizeof(uint64_t),
+    const Pid* from_pid = nullptr
   ) -> bool;
 
   auto receive(bool verify = false)
