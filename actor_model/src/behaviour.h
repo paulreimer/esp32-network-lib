@@ -12,6 +12,7 @@
 
 #include "mailbox.h"
 #include "pid.h"
+#include "uuid.h"
 
 #include "actor_model_generated.h"
 
@@ -49,9 +50,20 @@ struct ResultUnion
   }
   {}
 
+  ResultUnion(
+    const Result& _type,
+    const UUID::UUID& _id,
+    const EventTerminationAction& _action = EventTerminationAction::ContinueProcessing
+  )
+  : type(_type)
+  , action(_action)
+  , id(_id)
+  {}
+
   Result type;
   EventTerminationAction action;
   std::string reason;
+  UUID::UUID id = UUID::NullUUID;
 };
 
 using ActorBehaviour = delegate<ResultUnion(
