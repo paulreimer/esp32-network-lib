@@ -199,9 +199,8 @@ auto Process::unlink(const Pid& pid2)
 auto Process::process_flag(const ProcessFlag flag, const bool flag_setting)
   -> bool
 {
-  auto inserted = process_flags.emplace(flag, flag_setting);
-
-  return inserted.second;
+  process_flags[flag] = flag_setting;
+  return true;
 }
 
 auto Process::get_process_flag(const ProcessFlag flag)

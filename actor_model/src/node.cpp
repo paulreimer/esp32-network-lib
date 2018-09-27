@@ -606,9 +606,8 @@ auto Node::process_signal(const Pid& pid, const Signal& sig)
 auto Node::register_name(const string_view name, const Pid& pid)
   -> bool
 {
-  auto inserted = named_process_registry.emplace(string{name}, pid);
-
-  return inserted.second;
+  named_process_registry[string{name}] = pid;
+  return true;
 }
 
 auto Node::unregister(const string_view name)
@@ -716,15 +715,12 @@ auto Node::module(const string_view module_flatbuffer)
       and module->name()->size() > 0
     )
     {
-      const auto inserted = module_registry.emplace(
-        module->name()->str(),
-        ModuleFlatbuffer{
-          module_flatbuffer.begin(),
-          module_flatbuffer.end()
-        }
-      );
+      module_registry[module->name()->str()] = ModuleFlatbuffer{
+        module_flatbuffer.begin(),
+        module_flatbuffer.end()
+      };
 
-      return inserted.second;
+      return true;
     }
     else {
       ESP_LOGE("Node", "Invalid Module flatbuffer");
