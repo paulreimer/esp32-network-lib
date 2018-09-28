@@ -174,12 +174,14 @@ RequestManager::RequestManager()
 
 RequestManager::~RequestManager()
 {
+#ifdef REQUESTS_USE_CURL
   for (const auto& req : requests)
   {
     auto& handle = req.first;
     // Remove the request handle from the multi handle
     curl_multi_remove_handle(multi_handle.get(), handle.get());
   }
+#endif // REQUESTS_USE_CURL
 
   mbedtls_x509_crt_free(&cacerts);
 }
