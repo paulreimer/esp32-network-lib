@@ -13,6 +13,9 @@ function(MODULE_GENERATE_ELF generated_elf)
     )
 
     add_library(${MOD_NAME}_LIBRARY OBJECT "${FILE}")
+    set_property(TARGET ${MOD_NAME}_LIBRARY PROPERTY CXX_STANDARD 14)
+    set_property(TARGET ${MOD_NAME}_LIBRARY PROPERTY CXX_STANDARD_REQUIRED ON)
+
     target_include_directories(
       ${MOD_NAME}_LIBRARY
       PRIVATE "$<TARGET_PROPERTY:${COMPONENT_NAME},INCLUDE_DIRECTORIES>"

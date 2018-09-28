@@ -6,6 +6,9 @@ set(COMPONENT_SRCS "src/firmware_update.cpp" "src/firmware_update_actor.cpp")
 
 register_component()
 
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)
 
 set_property(

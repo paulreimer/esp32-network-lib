@@ -18,6 +18,9 @@ set(COMPONENT_EMBED_FILES src/gen/requests.bfbs)
 
 register_component()
 
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+
 set_property(
   SOURCE src/request_manager.cpp
   APPEND PROPERTY

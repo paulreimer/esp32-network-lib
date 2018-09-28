@@ -19,6 +19,9 @@ set(
 
 register_component()
 
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+
 set_source_files_properties(
   src/json_emitter.cpp
   PROPERTIES COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1

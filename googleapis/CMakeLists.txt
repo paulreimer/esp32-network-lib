@@ -17,6 +17,9 @@ set_property(
 
 register_component()
 
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+
 FLATBUFFERS_GENERATE_GENERATED_H(sheets_generated_h sheets.fbs)
 FLATBUFFERS_GENERATE_GENERATED_H(visualization_generated_h visualization.fbs)
 

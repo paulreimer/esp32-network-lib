@@ -6,6 +6,9 @@ set(COMPONENT_SRCS "src/uuid.cpp")
 
 register_component()
 
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+
 FLATBUFFERS_GENERATE_GENERATED_H(uuid_generated_h uuid.fbs)
 
 set_property(
