@@ -16,4 +16,6 @@ COMPONENT_SRCDIRS := \
 COMPONENT_EXTRA_CLEAN := \
 	$(COMPONENT_PATH)/src/gen/udp_server_generated.h
 
+CXXFLAGS += -std=c++14
+
 src/udp_server_actor.o: $(COMPONENT_PATH)/src/gen/udp_server_generated.h

@@ -16,6 +16,8 @@ COMPONENT_SRCDIRS := \
 COMPONENT_EXTRA_CLEAN := \
 	$(COMPONENT_PATH)/src/gen/network_manager_generated.h
 
+CXXFLAGS += -std=c++14
+
 src/ntp.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
 src/ntp_actor.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
 src/mdns_actor.o: $(COMPONENT_PATH)/src/gen/network_manager_generated.h

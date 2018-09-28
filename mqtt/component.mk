@@ -15,6 +15,8 @@ COMPONENT_SRCDIRS := \
 COMPONENT_EMBED_FILES := \
 	src/gen/mqtt.bfbs
 
+CXXFLAGS += -std=c++14
+
 src/mqtt_client_actor.o: $(COMPONENT_PATH)/src/gen/mqtt_generated.h
 src/mqtt_client_actor.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
 

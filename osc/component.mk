@@ -13,6 +13,8 @@ COMPONENT_SRCDIRS := \
 	src \
 	lib/tinyosc
 
+CXXFLAGS += -std=c++14
+
 lib/tinyosc/tinyosc.o: CFLAGS += \
 	-include "${COMPONENT_PATH}/src/htonll_ntohll.h" \
 	-Wno-overflow

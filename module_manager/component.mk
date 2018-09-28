@@ -19,6 +19,7 @@ COMPONENT_EXTRA_CLEAN := \
 	$(COMPONENT_PATH)/src/gen/symbols.c
 
 CXXFLAGS += \
+	-std=c++14 \
 	-D_GLIBCXX_USE_C99=1
 
 # Module/generation configuration:

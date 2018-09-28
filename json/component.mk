@@ -14,4 +14,6 @@ COMPONENT_SRCDIRS := \
 	src \
 	lib/yajl/src
 
+CXXFLAGS += -std=c++14
+
 src/json_emitter.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1

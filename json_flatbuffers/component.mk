@@ -12,3 +12,5 @@ COMPONENT_ADD_INCLUDEDIRS := \
 COMPONENT_SRCDIRS := \
 	src \
 	lib/flatbuffers/src
+
+CXXFLAGS += -std=c++14

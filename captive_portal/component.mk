@@ -15,3 +15,5 @@ COMPONENT_PRIV_INCLUDEDIRS := \
 COMPONENT_SRCDIRS := \
 	src \
 	lib/dns_server
+
+CXXFLAGS += -std=c++14

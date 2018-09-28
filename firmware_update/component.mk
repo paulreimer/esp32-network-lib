@@ -16,6 +16,8 @@ COMPONENT_SRCDIRS := \
 COMPONENT_EXTRA_CLEAN := \
 	$(COMPONENT_PATH)/src/gen/firmware_update_generated.h
 
+CXXFLAGS += -std=c++14
+
 # Depends on firmware_update.fbs
 src/firmware_update.o: $(COMPONENT_PATH)/src/gen/firmware_update_generated.h
 # Depends on top-level VERSION file contents

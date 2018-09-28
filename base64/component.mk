@@ -9,3 +9,5 @@ COMPONENT_ADD_INCLUDEDIRS := \
 COMPONENT_SRCDIRS := \
 	lib/libb64/src \
 	src
+
+CXXFLAGS += -std=c++14

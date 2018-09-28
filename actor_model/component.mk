@@ -19,6 +19,8 @@ COMPONENT_SRCDIRS := \
 COMPONENT_EXTRA_CLEAN := \
 	$(COMPONENT_PATH)/src/gen/actor_model_generated.h
 
+CXXFLAGS += -std=c++14
+
 src/actor.o: $(COMPONENT_PATH)/src/gen/actor_model_generated.h
 src/actor_model.o: $(COMPONENT_PATH)/src/gen/actor_model_generated.h
 src/mailbox.o: $(COMPONENT_PATH)/src/gen/actor_model_generated.h

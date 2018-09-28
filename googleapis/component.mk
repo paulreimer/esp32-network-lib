@@ -20,6 +20,8 @@ COMPONENT_EXTRA_CLEAN := \
 	$(COMPONENT_PATH)/src/gen/sheets_generated.h \
 	$(COMPONENT_PATH)/src/gen/visualization_generated.h
 
+CXXFLAGS += -std=c++14
+
 src/googleapis.o: CXXFLAGS += -D_GLIBCXX_USE_C99=1
 src/googleapis.o: $(COMPONENT_PATH)/src/gen/sheets_generated.h
 src/googleapis.o: $(COMPONENT_PATH)/src/gen/visualization_generated.h

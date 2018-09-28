@@ -25,5 +25,7 @@ CFLAGS += \
 	-DCURL_SOCKET_HASH_TABLE_SIZE=3 \
 	-DCURL_CONNECTION_HASH_SIZE=3
 
+CXXFLAGS += -std=c++14
+
 lib/curl/lib/http2.o: CFLAGS += -Wno-unused-variable
 lib/curl/lib/vtls/mbedtls.o: CFLAGS += -Wno-unused-variable
