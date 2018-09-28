@@ -80,7 +80,12 @@ auto Loader::load_from_path(const string_view path)
         }
       }
       else {
-        ESP_LOGE(TAG, "Could not find segment %d, %d", hdr.offset, hdr.memsz);
+        ESP_LOGE(
+          TAG,
+          "Could not find segment %llu, %llu",
+          hdr.offset,
+          hdr.memsz
+        );
       }
 
       idx++;
@@ -367,7 +372,11 @@ auto Loader::extract_symbols(const elf::elf& parsed_elf, Executable& executable)
           break;
 
         default:
-          ESP_LOGW(TAG, "Unknown elf::stt type %d", sym.get_data().type());
+          ESP_LOGW(
+            TAG,
+            "Unknown elf::stt type %d",
+            static_cast<std::underlying_type_t<elf::stt>>(sym.get_data().type())
+          );
           break;
       }
     }
