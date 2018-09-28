@@ -330,13 +330,13 @@ auto RequestHandler::read_callback(const size_t max_chunk_size)
   -> string_view
 {
   const auto& req = request_intent->request();
-  auto req_body = req->body()->string_view();
+  const auto* req_body = req->body()->data();
 
-  auto byte_count_remaining = (req_body.size() - body_sent_byte_count);
-  auto send_chunk = req_body.substr(
-    body_sent_byte_count,
+  auto byte_count_remaining = (req->body()->size() - body_sent_byte_count);
+  auto send_chunk = string_view{
+    reinterpret_cast<const char*>(req_body + body_sent_byte_count),
     std::min(byte_count_remaining, max_chunk_size)
-  );
+  };
 
   body_sent_byte_count += send_chunk.size();
 
