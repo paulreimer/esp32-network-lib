@@ -10,8 +10,7 @@ COMPONENT_DEPENDS := \
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
 	src/gen \
-	lib/delegate \
-	lib/simple_match/include
+	lib/delegate
 
 COMPONENT_SRCDIRS := \
 	src
