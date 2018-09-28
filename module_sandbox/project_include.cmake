@@ -18,7 +18,8 @@ function(MODULE_GENERATE_ELF generated_elf)
 
     target_include_directories(
       ${MOD_NAME}_LIBRARY
-      PRIVATE "$<TARGET_PROPERTY:${COMPONENT_NAME},INCLUDE_DIRECTORIES>"
+      #PRIVATE "$<TARGET_PROPERTY:${COMPONENT_NAME},INCLUDE_DIRECTORIES>"
+      PRIVATE "$<TARGET_PROPERTY:main,INCLUDE_DIRECTORIES>"
     )
 
     add_custom_command(
