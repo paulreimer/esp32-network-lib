@@ -1,4 +1,14 @@
-set(COMPONENT_REQUIRES actor_model curl embedded_files json nghttp uuid)
+set(
+  COMPONENT_REQUIRES
+    actor_model
+    curl
+    embedded_files
+    esp-tls
+    json
+    nghttp
+    sh2lib
+    uuid
+)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/cpp17_headers/include)
 set(COMPONENT_PRIV_INCLUDEDIRS lib)
