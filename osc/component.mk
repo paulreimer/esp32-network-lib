@@ -3,7 +3,8 @@
 #
 
 COMPONENT_DEPENDS := \
-	flatbuffers
+	flatbuffers \
+	uuid
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \

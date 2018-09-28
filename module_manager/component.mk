@@ -2,6 +2,12 @@
 # Component Makefile
 #
 
+COMPONENT_DEPENDS := \
+	actor_model \
+	gsl \
+	embedded_files \
+	requests
+
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
 	src/gen \

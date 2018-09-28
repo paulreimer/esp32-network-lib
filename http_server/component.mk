@@ -3,7 +3,8 @@
 #
 
 COMPONENT_DEPENDS := \
-	actor_model
+	actor_model \
+	lwip
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \

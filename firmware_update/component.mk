@@ -3,7 +3,10 @@
 #
 
 COMPONENT_DEPENDS := \
-	requests
+	app_update \
+	mbedtls \
+	requests \
+	spi_flash
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \

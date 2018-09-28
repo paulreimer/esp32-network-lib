@@ -2,6 +2,9 @@
 # Component Makefile
 #
 
+COMPONENT_DEPENDS := \
+	flatbuffers
+
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
 	src/gen \

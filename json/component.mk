@@ -2,6 +2,10 @@
 # Component Makefile
 #
 
+COMPONENT_DEPENDS := \
+	actor_model \
+	requests
+
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
 	lib/yajl/include

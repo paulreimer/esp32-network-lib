@@ -3,7 +3,10 @@
 #
 
 COMPONENT_DEPENDS := \
-	actor_model
+	actor_model \
+	lwip \
+	mdns \
+	tcpip_adapter
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \

@@ -3,7 +3,12 @@
 #
 
 COMPONENT_DEPENDS := \
-	actor_model
+	actor_model \
+	curl \
+	embedded_files \
+	json \
+	nghttp \
+	uuid
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \

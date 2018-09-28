@@ -3,7 +3,8 @@
 #
 
 COMPONENT_DEPENDS := \
-	base64
+	base64 \
+	mbedtls
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src

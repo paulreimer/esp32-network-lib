@@ -3,7 +3,11 @@
 #
 
 COMPONENT_DEPENDS := \
-	actor_model
+	actor_model \
+	aws_iot \
+	embedded_files \
+	jwt \
+	uuid
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src/gen \

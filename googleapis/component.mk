@@ -4,7 +4,9 @@
 
 COMPONENT_DEPENDS := \
 	actor_model \
-	requests
+	embedded_files \
+	requests \
+	uuid
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src \
