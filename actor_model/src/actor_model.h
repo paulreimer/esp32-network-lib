@@ -247,14 +247,23 @@ auto matches(
 {
   if (matches(message, type) and (message.payload()->size() > 0))
   {
-    auto fb = flatbuffers::GetRoot<TableT>(
-      message.payload()->data()
+    flatbuffers::Verifier verifier(
+      message.payload()->data(),
+      message.payload()->size()
     );
+    auto verified = verifier.VerifyBuffer<TableT>(nullptr);
 
-    if (fb)
+    if (verified)
     {
-      payload_ptr = fb;
-      return true;
+      auto fb = flatbuffers::GetRoot<TableT>(
+        message.payload()->data()
+      );
+
+      if (fb)
+      {
+        payload_ptr = fb;
+        return true;
+      }
     }
   }
 
@@ -271,12 +280,26 @@ auto matches(
 {
   if (matches(message, type) and (message.payload()->size() > 0))
   {
-    auto fb = flatbuffers::GetRoot<typename TableObjT::TableType>(
-      message.payload()->data()
+    flatbuffers::Verifier verifier(
+      message.payload()->data(),
+      message.payload()->size()
     );
-    fb->UnPackTo(&obj);
+    auto verified = (
+      verifier.VerifyBuffer<typename TableObjT::TableType>(nullptr)
+    );
 
-    return true;
+    if (verified)
+    {
+      auto fb = flatbuffers::GetRoot<typename TableObjT::TableType>(
+        message.payload()->data()
+      );
+
+      if (fb)
+      {
+        fb->UnPackTo(&obj);
+        return true;
+      }
+    }
   }
 
   return false;
