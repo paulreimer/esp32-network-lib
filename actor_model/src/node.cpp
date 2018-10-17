@@ -23,6 +23,12 @@ using namespace std::chrono_literals;
 using UUID::uuidgen;
 
 auto _timer_callback(TimerHandle_t timer_handle)
+  -> void;
+
+auto _signal_timer_callback(TimerHandle_t timer_handle)
+  -> void;
+
+auto _timer_callback(TimerHandle_t timer_handle)
   -> void
 {
   auto& node = Process::get_default_node();
