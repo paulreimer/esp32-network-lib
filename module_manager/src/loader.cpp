@@ -91,8 +91,14 @@ auto Loader::load_from_path(const string_view path)
       idx++;
     }
 
-    apply_relocs(parsed_elf, executable);
-    extract_symbols(parsed_elf, executable);
+    auto did_link = apply_relocs(parsed_elf, executable);
+    if (did_link)
+    {
+      extract_symbols(parsed_elf, executable);
+    }
+    else {
+      executable.clear();
+    }
   }
 
   return executable;
@@ -149,6 +155,8 @@ auto Loader::validate(const elf::elf& parsed_elf)
 auto Loader::apply_relocs(const elf::elf& parsed_elf, Executable& executable)
   -> bool
 {
+  bool did_apply_all_relocs = true;
+
   auto valid = validate(parsed_elf);
 
   if (valid and executable.executable_segment_idx > -1)
@@ -172,34 +180,43 @@ auto Loader::apply_relocs(const elf::elf& parsed_elf, Executable& executable)
       )
     );
 
-    // Relocate rela.dyn section (objects)
-    _apply_relocs_for_section(
-      parsed_elf,
-      rela_dyn,
-      executable,
-      reloc_segment_wip
-    );
+    if (did_apply_all_relocs)
+    {
+      // Relocate rela.dyn section (objects)
+      did_apply_all_relocs = _apply_relocs_for_section(
+        parsed_elf,
+        rela_dyn,
+        executable,
+        reloc_segment_wip
+      );
+    }
 
-    // Relocate rela.plt section (functions)
-    _apply_relocs_for_section(
-      parsed_elf,
-      rela_plt,
-      executable,
-      reloc_segment_wip
-    );
+    if (did_apply_all_relocs)
+    {
+      // Relocate rela.plt section (functions)
+      did_apply_all_relocs = _apply_relocs_for_section(
+        parsed_elf,
+        rela_plt,
+        executable,
+        reloc_segment_wip
+      );
+    }
 
-    // Copy the relocated buffer to executable memory
-    memcpy(
-      (void*)executable.loaded_executable_segment_addr,
-      reloc_segment_wip,
-      executable.executable_segment_aligned_size
-    );
+    if (did_apply_all_relocs)
+    {
+      // Copy the relocated buffer to executable memory
+      memcpy(
+        (void*)executable.loaded_executable_segment_addr,
+        reloc_segment_wip,
+        executable.executable_segment_aligned_size
+      );
+    }
   }
   else {
     ESP_LOGE(TAG, "Invalid ELF binary\n");
   }
 
-  return valid;
+  return (valid and did_apply_all_relocs);
 }
 
 auto Loader::_segment_idx_for_reloc_offset(
@@ -231,6 +248,7 @@ auto Loader::_apply_relocs_for_section(
   uint8_t* __reloc_segment_wip
 ) -> bool
 {
+  bool did_apply_all_relocs = true;
   auto& dynsym = parsed_elf.get_section(".dynsym");
 
   // List of relocations
@@ -312,6 +330,7 @@ auto Loader::_apply_relocs_for_section(
               memcpy(reloc_segment_wip + adjusted_offset, &addr, 4);
             }
             else {
+              did_apply_all_relocs = false;
               ESP_LOGE(TAG, "Failed to resolve %s\n", sym.get_name().c_str());
             }
             break;
@@ -331,7 +350,7 @@ auto Loader::_apply_relocs_for_section(
     }
   }
 
-  return true;
+  return did_apply_all_relocs;
 }
 
 auto Loader::extract_symbols(const elf::elf& parsed_elf, Executable& executable)
