@@ -413,7 +413,13 @@ auto Node::cancel(const TRef tref)
     }
   }
 
-  cancelled_trefs.insert(tref);
+  // Check if the message is actually removed
+  auto erased = timed_messages.erase(tref);
+  if (erased <= 0)
+  {
+    ESP_LOGW("Node", "Could not erase cancelled message for timer %zu", tref);
+  }
+
   return (stopped_timer and deleted_timer);
 }
 
@@ -447,6 +453,13 @@ auto Node::cancel_signal(const SignalRef signal_ref)
         ESP_LOGW("Node", "Could not stop signal timer %zu", signal_ref);
       }
     }
+  }
+
+  // Check if the message is actually removed
+  auto erased = timed_signals.erase(signal_ref);
+  if (erased <= 0)
+  {
+    ESP_LOGW("Node", "Could not erase cancelled signal %zu", signal_ref);
   }
 
   return (stopped_timer and deleted_timer);
@@ -498,23 +511,6 @@ auto Node::timer_callback(const TRef tref)
     if (not timed_message->second.is_recurring)
     {
       cancel(tref);
-    }
-
-    // Garbage collect cancelled TRef if it was marked for cancellation
-    // It should be safe to delete here
-    auto cancelled_tref = cancelled_trefs.find(tref);
-    if (cancelled_tref != cancelled_trefs.end())
-    {
-      // Check if the message is actually removed
-      auto erased = timed_messages.erase(tref);
-      if (erased > 0)
-      {
-        // Remove the TRef cancellation request
-        cancelled_trefs.erase(cancelled_tref);
-      }
-      else {
-        ESP_LOGW("Node", "Could not erase cancelled timer %zu", tref);
-      }
     }
   }
 
@@ -641,25 +637,17 @@ auto Node::terminate(const Pid& pid)
     }
   }
 
-  // Garbage collect cancelled TRefs that pointed to this Pid
-  for (
-    auto i = cancelled_trefs.begin(), end = cancelled_trefs.end();
-    i != end;
-  )
+  // Check the list of timed signals for those which should be cancelled
+  for (const auto& timed_signal_iter : timed_signals)
   {
-    const auto& timed_message = timed_messages.find(*(i));
-    if (
-      timed_message != timed_messages.end()
-      and compare_uuids(timed_message->second.pid, pid)
-    )
+    if (compare_uuids(timed_signal_iter.second.pid, pid))
     {
-      // Delete the timed message resources
-      timed_messages.erase(timed_message);
-      // Remove the TRef cancellation request
-      i = cancelled_trefs.erase(i);
-    }
-    else {
-      ++i;
+      const auto& signal_ref = timed_signal_iter.first;
+      auto cancelled = cancel_signal(signal_ref);
+      if (not cancelled)
+      {
+        ESP_LOGW("Node", "Could not cancel signal %zu before terminating", signal_ref);
+      }
     }
   }
 

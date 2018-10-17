@@ -230,8 +230,6 @@ protected:
   TimedMessages timed_messages;
   TRef next_tref = 1;
 
-  std::set<TRef> cancelled_trefs;
-
   TimedSignals timed_signals;
   SignalRef next_signal_ref = 1;
 private:
