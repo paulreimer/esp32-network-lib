@@ -17,7 +17,7 @@
 #include <chrono>
 
 #include "ping/ping.h"
-#include "ping/esp_ping.h"
+#include "esp_ping.h"
 
 #include "esp_log.h"
 
