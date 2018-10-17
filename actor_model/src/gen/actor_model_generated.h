@@ -89,6 +89,7 @@ inline const char * const *EnumNamesSupervisionStrategy() {
 }
 
 inline const char *EnumNameSupervisionStrategy(SupervisionStrategy e) {
+  if (e < SupervisionStrategy::one_for_one || e > SupervisionStrategy::simple_one_for_one) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesSupervisionStrategy()[index];
 }
@@ -115,6 +116,7 @@ inline const char * const *EnumNamesProcessFlag() {
 }
 
 inline const char *EnumNameProcessFlag(ProcessFlag e) {
+  if (e < ProcessFlag::trap_exit || e > ProcessFlag::trap_exit) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesProcessFlag()[index];
 }
@@ -144,6 +146,7 @@ inline const char * const *EnumNamesEventTerminationAction() {
 }
 
 inline const char *EnumNameEventTerminationAction(EventTerminationAction e) {
+  if (e < EventTerminationAction::StopProcessing || e > EventTerminationAction::ContinueProcessing) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesEventTerminationAction()[index];
 }
@@ -179,6 +182,7 @@ inline const char * const *EnumNamesResult() {
 }
 
 inline const char *EnumNameResult(Result e) {
+  if (e < Result::NONE || e > Result::Unhandled) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesResult()[index];
 }
@@ -230,6 +234,7 @@ inline const char * const *EnumNamesChildSpecRestartFlag() {
 }
 
 inline const char *EnumNameChildSpecRestartFlag(ChildSpecRestartFlag e) {
+  if (e < ChildSpecRestartFlag::permanent || e > ChildSpecRestartFlag::transient) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesChildSpecRestartFlag()[index];
 }
@@ -259,6 +264,7 @@ inline const char * const *EnumNamesChildSpecTypeFlag() {
 }
 
 inline const char *EnumNameChildSpecTypeFlag(ChildSpecTypeFlag e) {
+  if (e < ChildSpecTypeFlag::worker || e > ChildSpecTypeFlag::supervisor) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesChildSpecTypeFlag()[index];
 }

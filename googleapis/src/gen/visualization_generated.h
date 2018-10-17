@@ -83,6 +83,7 @@ inline const char * const *EnumNamesDatatableColumnType() {
 }
 
 inline const char *EnumNameDatatableColumnType(DatatableColumnType e) {
+  if (e < DatatableColumnType::boolean || e > DatatableColumnType::unknown) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesDatatableColumnType()[index];
 }
@@ -115,6 +116,7 @@ inline const char * const *EnumNamesQueryOption() {
 }
 
 inline const char *EnumNameQueryOption(QueryOption e) {
+  if (e < QueryOption::defaults || e > QueryOption::no_values) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesQueryOption()[index];
 }
@@ -177,6 +179,7 @@ inline const char * const *EnumNamesWhereClauseOp() {
 }
 
 inline const char *EnumNameWhereClauseOp(WhereClauseOp e) {
+  if (e < WhereClauseOp::Equals || e > WhereClauseOp::Like) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesWhereClauseOp()[index];
 }
@@ -209,6 +212,7 @@ inline const char * const *EnumNamesWhereClauseJoinOp() {
 }
 
 inline const char *EnumNameWhereClauseJoinOp(WhereClauseJoinOp e) {
+  if (e < WhereClauseJoinOp::And || e > WhereClauseJoinOp::Not) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesWhereClauseJoinOp()[index];
 }

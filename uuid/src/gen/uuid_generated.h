@@ -48,7 +48,7 @@ inline const flatbuffers::TypeTable *UUIDTypeTable() {
     { flatbuffers::ET_ULONG, 0, -1 },
     { flatbuffers::ET_ULONG, 0, -1 }
   };
-  static const int32_t values[] = { 0, 8, 16 };
+  static const int64_t values[] = { 0, 8, 16 };
   static const char * const names[] = {
     "ab",
     "cd"

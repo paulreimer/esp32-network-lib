@@ -54,6 +54,7 @@ inline const char * const *EnumNamesMQTT_QOS() {
 }
 
 inline const char *EnumNameMQTT_QOS(MQTT_QOS e) {
+  if (e < MQTT_QOS::AtMostOnce || e > MQTT_QOS::ExactlyOnce) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesMQTT_QOS()[index];
 }

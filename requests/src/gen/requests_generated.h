@@ -59,6 +59,7 @@ inline const char * const *EnumNamesPostCallbackAction() {
 }
 
 inline const char *EnumNamePostCallbackAction(PostCallbackAction e) {
+  if (e < PostCallbackAction::AbortProcessing || e > PostCallbackAction::ContinueProcessing) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesPostCallbackAction()[index];
 }
@@ -97,6 +98,7 @@ inline const char * const *EnumNamesResponseFilter() {
 }
 
 inline const char *EnumNameResponseFilter(ResponseFilter e) {
+  if (e < ResponseFilter::FullResponseBody || e > ResponseFilter::JsonPathAsFlatbuffers) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesResponseFilter()[index];
 }
