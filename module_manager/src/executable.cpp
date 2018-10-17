@@ -26,16 +26,35 @@ Executable::Executable()
 
 Executable::~Executable()
 {
+  clear();
+}
+
+auto Executable::clear()
+  -> bool
+{
+  // Clear any symbols exported by the executable
+  symbols.clear();
+
+  // Clear any segments and free their buffers
   for(auto& segment : segments)
   {
     free(segment.first);
   }
+  segments.clear();
 
+  // Clear the executable segment from instruction memory, if it was loaded
   if (loaded_executable_segment_addr != nullptr)
   {
     heap_caps_free(loaded_executable_segment_addr);
     loaded_executable_segment_addr = nullptr;
   }
+
+  // Reset the offsets/sizes
+  executable_segment_idx = -1;
+  executable_segment_size = 0;
+  executable_segment_aligned_size = 0;
+
+  return true;
 }
 
 auto Executable::get_symbol_address(const string_view name)

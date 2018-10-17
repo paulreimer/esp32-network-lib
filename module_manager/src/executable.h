@@ -45,6 +45,9 @@ public:
     -> Address;
 
 protected:
+  auto clear()
+    -> bool;
+
   SymbolMap symbols;
   Segments segments;
 
