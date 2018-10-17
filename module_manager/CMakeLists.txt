@@ -1,8 +1,8 @@
 set(COMPONENT_REQUIRES actor_model gsl embedded_files requests utils)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/libelfin)
-set(COMPONENT_PRIV_INCLUDEDIRS lib/libelfin/elf)
 
+set(COMPONENT_PRIV_INCLUDEDIRS lib/libelfin/elf)
 set(
   COMPONENT_SRCS
     "lib/libelfin/elf/elf.cc"
@@ -19,6 +19,19 @@ register_component()
 set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
+set_property(
+  SOURCE "lib/libelfin/elf/elf.cc"
+  APPEND PROPERTY
+  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+)
+
+set_property(
+  SOURCE "lib/libelfin/elf/to_string.cc"
+  APPEND PROPERTY
+  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+)
+
+if(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)
 add_custom_command(
   OUTPUT "src/gen/symbols.c"
   COMMAND sh -c "\
@@ -46,17 +59,6 @@ set_property(
   OBJECT_DEPENDS "src/gen/symbols.c"
 )
 
-set_property(
-  SOURCE "lib/libelfin/elf/elf.cc"
-  APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
-)
-
-set_property(
-  SOURCE "lib/libelfin/elf/to_string.cc"
-  APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
-)
-
 add_custom_target(src_gen_symbols_c DEPENDS "src/gen/symbols.c")
 add_dependencies(${COMPONENT_NAME} src_gen_symbols_c)
+endif(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)

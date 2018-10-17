@@ -1,0 +1,10 @@
+menu "esp32-network-lib Module Manager"
+
+config CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C
+    bool "Enable generation of symbols.c"
+    help
+       Select this option to enable support for loading ELF executables
+       dynamically from file or memory buffer. Generates a list of all symbols
+       in the last-known-good binary image, updates/embeds it in future builds.
+
+endmenu
