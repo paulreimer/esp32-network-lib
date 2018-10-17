@@ -359,6 +359,17 @@ auto RequestManager::send(
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req->body()->data());
     }
 
+    // Specify the maximum request time in milliseconds (abort after this)
+    // Default is 0, which means we never initiate a timeout
+    if (handler.request_intent->timeout_microseconds() > 0)
+    {
+      auto timeout_milliseconds = (
+        handler.request_intent->timeout_microseconds()
+        / 1000
+      );
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_milliseconds);
+    }
+
     const auto& tag = handler.request_intent->request()->uri()->c_str();
     ESP_LOGI(tag, "%s", req->method()->c_str());
     curl_multi_add_handle(multi_handle.get(), curl);

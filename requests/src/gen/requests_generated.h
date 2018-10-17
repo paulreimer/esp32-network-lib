@@ -622,7 +622,8 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ROOT_TYPE = 14,
     VT_SCHEMA_TEXT = 16,
     VT_INCLUDE_HEADERS = 18,
-    VT_STREAMING = 20
+    VT_STREAMING = 20,
+    VT_TIMEOUT_MICROSECONDS = 22
   };
   const UUID::UUID *id() const {
     return GetStruct<const UUID::UUID *>(VT_ID);
@@ -678,6 +679,12 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_streaming(bool _streaming) {
     return SetField<uint8_t>(VT_STREAMING, static_cast<uint8_t>(_streaming), 0);
   }
+  uint32_t timeout_microseconds() const {
+    return GetField<uint32_t>(VT_TIMEOUT_MICROSECONDS, 0);
+  }
+  bool mutate_timeout_microseconds(uint32_t _timeout_microseconds) {
+    return SetField<uint32_t>(VT_TIMEOUT_MICROSECONDS, _timeout_microseconds, 0);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<UUID::UUID>(verifier, VT_ID) &&
@@ -693,6 +700,7 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(schema_text()) &&
            VerifyField<uint8_t>(verifier, VT_INCLUDE_HEADERS) &&
            VerifyField<uint8_t>(verifier, VT_STREAMING) &&
+           VerifyField<uint32_t>(verifier, VT_TIMEOUT_MICROSECONDS) &&
            verifier.EndTable();
   }
 };
@@ -727,6 +735,9 @@ struct RequestIntentBuilder {
   void add_streaming(bool streaming) {
     fbb_.AddElement<uint8_t>(RequestIntent::VT_STREAMING, static_cast<uint8_t>(streaming), 0);
   }
+  void add_timeout_microseconds(uint32_t timeout_microseconds) {
+    fbb_.AddElement<uint32_t>(RequestIntent::VT_TIMEOUT_MICROSECONDS, timeout_microseconds, 0);
+  }
   explicit RequestIntentBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -750,8 +761,10 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntent(
     flatbuffers::Offset<flatbuffers::String> root_type = 0,
     flatbuffers::Offset<flatbuffers::String> schema_text = 0,
     bool include_headers = false,
-    bool streaming = false) {
+    bool streaming = false,
+    uint32_t timeout_microseconds = 0) {
   RequestIntentBuilder builder_(_fbb);
+  builder_.add_timeout_microseconds(timeout_microseconds);
   builder_.add_schema_text(schema_text);
   builder_.add_root_type(root_type);
   builder_.add_object_path(object_path);
@@ -774,7 +787,8 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
     const char *root_type = nullptr,
     const char *schema_text = nullptr,
     bool include_headers = false,
-    bool streaming = false) {
+    bool streaming = false,
+    uint32_t timeout_microseconds = 0) {
   return Requests::CreateRequestIntent(
       _fbb,
       id,
@@ -785,7 +799,8 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
       root_type ? _fbb.CreateString(root_type) : 0,
       schema_text ? _fbb.CreateString(schema_text) : 0,
       include_headers,
-      streaming);
+      streaming,
+      timeout_microseconds);
 }
 
 inline const flatbuffers::TypeTable *PostCallbackActionTypeTable() {
@@ -939,7 +954,8 @@ inline const flatbuffers::TypeTable *RequestIntentTypeTable() {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_BOOL, 0, -1 },
-    { flatbuffers::ET_BOOL, 0, -1 }
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_UINT, 0, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     UUID::UUIDTypeTable,
@@ -955,10 +971,11 @@ inline const flatbuffers::TypeTable *RequestIntentTypeTable() {
     "root_type",
     "schema_text",
     "include_headers",
-    "streaming"
+    "streaming",
+    "timeout_microseconds"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 9, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 10, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

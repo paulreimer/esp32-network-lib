@@ -76,6 +76,7 @@ table RequestIntent
   schema_text:string;
   include_headers:bool = false;
   streaming:bool = false;
+  timeout_microseconds:uint32 = 0;
 }
 
 root_type RequestIntent;
