@@ -17,6 +17,8 @@
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/util.h"
 
+#include <stdio.h>
+
 // Helper functionality for reflection.
 
 namespace flatbuffers {
@@ -176,7 +178,10 @@ class ResizeContext {
         dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
     auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
     delta_ = (delta_ + mask) & ~mask;
-    if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
+    if (!delta_) {  // We can't shrink by less than largest_scalar_t.
+      printf("!delta_ in ResizeContext, We can't shrink by less than %d\n", sizeof(largest_scalar_t));
+      return;
+    }
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(vector_data(buf_));
     Straddle<uoffset_t, 1>(vector_data(buf_), root, vector_data(buf_));
@@ -184,8 +189,10 @@ class ResizeContext {
     // We can now add or remove bytes at start.
     if (delta_ > 0)
       buf_.insert(buf_.begin() + start, delta_, 0);
-    else
+    else {
       buf_.erase(buf_.begin() + start, buf_.begin() + start - delta_);
+      printf("buf_.erase start=%d, delta_=%d\n", start, delta_);
+    }
   }
 
   // Check if the range between first (lower address) and second straddles
