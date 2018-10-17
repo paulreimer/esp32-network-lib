@@ -23,7 +23,7 @@ add_definitions(
 function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
   set(GENERATED_OUTPUTS)
   add_custom_command(
-    OUTPUT "secrets/gen/${req_intent}.req.fb"
+    OUTPUT "${COMPONENT_PATH}/secrets/gen/${req_intent}.req.fb"
     COMMAND flatc --binary
       -o "secrets/gen"
       -I "${PROJECT_PATH}/esp32-network-lib/uuid"
@@ -71,7 +71,7 @@ endfunction()
 function(REQUESTS_EMBED_CERTIFICATE_DER cert)
   set(GENERATED_OUTPUTS)
   add_custom_command(
-    OUTPUT "assets/gen/${cert}.der"
+    OUTPUT "${COMPONENT_PATH}/assets/gen/${cert}.der"
     COMMAND openssl x509 -outform der
       -in "assets/${cert}.pem"
       -out "assets/gen/${cert}.der"
@@ -79,7 +79,7 @@ function(REQUESTS_EMBED_CERTIFICATE_DER cert)
     WORKING_DIRECTORY "${COMPONENT_PATH}"
     VERBATIM
   )
-  list(APPEND GENERATED_OUTPUTS "assets/gen/${cert}.der")
+  list(APPEND GENERATED_OUTPUTS "${COMPONENT_PATH}/assets/gen/${cert}.der")
 
   add_custom_command(
     OUTPUT "${PROJECT_PATH}/fs/${cert}.der"
