@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES esp_ringbuf utils uuid)
+set(COMPONENT_REQUIRES esp_ringbuf heap utils uuid)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/delegate)
 
@@ -8,6 +8,7 @@ set(
     "src/actor_model.cpp"
     "src/mailbox.cpp"
     "src/node.cpp"
+    "src/oom_killer_actor_behaviour.cpp"
     "src/pid.cpp"
     "src/process.cpp"
     "src/received_message.cpp"
@@ -29,11 +30,15 @@ FLATBUFFERS_GENERATE_GENERATED_H(actor_model_generated_h actor_model.fbs)
 
 set_property(
   SOURCE
-    src/actor.cpp
-    src/actor_model.cpp
-    src/mailbox.cpp
-    src/node.cpp
-    src/pid.cpp
+    "src/actor.cpp"
+    "src/actor_model.cpp"
+    "src/mailbox.cpp"
+    "src/node.cpp"
+    "src/oom_killer_actor_behaviour.cpp"
+    "src/pid.cpp"
+    "src/process.cpp"
+    "src/received_message.cpp"
+    "src/supervisor_actor_behaviour.cpp"
   APPEND PROPERTY
   OBJECT_DEPENDS "${actor_model_generated_h_OUTPUTS}"
 )
