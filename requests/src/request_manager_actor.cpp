@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <memory>
+#include <string>
 
 namespace Requests {
 
@@ -24,6 +25,7 @@ using namespace std::chrono_literals;
 using namespace ActorModel;
 
 using string_view = std::experimental::string_view;
+using string = std::string;
 
 auto request_manager_actor_behaviour(
   const Pid& self,
@@ -93,6 +95,18 @@ auto request_manager_actor_behaviour(
       }
 
       return {Result::Ok, EventTerminationAction::ContinueProcessing};
+    }
+  }
+
+  {
+    string exit_reason;
+    if (matches(message, "exit", exit_reason))
+    {
+      return {
+        Result::Error,
+        EventTerminationAction::StopProcessing,
+        exit_reason
+      };
     }
   }
 
