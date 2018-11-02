@@ -57,6 +57,98 @@ auto _set_request_field_by_name(
 auto _parse_requests_schema(
 ) -> bool;
 
+auto make_request_payload(
+  const std::vector<uint8_t>& payload
+) -> RequestIntentFlatbuffer
+{
+  return make_request_payload(
+    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
+  );
+}
+
+auto make_request_payload(
+  const flatbuffers::DetachedBuffer& payload
+) -> RequestIntentFlatbuffer
+{
+  return make_request_payload(
+    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
+  );
+}
+
+auto make_request_payload(
+  const std::experimental::string_view payload
+) -> RequestIntentFlatbuffer
+{
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.ForceDefaults(true);
+
+  // Generate a random ID for this request payload
+  auto request_payload_id = uuidgen();
+
+  fbb.Finish(
+    CreateRequestPayload(
+      fbb,
+      &request_payload_id,
+      fbb.CreateVector(
+        reinterpret_cast<const uint8_t*>(payload.data()),
+        payload.size()
+      )
+    ),
+    RequestIntentIdentifier()
+  );
+
+  return fbb.Release();
+}
+
+auto make_response_payload(
+  const UUID& request_id,
+  const std::vector<uint8_t>& payload
+) -> RequestIntentFlatbuffer
+{
+  return make_response_payload(
+    request_id,
+    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
+  );
+}
+
+auto make_response_payload(
+  const UUID& request_id,
+  const flatbuffers::DetachedBuffer& payload
+) -> RequestIntentFlatbuffer
+{
+  return make_response_payload(
+    request_id,
+    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
+  );
+}
+
+auto make_response_payload(
+  const UUID& request_id,
+  const std::experimental::string_view payload
+) -> RequestIntentFlatbuffer
+{
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.ForceDefaults(true);
+
+  // Generate a random ID for this response payload
+  auto response_payload_id = uuidgen();
+
+  fbb.Finish(
+    CreateResponsePayload(
+      fbb,
+      &response_payload_id,
+      &request_id,
+      fbb.CreateVector(
+        reinterpret_cast<const uint8_t*>(payload.data()),
+        payload.size()
+      )
+    ),
+    RequestIntentIdentifier()
+  );
+
+  return fbb.Release();
+}
+
 auto make_request_intent(
   const string_view method,
   const string_view uri,

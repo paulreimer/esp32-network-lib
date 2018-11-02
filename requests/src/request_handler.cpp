@@ -37,7 +37,7 @@ RequestHandler::RequestHandler(
     _request_intent_buf_ref.buf + _request_intent_buf_ref.len
   );
 
-  request_intent = flatbuffers::GetRoot<RequestIntent>(
+  request_intent = flatbuffers::GetMutableRoot<RequestIntent>(
     request_intent_mutable_buf.data()
   );
 

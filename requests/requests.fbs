@@ -80,6 +80,19 @@ table RequestIntent
   retries:int32 = 0;
 }
 
+table RequestPayload
+{
+  id:UUID.UUID (required);
+  payload:[ubyte];
+}
+
+table ResponsePayload
+{
+  id:UUID.UUID (required);
+  request_id:UUID.UUID (required);
+  payload:[ubyte];
+}
+
 root_type RequestIntent;
 file_extension "fb";
 file_identifier "Req!";

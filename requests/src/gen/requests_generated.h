@@ -22,6 +22,10 @@ struct ServerSentEvent;
 
 struct RequestIntent;
 
+struct RequestPayload;
+
+struct ResponsePayload;
+
 inline const flatbuffers::TypeTable *QueryPairTypeTable();
 
 inline const flatbuffers::TypeTable *HeaderPairTypeTable();
@@ -33,6 +37,10 @@ inline const flatbuffers::TypeTable *ResponseTypeTable();
 inline const flatbuffers::TypeTable *ServerSentEventTypeTable();
 
 inline const flatbuffers::TypeTable *RequestIntentTypeTable();
+
+inline const flatbuffers::TypeTable *RequestPayloadTypeTable();
+
+inline const flatbuffers::TypeTable *ResponsePayloadTypeTable();
 
 enum class PostCallbackAction : int8_t {
   AbortProcessing = 0,
@@ -814,7 +822,172 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
       schema_text ? _fbb.CreateString(schema_text) : 0,
       include_headers,
       streaming,
-      timeout_microseconds);
+      timeout_microseconds,
+      retries);
+}
+
+struct RequestPayload FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return RequestPayloadTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "Requests.RequestPayload";
+  }
+  enum {
+    VT_ID = 4,
+    VT_PAYLOAD = 6
+  };
+  const UUID::UUID *id() const {
+    return GetStruct<const UUID::UUID *>(VT_ID);
+  }
+  UUID::UUID *mutable_id() {
+    return GetStruct<UUID::UUID *>(VT_ID);
+  }
+  const flatbuffers::Vector<uint8_t> *payload() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_PAYLOAD);
+  }
+  flatbuffers::Vector<uint8_t> *mutable_payload() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_PAYLOAD);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyFieldRequired<UUID::UUID>(verifier, VT_ID) &&
+           VerifyOffset(verifier, VT_PAYLOAD) &&
+           verifier.VerifyVector(payload()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RequestPayloadBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_id(const UUID::UUID *id) {
+    fbb_.AddStruct(RequestPayload::VT_ID, id);
+  }
+  void add_payload(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload) {
+    fbb_.AddOffset(RequestPayload::VT_PAYLOAD, payload);
+  }
+  explicit RequestPayloadBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  RequestPayloadBuilder &operator=(const RequestPayloadBuilder &);
+  flatbuffers::Offset<RequestPayload> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<RequestPayload>(end);
+    fbb_.Required(o, RequestPayload::VT_ID);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<RequestPayload> CreateRequestPayload(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const UUID::UUID *id = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload = 0) {
+  RequestPayloadBuilder builder_(_fbb);
+  builder_.add_payload(payload);
+  builder_.add_id(id);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<RequestPayload> CreateRequestPayloadDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const UUID::UUID *id = 0,
+    const std::vector<uint8_t> *payload = nullptr) {
+  return Requests::CreateRequestPayload(
+      _fbb,
+      id,
+      payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
+}
+
+struct ResponsePayload FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ResponsePayloadTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "Requests.ResponsePayload";
+  }
+  enum {
+    VT_ID = 4,
+    VT_REQUEST_ID = 6,
+    VT_PAYLOAD = 8
+  };
+  const UUID::UUID *id() const {
+    return GetStruct<const UUID::UUID *>(VT_ID);
+  }
+  UUID::UUID *mutable_id() {
+    return GetStruct<UUID::UUID *>(VT_ID);
+  }
+  const UUID::UUID *request_id() const {
+    return GetStruct<const UUID::UUID *>(VT_REQUEST_ID);
+  }
+  UUID::UUID *mutable_request_id() {
+    return GetStruct<UUID::UUID *>(VT_REQUEST_ID);
+  }
+  const flatbuffers::Vector<uint8_t> *payload() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_PAYLOAD);
+  }
+  flatbuffers::Vector<uint8_t> *mutable_payload() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_PAYLOAD);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyFieldRequired<UUID::UUID>(verifier, VT_ID) &&
+           VerifyFieldRequired<UUID::UUID>(verifier, VT_REQUEST_ID) &&
+           VerifyOffset(verifier, VT_PAYLOAD) &&
+           verifier.VerifyVector(payload()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ResponsePayloadBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_id(const UUID::UUID *id) {
+    fbb_.AddStruct(ResponsePayload::VT_ID, id);
+  }
+  void add_request_id(const UUID::UUID *request_id) {
+    fbb_.AddStruct(ResponsePayload::VT_REQUEST_ID, request_id);
+  }
+  void add_payload(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload) {
+    fbb_.AddOffset(ResponsePayload::VT_PAYLOAD, payload);
+  }
+  explicit ResponsePayloadBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ResponsePayloadBuilder &operator=(const ResponsePayloadBuilder &);
+  flatbuffers::Offset<ResponsePayload> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<ResponsePayload>(end);
+    fbb_.Required(o, ResponsePayload::VT_ID);
+    fbb_.Required(o, ResponsePayload::VT_REQUEST_ID);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<ResponsePayload> CreateResponsePayload(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const UUID::UUID *id = 0,
+    const UUID::UUID *request_id = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> payload = 0) {
+  ResponsePayloadBuilder builder_(_fbb);
+  builder_.add_payload(payload);
+  builder_.add_request_id(request_id);
+  builder_.add_id(id);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<ResponsePayload> CreateResponsePayloadDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const UUID::UUID *id = 0,
+    const UUID::UUID *request_id = 0,
+    const std::vector<uint8_t> *payload = nullptr) {
+  return Requests::CreateResponsePayload(
+      _fbb,
+      id,
+      request_id,
+      payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
 }
 
 inline const flatbuffers::TypeTable *PostCallbackActionTypeTable() {
@@ -987,10 +1160,49 @@ inline const flatbuffers::TypeTable *RequestIntentTypeTable() {
     "schema_text",
     "include_headers",
     "streaming",
-    "timeout_microseconds"
+    "timeout_microseconds",
+    "retries"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 10, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *RequestPayloadTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_UCHAR, 1, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    UUID::UUIDTypeTable
+  };
+  static const char * const names[] = {
+    "id",
+    "payload"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ResponsePayloadTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_UCHAR, 1, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    UUID::UUIDTypeTable
+  };
+  static const char * const names[] = {
+    "id",
+    "request_id",
+    "payload"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

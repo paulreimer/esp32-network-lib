@@ -16,15 +16,44 @@
 
 #include "requests_generated.h"
 
+#include <experimental/string_view>
 #include <utility>
 #include <vector>
-#include <experimental/string_view>
 
 namespace Requests {
 
+using RequestPayloadFlatbuffer = flatbuffers::DetachedBuffer;
+using ResponsePayloadFlatbuffer = flatbuffers::DetachedBuffer;
 using RequestIntentFlatbuffer = flatbuffers::DetachedBuffer;
 using RequestIntentFlatbufferRef = flatbuffers::BufferRef<RequestIntent>;
 using MutableRequestIntentFlatbuffer = std::vector<uint8_t>;
+
+auto make_request_payload(
+  const std::vector<uint8_t>& payload
+) -> RequestIntentFlatbuffer;
+
+auto make_request_payload(
+  const flatbuffers::DetachedBuffer& payload
+) -> RequestIntentFlatbuffer;
+
+auto make_request_payload(
+  const std::experimental::string_view payload
+) -> RequestIntentFlatbuffer;
+
+auto make_response_payload(
+  const UUID::UUID& request_id,
+  const std::vector<uint8_t>& payload
+) -> RequestIntentFlatbuffer;
+
+auto make_response_payload(
+  const UUID::UUID& request_id,
+  const flatbuffers::DetachedBuffer& payload
+) -> RequestIntentFlatbuffer;
+
+auto make_response_payload(
+  const UUID::UUID& request_id,
+  const std::experimental::string_view payload
+) -> RequestIntentFlatbuffer;
 
 auto make_request_intent(
   const std::experimental::string_view method,
