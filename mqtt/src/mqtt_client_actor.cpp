@@ -11,6 +11,7 @@
 #include "mqtt_client_actor.h"
 
 #include "actor_model.h"
+#include "filesystem.h"
 #include "jwt.h"
 #include "mqtt.h"
 
@@ -191,19 +192,34 @@ auto mqtt_client_actor_behaviour(
       state.init_params.disconnectHandlerData = nullptr;
 
       // Set the root certificate path
-      if (mqtt_client_config->root_certificate_path())
+      if (
+        mqtt_client_config->root_certificate_path()
+        and filesystem_exists(
+          mqtt_client_config->root_certificate_path()->string_view()
+        )
+      )
       {
         state.init_params.pRootCALocation =
           mqtt_client_config->root_certificate_path()->c_str();
       }
       // Set the client certificate path
-      if (mqtt_client_config->client_certificate_path())
+      if (
+        mqtt_client_config->client_certificate_path()
+        and filesystem_exists(
+          mqtt_client_config->client_certificate_path()->string_view()
+        )
+      )
       {
         state.init_params.pDeviceCertLocation =
           mqtt_client_config->client_certificate_path()->c_str();
       }
       // Set the client private key path
-      if (mqtt_client_config->client_private_key_path())
+      if (
+        mqtt_client_config->client_private_key_path()
+        and filesystem_exists(
+          mqtt_client_config->client_private_key_path()->string_view()
+        )
+      )
       {
         state.init_params.pDevicePrivateKeyLocation =
           mqtt_client_config->client_private_key_path()->c_str();

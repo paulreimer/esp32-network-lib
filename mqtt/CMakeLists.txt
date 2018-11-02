@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES actor_model aws_iot embedded_files jwt uuid)
+set(COMPONENT_REQUIRES actor_model aws_iot embedded_files jwt uuid utils)
 
 set(COMPONENT_ADD_INCLUDEDIRS src/gen src)
 
