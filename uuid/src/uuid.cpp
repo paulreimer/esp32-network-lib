@@ -107,22 +107,32 @@ auto uuidgen(UUID* uuid_ptr)
   }
 }
 
-auto update_uuid(std::unique_ptr<UUID>& uuid_ptr, const UUID& uuid)
+auto update_uuid(std::unique_ptr<UUID>& to_uuid_ptr, const UUID& from_uuid)
   -> void
 {
-  uuid_ptr.reset(new UUID{
-    uuid.ab(),
-    uuid.cd()
+  to_uuid_ptr.reset(new UUID{
+    from_uuid.ab(),
+    from_uuid.cd()
   });
 }
 
-auto update_uuid(UUID* uuid_ptr, const UUID& uuid)
+auto update_uuid(UUID* to_uuid_ptr, const UUID& from_uuid)
   -> void
 {
-  if (uuid_ptr)
+  if (to_uuid_ptr)
   {
-    uuid_ptr->mutate_ab(uuid.ab());
-    uuid_ptr->mutate_cd(uuid.cd());
+    to_uuid_ptr->mutate_ab(from_uuid.ab());
+    to_uuid_ptr->mutate_cd(from_uuid.cd());
+  }
+}
+
+auto update_uuid(UUID& to_uuid, const UUID* from_uuid_ptr)
+  -> void
+{
+  if (from_uuid_ptr)
+  {
+    to_uuid.mutate_ab(from_uuid_ptr->ab());
+    to_uuid.mutate_cd(from_uuid_ptr->cd());
   }
 }
 
