@@ -567,48 +567,73 @@ auto RequestManager::wait_any()
       // If a matching request handle was found
       if (done_req != requests.end())
       {
+        auto& handle = done_req->first;
         auto& handler = done_req->second;
         const auto& tag = handler.request_intent->request()->uri()->c_str();
         auto response_code = handler.response_code;
 
-        handler.finish_callback();
-
-        // Reset the previous response error code
-        handler.response_code = -1;
-
-        // Clear the list of headers used in the response
-        //handler.response_headers.clear();
-
-        // Reset the c-string contents to zero-length, null-terminated
-        handler.errbuf[0] = 0;
-
-        if (not handler.request_intent->streaming())
+        if (handler.request_intent->streaming())
         {
+          ESP_LOGI(
+            tag,
+            "Leaving completed request connection open for streaming"
+          );
+
+          handler.finish_callback();
+
+          // Reset the previous response error code
+          handler.response_code = -1;
+
+          // Reset the c-string contents to zero-length, null-terminated
+          handler.errbuf[0] = 0;
+        }
+        else {
           // Remove the request handle from the multi handle
           curl_multi_remove_handle(multi_handle.get(), done_handle);
 
-          // Reset request/response state
-          if (handler.slist)
+          if (
+            (response_code < 0 or response_code >= 500)
+            and handler.request_intent->retries() > 0
+          )
           {
-            // Free the list of headers used in the request
-            curl_slist_free_all(handler.slist);
-            handler.slist = nullptr;
-          }
+            ESP_LOGW(tag, "Retrying request with error %d", response_code);
+            curl_multi_add_handle(multi_handle.get(), handle.get());
 
-          if (response_code > 0)
-          {
-            ESP_LOGI(tag, "Deleting completed request handle");
+            // Decrement the remaining retry count
+            handler.request_intent->mutate_retries(
+              handler.request_intent->retries() - 1
+            );
           }
           else {
-            ESP_LOGW(tag, "Deleting failed request handle");
-          }
+            // Succeeded or no more retries, return the final result
+            handler.finish_callback();
 
-          // Dispose handle (curl_multi may retain it in the connection cache)
-          // Cleanup, free request handle and RequestT/ResponseT objects
-          requests.erase(done_req);
-        }
-        else {
-          ESP_LOGI(tag, "Leaving completed request connection open for streaming");
+            // Reset the previous response error code
+            handler.response_code = -1;
+
+            // Reset the c-string contents to zero-length, null-terminated
+            handler.errbuf[0] = 0;
+
+            // Reset request/response state
+            if (handler.slist)
+            {
+              // Free the list of headers used in the request
+              curl_slist_free_all(handler.slist);
+              handler.slist = nullptr;
+            }
+
+            if (response_code > 0)
+            {
+              ESP_LOGI(tag, "Deleting completed request handle");
+            }
+            else {
+              ESP_LOGW(tag, "Deleting failed request handle");
+            }
+
+            // Dispose handle (curl_multi may retain it in the connection cache)
+            // Cleanup, free request handle and RequestT/ResponseT objects
+            requests.erase(done_req);
+          }
         }
       }
     }
