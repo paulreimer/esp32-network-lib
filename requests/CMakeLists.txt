@@ -17,6 +17,7 @@ set(
   COMPONENT_SRCS
     "src/curl_library_info.cpp"
     "src/http_utils.cpp"
+    "src/queued_endpoint_actor.cpp"
     "src/request_handler.cpp"
     "src/request_manager.cpp"
     "src/request_manager_actor.cpp"
