@@ -13,6 +13,10 @@
 #include <experimental/string_view>
 #include <vector>
 
+auto filesystem_exists(
+  std::experimental::string_view path
+) -> bool;
+
 auto filesystem_read(
   std::experimental::string_view path
 ) -> std::vector<uint8_t>;
