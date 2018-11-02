@@ -93,7 +93,7 @@ auto subscribed_callback(
   void *pData
 ) -> void
 {
-  ESP_LOGW(TAG, "subscribed_callback");
+  ESP_LOGW(TAG, "subscribed_callback, topic: '%.*s'", topicNameLen, topicName);
 }
 #endif // CONFIG_AWS_IOT_SDK
 
@@ -281,12 +281,13 @@ auto mqtt_client_actor_behaviour(
     {
       if (subscription->topic() and subscription->topic()->size() > 0)
       {
-        ESP_LOGI(TAG, "Subscribing...");
+        const auto qos = static_cast<int8_t>(subscription->qos());
+        ESP_LOGI(TAG, "Subscribing at QoS %d...", qos);
         auto rc = aws_iot_mqtt_subscribe(
           &state.mqtt_client,
           subscription->topic()->data(),
           subscription->topic()->size(),
-          static_cast<QoS>(static_cast<int8_t>(subscription->qos())),
+          static_cast<QoS>(qos),
           subscribed_callback,
           nullptr
         );
