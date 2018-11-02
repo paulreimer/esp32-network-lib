@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES actor_model gsl embedded_files requests)
+set(COMPONENT_REQUIRES actor_model gsl embedded_files requests utils)
 
 set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/libelfin)
 set(COMPONENT_PRIV_INCLUDEDIRS lib/libelfin/elf)
