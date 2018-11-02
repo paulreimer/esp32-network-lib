@@ -1,24 +1,11 @@
 if(CONFIG_AWS_IOT_SDK)
   function(MQTT_EMBED_CLIENT_CONFIG mqtt_client_config)
     set(GENERATED_OUTPUTS)
-    add_custom_command(
-      OUTPUT "secrets/gen/${mqtt_client_config}.mqtt.json"
-      COMMAND
-        sed
-        -e "s#@CONFIG_MQTT_HOST@#${CONFIG_MQTT_HOST}#"
-        -e "s#@CONFIG_MQTT_PORT@#${CONFIG_MQTT_PORT}#"
-        -e "s#@CONFIG_MQTT_CLIENT_ID@#${CONFIG_MQTT_CLIENT_ID}#"
-        -e "s#@CONFIG_MQTT_CLIENT_USERNAME@#${CONFIG_MQTT_CLIENT_USERNAME}#"
-        -e "s#@CONFIG_MQTT_CLIENT_PASSWORD@#${CONFIG_MQTT_CLIENT_PASSWORD}#"
-        -e "s#@CONFIG_MQTT_CLIENT_CERTIFICATE_PATH@#${CONFIG_MQTT_CLIENT_CERTIFICATE_PATH}#"
-        -e "s#@CONFIG_MQTT_CLIENT_PRIVATE_KEY_PATH@#${CONFIG_MQTT_CLIENT_PRIVATE_KEY_PATH}#"
-        -e "s#@CONFIG_MQTT_ROOT_CERTIFICATE_PATH@#${CONFIG_MQTT_ROOT_CERTIFICATE_PATH}#"
-        -e "s#@CONFIG_MQTT_INITIAL_SUBSCRIPTION_TOPIC@#${CONFIG_MQTT_INITIAL_SUBSCRIPTION_TOPIC}#"
-        "templates/${mqtt_client_config}.mqtt.json.tpl"
-        > "secrets/gen/${mqtt_client_config}.mqtt.json"
-      DEPENDS "templates/${mqtt_client_config}.mqtt.json.tpl"
-      WORKING_DIRECTORY "${COMPONENT_PATH}"
-      VERBATIM
+
+    configure_file(
+      "templates/${mqtt_client_config}.mqtt.json.tpl"
+      "${COMPONENT_PATH}/secrets/gen/${mqtt_client_config}.mqtt.json"
+      @ONLY
     )
     set_source_files_properties(
       "secrets/gen/${mqtt_client_config}.mqtt.json"
