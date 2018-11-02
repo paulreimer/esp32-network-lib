@@ -13,6 +13,7 @@
 #include "http_utils.h"
 
 #include <algorithm>
+#include <vector>
 
 #include <cstdio>
 #include <cstdlib>
@@ -222,7 +223,9 @@ auto RequestManager::fetch(
     }
   }
   else {
-    const auto& tag = existing_handler->second.request_intent->request()->uri()->c_str();
+    const auto& tag = (
+      existing_handler->second.request_intent->request()->uri()->c_str()
+    );
     ESP_LOGE(
       tag,
       "Will not replace existing request handler. Use patch() instead.\n"
@@ -291,7 +294,8 @@ auto RequestManager::send(
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 #endif
 
-    // Waiting for pending connections to be established, to multiplex if possible
+    // Waiting for pending connections to be established,
+    // to multiplex if possible
     curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1L);
 
     // Do not include headers in the response stream
@@ -309,7 +313,7 @@ auto RequestManager::send(
     // Verify SSL certificates with CA cert(s)
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     // Expect PEM formatted CA cert(s)
-    //curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+    // curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
     // Use a function to supply PEM contents of CA cert(s) in memory buffer
     curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, sslctx_function);
     // Set user data pointer attached to the sslctx function for this request
@@ -319,7 +323,7 @@ auto RequestManager::send(
     curl_easy_setopt(curl, CURLOPT_CAINFO, NULL);
     curl_easy_setopt(curl, CURLOPT_CAPATH, NULL);
 
-    if (handler.slist)
+    if (handler.slist != nullptr)
     {
       // Reset existing headers
       curl_slist_free_all(handler.slist);
@@ -452,8 +456,8 @@ auto RequestManager::send(
       std::vector<nghttp2_nv> nva_vec = {
         SH2LIB_MAKE_NV(":method", req->method()->c_str(), flags),
         {
-          (uint8_t *)":path",
-          (uint8_t *)handler._path.data(),
+          (uint8_t*)(":path"),
+          (uint8_t*)(handler._path.data()),
           strlen(":path"),
           handler._path.size(),
           flags
@@ -489,8 +493,8 @@ auto RequestManager::send(
         auto content_length = std::to_string(req->body()->size());
 
         nva_vec.emplace_back(nghttp2_nv{
-          (uint8_t*)"Content-Length",
-          (uint8_t*)content_length.data(),
+          (uint8_t*)("Content-Length"),
+          (uint8_t*)(content_length.data()),
           strlen("Content-Length"),
           content_length.size(),
           flags
@@ -671,7 +675,7 @@ auto RequestManager::wait_any()
 auto RequestManager::wait_all()
   -> size_t
 {
-  while (wait_any())
+  while (wait_any() > 0)
   {}
 
   return requests.size();
@@ -730,8 +734,10 @@ auto RequestManager::add_cacert_der(const string_view cacert_der)
     return true;
   }
   else {
-    ESP_LOGE(TAG, "Unable to parse CA cert string as DER data '%.*s'",
-      cacert_der.size(), cacert_der.data()
+    ESP_LOGE(
+      TAG,
+      "Unable to parse CA cert string as DER data (%d bytes)",
+      cacert_der.size()
     );
   }
 

@@ -351,7 +351,7 @@ auto RequestHandler::header_callback(const string_view k, const string_view v)
   {
     if (k == ":status")
     {
-      //TODO: parse v into number
+      // TODO: parse v into number
       auto _code = std::atoi(string{v}.c_str());
       if (_code)
       {

@@ -58,7 +58,7 @@ struct RequestHandler
   RequestHandler(const RequestHandler&) = delete;
   RequestHandler& operator= (const RequestHandler&) = delete;
 
-  const RequestIntent* request_intent = nullptr;
+  RequestIntent* request_intent = nullptr;
   MutableRequestIntentFlatbuffer request_intent_mutable_buf;
 
   string errbuf;

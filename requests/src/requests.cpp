@@ -167,6 +167,7 @@ auto make_request_intent(
   flatbuffers::FlatBufferBuilder fbb;
   fbb.ForceDefaults(true);
 
+  // Generate a random ID for this request intent
   auto request_intent_id = uuidgen();
 
   std::vector<flatbuffers::Offset<QueryPair>> _query_vec;
