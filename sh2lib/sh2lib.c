@@ -250,7 +250,6 @@ int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, mbedtls_x509_crt* 
     esp_tls_cfg_t tls_cfg = {
         .alpn_protos = proto,
         .non_block = true,
-        .cacerts = cacerts,
     };
     if ((hd->http2_tls = esp_tls_conn_http_new(uri, &tls_cfg)) == NULL) {
         ESP_LOGE(TAG, "[sh2-connect] esp-tls connection failed");
@@ -384,4 +383,3 @@ int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
     };
     return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), callbacks);
 }
-

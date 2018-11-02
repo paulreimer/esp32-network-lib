@@ -31,11 +31,11 @@ using string = std::string;
 using UUID::compare_uuids;
 using UUID = UUID::UUID;
 
-mbedtls_x509_crt cacerts;
-
 constexpr char TAG[] = "RequestManager";
 
 #ifdef REQUESTS_USE_CURL
+mbedtls_x509_crt curl_cacerts;
+
 // Declaration:
 auto header_callback(char* buf, size_t size, size_t nitems, void* userdata)
   -> size_t;
@@ -166,11 +166,23 @@ RequestManager::RequestManager()
 #endif
 
   // Attempt to pipeline and/or multiplex requests if possible
-  //curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
-#endif // REQUESTS_USE_CURL
+  // curl_multi_setopt(m, CURLMOPT_PIPELINING, CURLPIPE_HTTP1|CURLPIPE_MULTIPLEX);
 
   // Initialize (empty) CA certificate chain
-  mbedtls_x509_crt_init(&cacerts);
+  mbedtls_x509_crt_init(&curl_cacerts);
+#endif // REQUESTS_USE_CURL
+
+#ifdef REQUESTS_USE_SH2LIB
+  mbedtls_x509_crt* _cacerts = esp_tls_get_global_ca_store();
+  if (_cacerts == nullptr)
+  {
+    auto ret = esp_tls_init_global_ca_store();
+    if (ret != ESP_OK)
+    {
+      ESP_LOGE(TAG, "Could not esp_tls_init_global_ca_store() for sh2lib");
+    }
+  }
+#endif // REQUESTS_USE_SH2LIB
 }
 
 RequestManager::~RequestManager()
@@ -182,9 +194,9 @@ RequestManager::~RequestManager()
     // Remove the request handle from the multi handle
     curl_multi_remove_handle(multi_handle.get(), handle.get());
   }
-#endif // REQUESTS_USE_CURL
 
-  mbedtls_x509_crt_free(&cacerts);
+  mbedtls_x509_crt_free(&curl_cacerts);
+#endif // REQUESTS_USE_CURL
 }
 
 auto RequestManager::fetch(
@@ -424,24 +436,31 @@ auto RequestManager::send(
       // Reset the current hostname
       handler.connected_hostname.clear();
 
-      handler.connected = (
-        sh2lib_connect(
-          hd,
-          req->uri()->c_str(),
-          &cacerts
-        ) == 0
-      );
-
-      if (handler.connected)
+      mbedtls_x509_crt* _cacerts = esp_tls_get_global_ca_store();
+      if (_cacerts != nullptr)
       {
-        // Create pointer so handle callback can access handler methods
-        handle->userdata = &handler;
-
-        // Set the cached connected hostname
-        handler.connected_hostname.assign(
-          hostname.begin(),
-          hostname.end()
+        handler.connected = (
+          sh2lib_connect(
+            hd,
+            req->uri()->c_str(),
+            _cacerts
+          ) == 0
         );
+
+        if (handler.connected)
+        {
+          // Create pointer so handle callback can access handler methods
+          handle->userdata = &handler;
+
+          // Set the cached connected hostname
+          handler.connected_hostname.assign(
+            hostname.begin(),
+            hostname.end()
+          );
+        }
+      }
+      else {
+        ESP_LOGE(TAG, "send: esp_tls_get_global_ca_store() == NULL");
       }
     }
 
@@ -684,15 +703,26 @@ auto RequestManager::wait_all()
 auto RequestManager::add_cacert_pem(const string_view cacert_pem)
   -> bool
 {
-  //TODO: this is possibly not request-safe and should be avoided during requests
-  //or rewritten with a CA object per request
+  // TODO(@paulreimer): this is possibly not request-safe and should be avoided
+  // during requests or rewritten with a CA object per request
 
   // Check for null-terminating byte
   if (cacert_pem.back() == '\0')
   {
+#ifdef REQUESTS_USE_CURL
+    mbedtls_x509_crt* _cacerts = &curl_cacerts;
+#endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+    mbedtls_x509_crt* _cacerts = esp_tls_get_global_ca_store();
+    if (_cacerts == nullptr)
+    {
+      ESP_LOGE(TAG, "add_cacert_pem, esp_tls_get_global_ca_store error");
+    }
+#endif // REQUESTS_USE_SH2LIB
+
     // Parse the PEM text
     auto ret = mbedtls_x509_crt_parse(
-      &cacerts,
+      _cacerts,
       (unsigned char*)cacert_pem.data(),
       cacert_pem.size()
     );
@@ -718,12 +748,23 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
 auto RequestManager::add_cacert_der(const string_view cacert_der)
   -> bool
 {
-  //TODO: this is possibly not request-safe and should be avoided during requests
-  //or rewritten with a CA object per request
+  // TODO(@paulreimer): this is possibly not request-safe and should be avoided
+  // during requests or rewritten with a CA object per request
+
+#ifdef REQUESTS_USE_CURL
+    mbedtls_x509_crt* _cacerts = &curl_cacerts;
+#endif // REQUESTS_USE_CURL
+#ifdef REQUESTS_USE_SH2LIB
+    mbedtls_x509_crt* _cacerts = esp_tls_get_global_ca_store();
+    if (_cacerts == nullptr)
+    {
+      ESP_LOGE(TAG, "add_cacert_der, esp_tls_get_global_ca_store error");
+    }
+#endif // REQUESTS_USE_SH2LIB
 
   // Parse the DER content
   auto ret = mbedtls_x509_crt_parse_der(
-    &cacerts,
+    _cacerts,
     (unsigned char*)cacert_der.data(),
     cacert_der.size()
   );
@@ -755,7 +796,7 @@ auto RequestManager::sslctx_callback(CURL* curl, mbedtls_ssl_config* ssl_ctx)
   if (ok)
   {
     // Update the curl handle's cacert chain
-    mbedtls_ssl_conf_ca_chain(ssl_ctx, &cacerts, nullptr);
+    mbedtls_ssl_conf_ca_chain(ssl_ctx, &curl_cacerts, nullptr);
 
     // Mark the callback as successfully passed
     rv = CURLE_OK;
