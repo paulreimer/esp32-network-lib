@@ -17,8 +17,6 @@
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/util.h"
 
-#include <stdio.h>
-
 // Helper functionality for reflection.
 
 namespace flatbuffers {
@@ -178,10 +176,7 @@ class ResizeContext {
         dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
     auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
     delta_ = (delta_ + mask) & ~mask;
-    if (!delta_) {  // We can't shrink by less than largest_scalar_t.
-      printf("!delta_ in ResizeContext, We can't shrink by less than %d\n", sizeof(largest_scalar_t));
-      return;
-    }
+    if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(vector_data(buf_));
     Straddle<uoffset_t, 1>(vector_data(buf_), root, vector_data(buf_));
@@ -189,10 +184,8 @@ class ResizeContext {
     // We can now add or remove bytes at start.
     if (delta_ > 0)
       buf_.insert(buf_.begin() + start, delta_, 0);
-    else {
+    else
       buf_.erase(buf_.begin() + start, buf_.begin() + start - delta_);
-      printf("buf_.erase start=%d, delta_=%d\n", start, delta_);
-    }
   }
 
   // Check if the range between first (lower address) and second straddles
@@ -306,13 +299,13 @@ class ResizeContext {
 void SetString(const reflection::Schema &schema, const std::string &val,
                const String *str, std::vector<uint8_t> *flatbuf,
                const reflection::Object *root_table) {
-  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->Length());
+  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
   auto str_start = static_cast<uoffset_t>(
       reinterpret_cast<const uint8_t *>(str) - vector_data(*flatbuf));
   auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
-    memset(vector_data(*flatbuf) + start, 0, str->Length());
+    memset(vector_data(*flatbuf) + start, 0, str->size());
     // Different size, we must expand (or contract).
     ResizeContext(schema, start, delta, flatbuf, root_table);
     // Set the new length.
@@ -438,7 +431,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
               break;
             }
           }
-          // FALL-THRU
+          FLATBUFFERS_FALLTHROUGH(); // fall thru
           default: {  // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
             if (elemobjectdef && elemobjectdef->is_struct())
@@ -473,7 +466,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
           break;
         }
       }
-      // ELSE FALL-THRU
+      FLATBUFFERS_FALLTHROUGH(); // fall thru
       case reflection::Union:
       case reflection::String:
       case reflection::Vector:
