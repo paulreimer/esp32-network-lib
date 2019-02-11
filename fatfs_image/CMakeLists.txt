@@ -1,5 +1,5 @@
 set (FATFS_IMAGE "${PROJECT_BINARY_DIR}/fatfs_image.img")
-set (FATFS_IMAGE_ARGS "flash_fatfs_image_args")
+set (FATFS_IMAGE_ARGS "${PROJECT_BINARY_DIR}/flash_fatfs_image_args")
 
 register_config_only_component()
 
