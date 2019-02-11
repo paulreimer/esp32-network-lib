@@ -43,7 +43,7 @@ struct WifiConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.WifiConfiguration";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SSID = 4,
     VT_PASSWORD = 6
   };
@@ -104,10 +104,12 @@ inline flatbuffers::Offset<WifiConfiguration> CreateWifiConfigurationDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *ssid = nullptr,
     const char *password = nullptr) {
+  auto ssid__ = ssid ? _fbb.CreateString(ssid) : 0;
+  auto password__ = password ? _fbb.CreateString(password) : 0;
   return NetworkManager::CreateWifiConfiguration(
       _fbb,
-      ssid ? _fbb.CreateString(ssid) : 0,
-      password ? _fbb.CreateString(password) : 0);
+      ssid__,
+      password__);
 }
 
 struct NTPConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -117,7 +119,7 @@ struct NTPConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.NTPConfiguration";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NTP_SERVER = 4,
     VT_POSIX_TIMEZONE = 6
   };
@@ -178,10 +180,12 @@ inline flatbuffers::Offset<NTPConfiguration> CreateNTPConfigurationDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *ntp_server = nullptr,
     const char *posix_timezone = nullptr) {
+  auto ntp_server__ = ntp_server ? _fbb.CreateString(ntp_server) : 0;
+  auto posix_timezone__ = posix_timezone ? _fbb.CreateString(posix_timezone) : 0;
   return NetworkManager::CreateNTPConfiguration(
       _fbb,
-      ntp_server ? _fbb.CreateString(ntp_server) : 0,
-      posix_timezone ? _fbb.CreateString(posix_timezone) : 0);
+      ntp_server__,
+      posix_timezone__);
 }
 
 struct NetworkCheckConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -191,7 +195,7 @@ struct NetworkCheckConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.NetworkCheckConfiguration";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_UPSTREAM_PING_IP = 4
   };
   uint32_t upstream_ping_ip() const {
@@ -240,7 +244,7 @@ struct mDNSTXTRecord FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.mDNSTXTRecord";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_K = 4,
     VT_V = 6
   };
@@ -301,10 +305,12 @@ inline flatbuffers::Offset<mDNSTXTRecord> CreatemDNSTXTRecordDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *k = nullptr,
     const char *v = nullptr) {
+  auto k__ = k ? _fbb.CreateString(k) : 0;
+  auto v__ = v ? _fbb.CreateString(v) : 0;
   return NetworkManager::CreatemDNSTXTRecord(
       _fbb,
-      k ? _fbb.CreateString(k) : 0,
-      v ? _fbb.CreateString(v) : 0);
+      k__,
+      v__);
 }
 
 struct mDNSService FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -314,7 +320,7 @@ struct mDNSService FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.mDNSService";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_INSTANCE = 4,
     VT_NAME = 6,
     VT_PROTOCOL = 8,
@@ -420,13 +426,17 @@ inline flatbuffers::Offset<mDNSService> CreatemDNSServiceDirect(
     const char *protocol = nullptr,
     uint16_t port = 0,
     const std::vector<flatbuffers::Offset<mDNSTXTRecord>> *txt_records = nullptr) {
+  auto instance__ = instance ? _fbb.CreateString(instance) : 0;
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto protocol__ = protocol ? _fbb.CreateString(protocol) : 0;
+  auto txt_records__ = txt_records ? _fbb.CreateVector<flatbuffers::Offset<mDNSTXTRecord>>(*txt_records) : 0;
   return NetworkManager::CreatemDNSService(
       _fbb,
-      instance ? _fbb.CreateString(instance) : 0,
-      name ? _fbb.CreateString(name) : 0,
-      protocol ? _fbb.CreateString(protocol) : 0,
+      instance__,
+      name__,
+      protocol__,
       port,
-      txt_records ? _fbb.CreateVector<flatbuffers::Offset<mDNSTXTRecord>>(*txt_records) : 0);
+      txt_records__);
 }
 
 struct mDNSConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -436,7 +446,7 @@ struct mDNSConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.mDNSConfiguration";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_HOSTNAME = 4,
     VT_INSTANCE = 6,
     VT_DOMAIN = 8,
@@ -528,12 +538,16 @@ inline flatbuffers::Offset<mDNSConfiguration> CreatemDNSConfigurationDirect(
     const char *instance = nullptr,
     const char *domain = nullptr,
     const std::vector<flatbuffers::Offset<mDNSService>> *services = nullptr) {
+  auto hostname__ = hostname ? _fbb.CreateString(hostname) : 0;
+  auto instance__ = instance ? _fbb.CreateString(instance) : 0;
+  auto domain__ = domain ? _fbb.CreateString(domain) : 0;
+  auto services__ = services ? _fbb.CreateVector<flatbuffers::Offset<mDNSService>>(*services) : 0;
   return NetworkManager::CreatemDNSConfiguration(
       _fbb,
-      hostname ? _fbb.CreateString(hostname) : 0,
-      instance ? _fbb.CreateString(instance) : 0,
-      domain ? _fbb.CreateString(domain) : 0,
-      services ? _fbb.CreateVector<flatbuffers::Offset<mDNSService>>(*services) : 0);
+      hostname__,
+      instance__,
+      domain__,
+      services__);
 }
 
 struct NetworkConnectionIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -543,7 +557,7 @@ struct NetworkConnectionIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "NetworkManager.NetworkConnectionIntent";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_WIFI = 4,
     VT_NTP = 6,
     VT_NETWORK_CHECK = 8,

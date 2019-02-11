@@ -23,7 +23,7 @@ struct FileMetadata FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Firmware.FileMetadata";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_PATH = 4,
     VT_CHECKSUM = 6,
     VT_URL = 8
@@ -106,11 +106,14 @@ inline flatbuffers::Offset<FileMetadata> CreateFileMetadataDirect(
     const char *path = nullptr,
     const char *checksum = nullptr,
     const char *url = nullptr) {
+  auto path__ = path ? _fbb.CreateString(path) : 0;
+  auto checksum__ = checksum ? _fbb.CreateString(checksum) : 0;
+  auto url__ = url ? _fbb.CreateString(url) : 0;
   return Firmware::CreateFileMetadata(
       _fbb,
-      path ? _fbb.CreateString(path) : 0,
-      checksum ? _fbb.CreateString(checksum) : 0,
-      url ? _fbb.CreateString(url) : 0);
+      path__,
+      checksum__,
+      url__);
 }
 
 struct FirmwareMetadata FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -120,7 +123,7 @@ struct FirmwareMetadata FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Firmware.FirmwareMetadata";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERSION = 4,
     VT_CHECKSUM = 6,
     VT_URL = 8,
@@ -231,13 +234,16 @@ inline flatbuffers::Offset<FirmwareMetadata> CreateFirmwareMetadataDirect(
     const char *url = nullptr,
     uint32_t interval = 3600,
     const std::vector<flatbuffers::Offset<FileMetadata>> *files = nullptr) {
+  auto checksum__ = checksum ? _fbb.CreateString(checksum) : 0;
+  auto url__ = url ? _fbb.CreateString(url) : 0;
+  auto files__ = files ? _fbb.CreateVector<flatbuffers::Offset<FileMetadata>>(*files) : 0;
   return Firmware::CreateFirmwareMetadata(
       _fbb,
       version,
-      checksum ? _fbb.CreateString(checksum) : 0,
-      url ? _fbb.CreateString(url) : 0,
+      checksum__,
+      url__,
       interval,
-      files ? _fbb.CreateVector<flatbuffers::Offset<FileMetadata>>(*files) : 0);
+      files__);
 }
 
 inline const flatbuffers::TypeTable *FileMetadataTypeTable() {

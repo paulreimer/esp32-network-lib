@@ -224,7 +224,7 @@ struct DatatableCell FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.DatatableCell";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_V = 4
   };
   const flatbuffers::String *v() const {
@@ -270,9 +270,10 @@ inline flatbuffers::Offset<DatatableCell> CreateDatatableCell(
 inline flatbuffers::Offset<DatatableCell> CreateDatatableCellDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *v = nullptr) {
+  auto v__ = v ? _fbb.CreateString(v) : 0;
   return googleapis::Visualization::CreateDatatableCell(
       _fbb,
-      v ? _fbb.CreateString(v) : 0);
+      v__);
 }
 
 struct DatatableRow FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -282,7 +283,7 @@ struct DatatableRow FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.DatatableRow";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_C = 4
   };
   const flatbuffers::Vector<flatbuffers::Offset<DatatableCell>> *c() const {
@@ -329,9 +330,10 @@ inline flatbuffers::Offset<DatatableRow> CreateDatatableRow(
 inline flatbuffers::Offset<DatatableRow> CreateDatatableRowDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<DatatableCell>> *c = nullptr) {
+  auto c__ = c ? _fbb.CreateVector<flatbuffers::Offset<DatatableCell>>(*c) : 0;
   return googleapis::Visualization::CreateDatatableRow(
       _fbb,
-      c ? _fbb.CreateVector<flatbuffers::Offset<DatatableCell>>(*c) : 0);
+      c__);
 }
 
 struct DatatableColumn FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -341,7 +343,7 @@ struct DatatableColumn FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.DatatableColumn";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_LABEL = 6,
     VT_PATTERN = 8,
@@ -453,13 +455,17 @@ inline flatbuffers::Offset<DatatableColumn> CreateDatatableColumnDirect(
     const char *pattern = nullptr,
     DatatableColumnType type = DatatableColumnType::boolean,
     const char *prefix = nullptr) {
+  auto id__ = id ? _fbb.CreateString(id) : 0;
+  auto label__ = label ? _fbb.CreateString(label) : 0;
+  auto pattern__ = pattern ? _fbb.CreateString(pattern) : 0;
+  auto prefix__ = prefix ? _fbb.CreateString(prefix) : 0;
   return googleapis::Visualization::CreateDatatableColumn(
       _fbb,
-      id ? _fbb.CreateString(id) : 0,
-      label ? _fbb.CreateString(label) : 0,
-      pattern ? _fbb.CreateString(pattern) : 0,
+      id__,
+      label__,
+      pattern__,
       type,
-      prefix ? _fbb.CreateString(prefix) : 0);
+      prefix__);
 }
 
 struct Datatable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -469,7 +475,7 @@ struct Datatable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.Datatable";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ROWS = 4,
     VT_COLS = 6
   };
@@ -532,10 +538,12 @@ inline flatbuffers::Offset<Datatable> CreateDatatableDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<DatatableRow>> *rows = nullptr,
     const std::vector<flatbuffers::Offset<DatatableColumn>> *cols = nullptr) {
+  auto rows__ = rows ? _fbb.CreateVector<flatbuffers::Offset<DatatableRow>>(*rows) : 0;
+  auto cols__ = cols ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*cols) : 0;
   return googleapis::Visualization::CreateDatatable(
       _fbb,
-      rows ? _fbb.CreateVector<flatbuffers::Offset<DatatableRow>>(*rows) : 0,
-      cols ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*cols) : 0);
+      rows__,
+      cols__);
 }
 
 struct DatatableResponse FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -545,7 +553,7 @@ struct DatatableResponse FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.DatatableResponse";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERSION = 4,
     VT_REQID = 6,
     VT_STATUS = 8,
@@ -651,12 +659,16 @@ inline flatbuffers::Offset<DatatableResponse> CreateDatatableResponseDirect(
     const char *status = nullptr,
     const char *sig = nullptr,
     flatbuffers::Offset<Datatable> table = 0) {
+  auto version__ = version ? _fbb.CreateString(version) : 0;
+  auto reqId__ = reqId ? _fbb.CreateString(reqId) : 0;
+  auto status__ = status ? _fbb.CreateString(status) : 0;
+  auto sig__ = sig ? _fbb.CreateString(sig) : 0;
   return googleapis::Visualization::CreateDatatableResponse(
       _fbb,
-      version ? _fbb.CreateString(version) : 0,
-      reqId ? _fbb.CreateString(reqId) : 0,
-      status ? _fbb.CreateString(status) : 0,
-      sig ? _fbb.CreateString(sig) : 0,
+      version__,
+      reqId__,
+      status__,
+      sig__,
       table);
 }
 
@@ -667,7 +679,7 @@ struct WhereClause FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.WhereClause";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_JOIN_OP = 4,
     VT_COLUMN = 6,
     VT_OP = 8,
@@ -756,12 +768,13 @@ inline flatbuffers::Offset<WhereClause> CreateWhereClauseDirect(
     flatbuffers::Offset<DatatableColumn> column = 0,
     WhereClauseOp op = WhereClauseOp::Equals,
     const char *value = nullptr) {
+  auto value__ = value ? _fbb.CreateString(value) : 0;
   return googleapis::Visualization::CreateWhereClause(
       _fbb,
       join_op,
       column,
       op,
-      value ? _fbb.CreateString(value) : 0);
+      value__);
 }
 
 struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -771,7 +784,7 @@ struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.Query";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SELECT = 4,
     VT_WHERE = 6,
     VT_GROUP_BY = 8,
@@ -924,13 +937,18 @@ inline flatbuffers::Offset<Query> CreateQueryDirect(
     uint32_t limit = 0,
     uint32_t offset = 0,
     QueryOption options = QueryOption::defaults) {
+  auto select__ = select ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*select) : 0;
+  auto where__ = where ? _fbb.CreateVector<flatbuffers::Offset<WhereClause>>(*where) : 0;
+  auto group_by__ = group_by ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*group_by) : 0;
+  auto pivot__ = pivot ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*pivot) : 0;
+  auto order_by__ = order_by ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*order_by) : 0;
   return googleapis::Visualization::CreateQuery(
       _fbb,
-      select ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*select) : 0,
-      where ? _fbb.CreateVector<flatbuffers::Offset<WhereClause>>(*where) : 0,
-      group_by ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*group_by) : 0,
-      pivot ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*pivot) : 0,
-      order_by ? _fbb.CreateVector<flatbuffers::Offset<DatatableColumn>>(*order_by) : 0,
+      select__,
+      where__,
+      group_by__,
+      pivot__,
+      order_by__,
       limit,
       offset,
       options);
@@ -943,7 +961,7 @@ struct QueryIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Visualization.QueryIntent";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_TO_PID = 6,
     VT_SPREADSHEET_ID = 8,
@@ -1047,12 +1065,14 @@ inline flatbuffers::Offset<QueryIntent> CreateQueryIntentDirect(
     const char *spreadsheet_id = nullptr,
     const char *gid = nullptr,
     flatbuffers::Offset<Query> query = 0) {
+  auto spreadsheet_id__ = spreadsheet_id ? _fbb.CreateString(spreadsheet_id) : 0;
+  auto gid__ = gid ? _fbb.CreateString(gid) : 0;
   return googleapis::Visualization::CreateQueryIntent(
       _fbb,
       id,
       to_pid,
-      spreadsheet_id ? _fbb.CreateString(spreadsheet_id) : 0,
-      gid ? _fbb.CreateString(gid) : 0,
+      spreadsheet_id__,
+      gid__,
       query);
 }
 

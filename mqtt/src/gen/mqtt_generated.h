@@ -66,7 +66,7 @@ struct Subscription FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "MQTT.Subscription";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TOPIC = 4,
     VT_QOS = 6
   };
@@ -126,9 +126,10 @@ inline flatbuffers::Offset<Subscription> CreateSubscriptionDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *topic = nullptr,
     MQTT_QOS qos = MQTT_QOS::AtMostOnce) {
+  auto topic__ = topic ? _fbb.CreateString(topic) : 0;
   return MQTT::CreateSubscription(
       _fbb,
-      topic ? _fbb.CreateString(topic) : 0,
+      topic__,
       qos);
 }
 
@@ -139,7 +140,7 @@ struct SubscriptionBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "MQTT.SubscriptionBuffer";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SUBSCRIPTION = 4
   };
   const flatbuffers::Vector<uint8_t> *subscription() const {
@@ -188,9 +189,10 @@ inline flatbuffers::Offset<SubscriptionBuffer> CreateSubscriptionBuffer(
 inline flatbuffers::Offset<SubscriptionBuffer> CreateSubscriptionBufferDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *subscription = nullptr) {
+  auto subscription__ = subscription ? _fbb.CreateVector<uint8_t>(*subscription) : 0;
   return MQTT::CreateSubscriptionBuffer(
       _fbb,
-      subscription ? _fbb.CreateVector<uint8_t>(*subscription) : 0);
+      subscription__);
 }
 
 struct MQTTClientConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -200,7 +202,7 @@ struct MQTTClientConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "MQTT.MQTTClientConfiguration";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_HOST = 4,
     VT_PORT = 6,
     VT_CLIENT_ID = 8,
@@ -367,17 +369,25 @@ inline flatbuffers::Offset<MQTTClientConfiguration> CreateMQTTClientConfiguratio
     const char *client_private_key_path = nullptr,
     const char *root_certificate_path = nullptr,
     const std::vector<flatbuffers::Offset<SubscriptionBuffer>> *subscriptions = nullptr) {
+  auto host__ = host ? _fbb.CreateString(host) : 0;
+  auto client_id__ = client_id ? _fbb.CreateString(client_id) : 0;
+  auto client_username__ = client_username ? _fbb.CreateString(client_username) : 0;
+  auto client_password__ = client_password ? _fbb.CreateString(client_password) : 0;
+  auto client_certificate_path__ = client_certificate_path ? _fbb.CreateString(client_certificate_path) : 0;
+  auto client_private_key_path__ = client_private_key_path ? _fbb.CreateString(client_private_key_path) : 0;
+  auto root_certificate_path__ = root_certificate_path ? _fbb.CreateString(root_certificate_path) : 0;
+  auto subscriptions__ = subscriptions ? _fbb.CreateVector<flatbuffers::Offset<SubscriptionBuffer>>(*subscriptions) : 0;
   return MQTT::CreateMQTTClientConfiguration(
       _fbb,
-      host ? _fbb.CreateString(host) : 0,
+      host__,
       port,
-      client_id ? _fbb.CreateString(client_id) : 0,
-      client_username ? _fbb.CreateString(client_username) : 0,
-      client_password ? _fbb.CreateString(client_password) : 0,
-      client_certificate_path ? _fbb.CreateString(client_certificate_path) : 0,
-      client_private_key_path ? _fbb.CreateString(client_private_key_path) : 0,
-      root_certificate_path ? _fbb.CreateString(root_certificate_path) : 0,
-      subscriptions ? _fbb.CreateVector<flatbuffers::Offset<SubscriptionBuffer>>(*subscriptions) : 0);
+      client_id__,
+      client_username__,
+      client_password__,
+      client_certificate_path__,
+      client_private_key_path__,
+      root_certificate_path__,
+      subscriptions__);
 }
 
 struct MQTTMessage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -387,7 +397,7 @@ struct MQTTMessage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "MQTT.MQTTMessage";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TOPIC = 4,
     VT_PAYLOAD = 6,
     VT_QOS = 8,
@@ -478,10 +488,12 @@ inline flatbuffers::Offset<MQTTMessage> CreateMQTTMessageDirect(
     const char *payload = nullptr,
     MQTT_QOS qos = MQTT_QOS::AtMostOnce,
     bool retain = false) {
+  auto topic__ = topic ? _fbb.CreateString(topic) : 0;
+  auto payload__ = payload ? _fbb.CreateString(payload) : 0;
   return MQTT::CreateMQTTMessage(
       _fbb,
-      topic ? _fbb.CreateString(topic) : 0,
-      payload ? _fbb.CreateString(payload) : 0,
+      topic__,
+      payload__,
       qos,
       retain);
 }

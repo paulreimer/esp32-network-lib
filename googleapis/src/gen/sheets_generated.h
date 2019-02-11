@@ -22,7 +22,7 @@ struct InsertRowIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "googleapis.Sheets.InsertRowIntent";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_TO_PID = 6,
     VT_SPREADSHEET_ID = 8,
@@ -129,13 +129,16 @@ inline flatbuffers::Offset<InsertRowIntent> CreateInsertRowIntentDirect(
     const char *spreadsheet_id = nullptr,
     const char *sheet_name = nullptr,
     const char *values_json = nullptr) {
+  auto spreadsheet_id__ = spreadsheet_id ? _fbb.CreateString(spreadsheet_id) : 0;
+  auto sheet_name__ = sheet_name ? _fbb.CreateString(sheet_name) : 0;
+  auto values_json__ = values_json ? _fbb.CreateString(values_json) : 0;
   return googleapis::Sheets::CreateInsertRowIntent(
       _fbb,
       id,
       to_pid,
-      spreadsheet_id ? _fbb.CreateString(spreadsheet_id) : 0,
-      sheet_name ? _fbb.CreateString(sheet_name) : 0,
-      values_json ? _fbb.CreateString(values_json) : 0);
+      spreadsheet_id__,
+      sheet_name__,
+      values_json__);
 }
 
 inline const flatbuffers::TypeTable *InsertRowIntentTypeTable() {

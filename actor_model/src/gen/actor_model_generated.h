@@ -276,7 +276,7 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Message";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_TIMESTAMP = 6,
     VT_FROM_PID = 8,
@@ -380,13 +380,15 @@ inline flatbuffers::Offset<Message> CreateMessageDirect(
     const UUID::UUID *from_pid = 0,
     uint32_t payload_alignment = 0,
     const std::vector<uint8_t> *payload = nullptr) {
+  auto type__ = type ? _fbb.CreateString(type) : 0;
+  auto payload__ = payload ? _fbb.CreateVector<uint8_t>(*payload) : 0;
   return ActorModel::CreateMessage(
       _fbb,
-      type ? _fbb.CreateString(type) : 0,
+      type__,
       timestamp,
       from_pid,
       payload_alignment,
-      payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
+      payload__);
 }
 
 struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -396,7 +398,7 @@ struct Ok FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Ok";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4
   };
   const UUID::UUID *id() const {
@@ -445,7 +447,7 @@ struct Error FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Error";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_REASON = 4
   };
   const flatbuffers::String *reason() const {
@@ -492,9 +494,10 @@ inline flatbuffers::Offset<Error> CreateError(
 inline flatbuffers::Offset<Error> CreateErrorDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *reason = nullptr) {
+  auto reason__ = reason ? _fbb.CreateString(reason) : 0;
   return ActorModel::CreateError(
       _fbb,
-      reason ? _fbb.CreateString(reason) : 0);
+      reason__);
 }
 
 struct Unhandled FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -538,7 +541,7 @@ struct Signal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Signal";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FROM_PID = 4,
     VT_REASON = 6
   };
@@ -598,10 +601,11 @@ inline flatbuffers::Offset<Signal> CreateSignalDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const UUID::UUID *from_pid = 0,
     const char *reason = nullptr) {
+  auto reason__ = reason ? _fbb.CreateString(reason) : 0;
   return ActorModel::CreateSignal(
       _fbb,
       from_pid,
-      reason ? _fbb.CreateString(reason) : 0);
+      reason__);
 }
 
 struct Function FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -611,7 +615,7 @@ struct Function FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Function";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_ADDRESS = 6
   };
@@ -671,9 +675,10 @@ inline flatbuffers::Offset<Function> CreateFunctionDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     uint64_t address = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   return ActorModel::CreateFunction(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
+      name__,
       address);
 }
 
@@ -684,7 +689,7 @@ struct Module FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.Module";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_EXPORTS = 6,
     VT_PATH = 8
@@ -761,11 +766,14 @@ inline flatbuffers::Offset<Module> CreateModuleDirect(
     const char *name = nullptr,
     const std::vector<flatbuffers::Offset<Function>> *exports = nullptr,
     const char *path = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto exports__ = exports ? _fbb.CreateVector<flatbuffers::Offset<Function>>(*exports) : 0;
+  auto path__ = path ? _fbb.CreateString(path) : 0;
   return ActorModel::CreateModule(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      exports ? _fbb.CreateVector<flatbuffers::Offset<Function>>(*exports) : 0,
-      path ? _fbb.CreateString(path) : 0);
+      name__,
+      exports__,
+      path__);
 }
 
 struct MFA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -775,7 +783,7 @@ struct MFA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.MFA";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MODULE_NAME = 4,
     VT_FUNCTION_NAME = 6,
     VT_ARGS = 8
@@ -854,11 +862,14 @@ inline flatbuffers::Offset<MFA> CreateMFADirect(
     const char *module_name = nullptr,
     const char *function_name = nullptr,
     const std::vector<uint8_t> *args = nullptr) {
+  auto module_name__ = module_name ? _fbb.CreateString(module_name) : 0;
+  auto function_name__ = function_name ? _fbb.CreateString(function_name) : 0;
+  auto args__ = args ? _fbb.CreateVector<uint8_t>(*args) : 0;
   return ActorModel::CreateMFA(
       _fbb,
-      module_name ? _fbb.CreateString(module_name) : 0,
-      function_name ? _fbb.CreateString(function_name) : 0,
-      args ? _fbb.CreateVector<uint8_t>(*args) : 0);
+      module_name__,
+      function_name__,
+      args__);
 }
 
 struct SupervisorFlags FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -868,7 +879,7 @@ struct SupervisorFlags FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.SupervisorFlags";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_STRATEGY = 4,
     VT_INTENSITY = 6,
     VT_PERIOD = 8
@@ -943,7 +954,7 @@ struct ChildSpec FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.ChildSpec";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_START = 6,
     VT_RESTART = 8,
@@ -1064,14 +1075,16 @@ inline flatbuffers::Offset<ChildSpec> CreateChildSpecDirect(
     uint32_t shutdown = 5000,
     ChildSpecTypeFlag type = ChildSpecTypeFlag::worker,
     const std::vector<flatbuffers::Offset<Module>> *modules = nullptr) {
+  auto id__ = id ? _fbb.CreateString(id) : 0;
+  auto modules__ = modules ? _fbb.CreateVector<flatbuffers::Offset<Module>>(*modules) : 0;
   return ActorModel::CreateChildSpec(
       _fbb,
-      id ? _fbb.CreateString(id) : 0,
+      id__,
       start,
       restart,
       shutdown,
       type,
-      modules ? _fbb.CreateVector<flatbuffers::Offset<Module>>(*modules) : 0);
+      modules__);
 }
 
 struct SupervisorArgs FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1081,7 +1094,7 @@ struct SupervisorArgs FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.SupervisorArgs";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CHILD_SPECS = 4
   };
   const flatbuffers::Vector<flatbuffers::Offset<ChildSpec>> *child_specs() const {
@@ -1128,9 +1141,10 @@ inline flatbuffers::Offset<SupervisorArgs> CreateSupervisorArgs(
 inline flatbuffers::Offset<SupervisorArgs> CreateSupervisorArgsDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<ChildSpec>> *child_specs = nullptr) {
+  auto child_specs__ = child_specs ? _fbb.CreateVector<flatbuffers::Offset<ChildSpec>>(*child_specs) : 0;
   return ActorModel::CreateSupervisorArgs(
       _fbb,
-      child_specs ? _fbb.CreateVector<flatbuffers::Offset<ChildSpec>>(*child_specs) : 0);
+      child_specs__);
 }
 
 struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1140,7 +1154,7 @@ struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tab
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "ActorModel.ProcessExecutionConfig";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TASK_PRIO = 4,
     VT_TASK_STACK_SIZE = 6,
     VT_MAILBOX_SIZE = 8,
@@ -1167,22 +1181,22 @@ struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tab
     return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 2048);
   }
   uint32_t send_timeout_microseconds() const {
-    return GetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, 4294967295);
+    return GetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, 10000000);
   }
   bool mutate_send_timeout_microseconds(uint32_t _send_timeout_microseconds) {
-    return SetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, _send_timeout_microseconds, 4294967295);
+    return SetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, _send_timeout_microseconds, 10000000);
   }
   uint32_t receive_timeout_microseconds() const {
-    return GetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, 4294967295);
+    return GetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, 10000000);
   }
   bool mutate_receive_timeout_microseconds(uint32_t _receive_timeout_microseconds) {
-    return SetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, _receive_timeout_microseconds, 4294967295);
+    return SetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, _receive_timeout_microseconds, 10000000);
   }
   uint32_t receive_lock_timeout_microseconds() const {
-    return GetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, 4294967295);
+    return GetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, 10000000);
   }
   bool mutate_receive_lock_timeout_microseconds(uint32_t _receive_lock_timeout_microseconds) {
-    return SetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, _receive_lock_timeout_microseconds, 4294967295);
+    return SetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, _receive_lock_timeout_microseconds, 10000000);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1209,13 +1223,13 @@ struct ProcessExecutionConfigBuilder {
     fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 2048);
   }
   void add_send_timeout_microseconds(uint32_t send_timeout_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_SEND_TIMEOUT_MICROSECONDS, send_timeout_microseconds, 4294967295);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_SEND_TIMEOUT_MICROSECONDS, send_timeout_microseconds, 10000000);
   }
   void add_receive_timeout_microseconds(uint32_t receive_timeout_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_TIMEOUT_MICROSECONDS, receive_timeout_microseconds, 4294967295);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_TIMEOUT_MICROSECONDS, receive_timeout_microseconds, 10000000);
   }
   void add_receive_lock_timeout_microseconds(uint32_t receive_lock_timeout_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, receive_lock_timeout_microseconds, 4294967295);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, receive_lock_timeout_microseconds, 10000000);
   }
   explicit ProcessExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1234,9 +1248,9 @@ inline flatbuffers::Offset<ProcessExecutionConfig> CreateProcessExecutionConfig(
     int32_t task_prio = 5,
     uint32_t task_stack_size = 2560,
     uint32_t mailbox_size = 2048,
-    uint32_t send_timeout_microseconds = 4294967295,
-    uint32_t receive_timeout_microseconds = 4294967295,
-    uint32_t receive_lock_timeout_microseconds = 4294967295) {
+    uint32_t send_timeout_microseconds = 10000000,
+    uint32_t receive_timeout_microseconds = 10000000,
+    uint32_t receive_lock_timeout_microseconds = 10000000) {
   ProcessExecutionConfigBuilder builder_(_fbb);
   builder_.add_receive_lock_timeout_microseconds(receive_lock_timeout_microseconds);
   builder_.add_receive_timeout_microseconds(receive_timeout_microseconds);

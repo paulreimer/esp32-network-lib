@@ -19,7 +19,7 @@ struct UDPServerConfiguration FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tab
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "UDPServerConfiguration";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_PORT = 4,
     VT_TO_PID = 6
   };

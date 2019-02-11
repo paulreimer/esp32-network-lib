@@ -118,7 +118,7 @@ struct QueryPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.QueryPair";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_K = 4,
     VT_V = 6
   };
@@ -181,10 +181,12 @@ inline flatbuffers::Offset<QueryPair> CreateQueryPairDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *k = nullptr,
     const char *v = nullptr) {
+  auto k__ = k ? _fbb.CreateString(k) : 0;
+  auto v__ = v ? _fbb.CreateString(v) : 0;
   return Requests::CreateQueryPair(
       _fbb,
-      k ? _fbb.CreateString(k) : 0,
-      v ? _fbb.CreateString(v) : 0);
+      k__,
+      v__);
 }
 
 struct HeaderPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -194,7 +196,7 @@ struct HeaderPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.HeaderPair";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_K = 4,
     VT_V = 6
   };
@@ -257,10 +259,12 @@ inline flatbuffers::Offset<HeaderPair> CreateHeaderPairDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *k = nullptr,
     const char *v = nullptr) {
+  auto k__ = k ? _fbb.CreateString(k) : 0;
+  auto v__ = v ? _fbb.CreateString(v) : 0;
   return Requests::CreateHeaderPair(
       _fbb,
-      k ? _fbb.CreateString(k) : 0,
-      v ? _fbb.CreateString(v) : 0);
+      k__,
+      v__);
 }
 
 struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -270,7 +274,7 @@ struct Request FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.Request";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_METHOD = 4,
     VT_URI = 6,
     VT_BODY = 8,
@@ -379,13 +383,18 @@ inline flatbuffers::Offset<Request> CreateRequestDirect(
     const std::vector<uint8_t> *body = nullptr,
     const std::vector<flatbuffers::Offset<QueryPair>> *query = nullptr,
     const std::vector<flatbuffers::Offset<HeaderPair>> *headers = nullptr) {
+  auto method__ = method ? _fbb.CreateString(method) : 0;
+  auto uri__ = uri ? _fbb.CreateString(uri) : 0;
+  auto body__ = body ? _fbb.CreateVector<uint8_t>(*body) : 0;
+  auto query__ = query ? _fbb.CreateVector<flatbuffers::Offset<QueryPair>>(*query) : 0;
+  auto headers__ = headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0;
   return Requests::CreateRequest(
       _fbb,
-      method ? _fbb.CreateString(method) : 0,
-      uri ? _fbb.CreateString(uri) : 0,
-      body ? _fbb.CreateVector<uint8_t>(*body) : 0,
-      query ? _fbb.CreateVector<flatbuffers::Offset<QueryPair>>(*query) : 0,
-      headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0);
+      method__,
+      uri__,
+      body__,
+      query__,
+      headers__);
 }
 
 struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -395,7 +404,7 @@ struct Response FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.Response";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CODE = 4,
     VT_HEADERS = 6,
     VT_BODY = 8,
@@ -500,12 +509,15 @@ inline flatbuffers::Offset<Response> CreateResponseDirect(
     const std::vector<uint8_t> *body = nullptr,
     const char *errbuf = nullptr,
     const UUID::UUID *request_id = 0) {
+  auto headers__ = headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0;
+  auto body__ = body ? _fbb.CreateVector<uint8_t>(*body) : 0;
+  auto errbuf__ = errbuf ? _fbb.CreateString(errbuf) : 0;
   return Requests::CreateResponse(
       _fbb,
       code,
-      headers ? _fbb.CreateVector<flatbuffers::Offset<HeaderPair>>(*headers) : 0,
-      body ? _fbb.CreateVector<uint8_t>(*body) : 0,
-      errbuf ? _fbb.CreateString(errbuf) : 0,
+      headers__,
+      body__,
+      errbuf__,
       request_id);
 }
 
@@ -516,7 +528,7 @@ struct ServerSentEvent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.ServerSentEvent";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_EVENT = 4,
     VT_DATA = 6,
     VT_ID = 8,
@@ -606,11 +618,14 @@ inline flatbuffers::Offset<ServerSentEvent> CreateServerSentEventDirect(
     const char *data = nullptr,
     const char *id = nullptr,
     int32_t retry = 0) {
+  auto event__ = event ? _fbb.CreateString(event) : 0;
+  auto data__ = data ? _fbb.CreateString(data) : 0;
+  auto id__ = id ? _fbb.CreateString(id) : 0;
   return Requests::CreateServerSentEvent(
       _fbb,
-      event ? _fbb.CreateString(event) : 0,
-      data ? _fbb.CreateString(data) : 0,
-      id ? _fbb.CreateString(id) : 0,
+      event__,
+      data__,
+      id__,
       retry);
 }
 
@@ -621,7 +636,7 @@ struct RequestIntent FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.RequestIntent";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_TO_PID = 6,
     VT_REQUEST = 8,
@@ -811,15 +826,18 @@ inline flatbuffers::Offset<RequestIntent> CreateRequestIntentDirect(
     bool streaming = false,
     uint32_t timeout_microseconds = 0,
     int32_t retries = 0) {
+  auto object_path__ = object_path ? _fbb.CreateString(object_path) : 0;
+  auto root_type__ = root_type ? _fbb.CreateString(root_type) : 0;
+  auto schema_text__ = schema_text ? _fbb.CreateString(schema_text) : 0;
   return Requests::CreateRequestIntent(
       _fbb,
       id,
       to_pid,
       request,
       desired_format,
-      object_path ? _fbb.CreateString(object_path) : 0,
-      root_type ? _fbb.CreateString(root_type) : 0,
-      schema_text ? _fbb.CreateString(schema_text) : 0,
+      object_path__,
+      root_type__,
+      schema_text__,
       include_headers,
       streaming,
       timeout_microseconds,
@@ -833,7 +851,7 @@ struct RequestPayload FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.RequestPayload";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_PAYLOAD = 6
   };
@@ -894,10 +912,11 @@ inline flatbuffers::Offset<RequestPayload> CreateRequestPayloadDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const UUID::UUID *id = 0,
     const std::vector<uint8_t> *payload = nullptr) {
+  auto payload__ = payload ? _fbb.CreateVector<uint8_t>(*payload) : 0;
   return Requests::CreateRequestPayload(
       _fbb,
       id,
-      payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
+      payload__);
 }
 
 struct ResponsePayload FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -907,7 +926,7 @@ struct ResponsePayload FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "Requests.ResponsePayload";
   }
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_REQUEST_ID = 6,
     VT_PAYLOAD = 8
@@ -983,11 +1002,12 @@ inline flatbuffers::Offset<ResponsePayload> CreateResponsePayloadDirect(
     const UUID::UUID *id = 0,
     const UUID::UUID *request_id = 0,
     const std::vector<uint8_t> *payload = nullptr) {
+  auto payload__ = payload ? _fbb.CreateVector<uint8_t>(*payload) : 0;
   return Requests::CreateResponsePayload(
       _fbb,
       id,
       request_id,
-      payload ? _fbb.CreateVector<uint8_t>(*payload) : 0);
+      payload__);
 }
 
 inline const flatbuffers::TypeTable *PostCallbackActionTypeTable() {
