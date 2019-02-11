@@ -17,8 +17,8 @@ set(
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_property(
   SOURCE src/node.cpp
@@ -42,4 +42,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${actor_model_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} actor_model_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} actor_model_generated_h_TARGET)

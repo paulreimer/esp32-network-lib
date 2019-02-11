@@ -14,8 +14,8 @@ set(
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_property(
   SOURCE src/ntp.cpp
@@ -40,4 +40,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${network_manager_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} network_manager_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} network_manager_generated_h_TARGET)

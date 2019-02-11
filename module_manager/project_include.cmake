@@ -20,7 +20,7 @@ function(MODULE_GENERATE_ELF target_prefix mod_name)
 
   target_include_directories(
     ${mod_name}_LIBRARY
-    PRIVATE "$<TARGET_PROPERTY:${COMPONENT_NAME},INCLUDE_DIRECTORIES>"
+    PRIVATE "$<TARGET_PROPERTY:${COMPONENT_TARGET},INCLUDE_DIRECTORIES>"
   )
 
   add_custom_command(

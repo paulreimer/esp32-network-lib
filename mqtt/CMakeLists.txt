@@ -8,8 +8,8 @@ set(COMPONENT_EMBED_FILES src/gen/mqtt.bfbs)
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_property(
   SOURCE src/mqtt_client_actor.cpp
@@ -25,11 +25,11 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${mqtt_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} mqtt_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} mqtt_generated_h_TARGET)
 
 set_property(
   SOURCE src/mqtt.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${mqtt_bfbs_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} mqtt_bfbs_TARGET)
+add_dependencies(${COMPONENT_TARGET} mqtt_bfbs_TARGET)

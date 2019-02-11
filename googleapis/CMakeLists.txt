@@ -17,8 +17,8 @@ set_property(
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 FLATBUFFERS_GENERATE_GENERATED_H(sheets_generated_h sheets.fbs)
 FLATBUFFERS_GENERATE_GENERATED_H(visualization_generated_h visualization.fbs)
@@ -28,14 +28,14 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${sheets_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} sheets_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} sheets_generated_h_TARGET)
 
 set_property(
   SOURCE src/googleapis.cpp src/visualization_query_actor.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${visualization_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} visualization_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} visualization_generated_h_TARGET)
 
 foreach(
   req_intent

@@ -16,8 +16,8 @@ set(
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_property(
   SOURCE "lib/libelfin/elf/elf.cc"
@@ -60,5 +60,5 @@ set_property(
 )
 
 add_custom_target(src_gen_symbols_c DEPENDS "src/gen/symbols.c")
-add_dependencies(${COMPONENT_NAME} src_gen_symbols_c)
+add_dependencies(${COMPONENT_TARGET} src_gen_symbols_c)
 endif(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)

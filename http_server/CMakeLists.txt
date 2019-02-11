@@ -6,8 +6,8 @@ set(COMPONENT_SRCS "src/http_server_actor.cpp")
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 FLATBUFFERS_GENERATE_GENERATED_H(http_server_generated_h http_server.fbs)
 
@@ -16,4 +16,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${http_server_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} http_server_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} http_server_generated_h_TARGET)

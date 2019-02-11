@@ -6,8 +6,8 @@ set(COMPONENT_SRCS "src/firmware_update.cpp" "src/firmware_update_actor.cpp")
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)
 
@@ -16,12 +16,12 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${firmware_update_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} firmware_update_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} firmware_update_generated_h_TARGET)
 
 set_property(
   SOURCE src/firmware_update.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${PROJECT_PATH}/VERSION"
 )
-add_custom_target(VERSION_FILE_TARGET DEPENDS "${PROJECT_PATH}/VERSION")
-add_dependencies(${COMPONENT_NAME} VERSION_FILE_TARGET)
+add_custom_target(VERSION_FILE_TARGET DEPENDS "${IDF_PROJECT_PATH}/VERSION")
+add_dependencies(${COMPONENT_TARGET} VERSION_FILE_TARGET)

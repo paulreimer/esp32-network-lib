@@ -29,8 +29,8 @@ set(COMPONENT_EMBED_FILES src/gen/requests.bfbs)
 
 register_component()
 
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_NAME}" PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
+set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_property(
   SOURCE src/request_manager.cpp
@@ -43,18 +43,18 @@ FLATBUFFERS_GENERATE_BFBS(requests_bfbs requests.fbs)
 
 add_custom_target(requests_generated_h DEPENDS src/gen/requests_generated.h)
 add_custom_target(requests_bfbs DEPENDS src/gen/requests.bfbs)
-add_dependencies(${COMPONENT_NAME} requests_generated_h requests_bfbs)
+add_dependencies(${COMPONENT_TARGET} requests_generated_h requests_bfbs)
 
 set_property(
   SOURCE src/request_handler.cpp src/request_manager.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${requests_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} requests_generated_h_TARGET)
+add_dependencies(${COMPONENT_TARGET} requests_generated_h_TARGET)
 
 set_property(
   SOURCE src/requests.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${requests_bfbs_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_NAME} requests_bfbs_TARGET)
+add_dependencies(${COMPONENT_TARGET} requests_bfbs_TARGET)
