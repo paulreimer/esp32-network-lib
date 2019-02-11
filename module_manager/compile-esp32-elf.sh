@@ -15,11 +15,11 @@ MOD_NAME="$1"
 shift
 SRCS="$@"
 
-export PROJECT_PATH="${DEPLOY_ROOT}/firmware"
+export IDF_PROJECT_PATH="${DEPLOY_ROOT}/firmware"
 
-export PATH="${PROJECT_PATH}/xtensa-esp32-elf/bin:${PATH}"
+export PATH="${IDF_PROJECT_PATH}/xtensa-esp32-elf/bin:${PATH}"
 
-export IDF_PATH="${PROJECT_PATH}/esp-idf"
+export IDF_PATH="${IDF_PROJECT_PATH}/esp-idf"
 
 cat << EOF > ${MODULE_DIR}/CMakeLists.txt
 set(COMPONENT_REQUIRES actor_model)
@@ -35,15 +35,15 @@ mkdir -p "${BUILD_DIR}"
 cd "${BUILD_DIR}"
 
 # Copy config settings to build dir
-cp -r "${PROJECT_PATH}/build/sdkconfig" "${BUILD_DIR}"
+cp -r "${IDF_PROJECT_PATH}/build/sdkconfig" "${BUILD_DIR}"
 
 # Generate cmake build files
-${PROJECT_PATH}/build/bin/cmake \
+${IDF_PROJECT_PATH}/build/bin/cmake \
   -DSDKCONFIG="${BUILD_DIR}/sdkconfig" \
   -DPYTHON_DEPS_CHECKED:BOOL=ON \
   -DGIT_FOUND:BOOL=OFF \
   \
-  "${PROJECT_PATH}"
+  "${IDF_PROJECT_PATH}"
 
 # Build the elf
 make "module_elf_TARGET"

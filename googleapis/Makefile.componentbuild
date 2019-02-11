@@ -2,13 +2,13 @@
 # in any component's secrets/gen/ directory:
 $(COMPILING_COMPONENT_PATH)/secrets/gen/%.gviz.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.gviz.json
 	flatc --binary -o $(@D) \
-	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
-	$(PROJECT_PATH)/esp32-network-lib/googleapis/visualization.fbs \
+	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
+	$(IDF_PROJECT_PATH)/esp32-network-lib/googleapis/visualization.fbs \
 	$^
 
 # in any component's assets/ directory:
 $(COMPILING_COMPONENT_PATH)/assets/gen/%.gviz.fb: $(COMPILING_COMPONENT_PATH)/assets/%.gviz.json
 	flatc --binary -o $(@D) \
-	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
-	$(PROJECT_PATH)/esp32-network-lib/googleapis/visualization.fbs \
+	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
+	$(IDF_PROJECT_PATH)/esp32-network-lib/googleapis/visualization.fbs \
 	$^

@@ -2,16 +2,16 @@
 # in any component's secrets/gen/ directory:
 $(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.json
 	flatc --binary -o $(@D) \
-	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
-	$(PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
+	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
+	$(IDF_PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
 	--force-defaults \
 	$^
 
 # in any component's assets/ directory:
 $(COMPILING_COMPONENT_PATH)/assets/gen/%.req.fb: $(COMPILING_COMPONENT_PATH)/assets/%.req.json
 	flatc --binary -o $(@D) \
-	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
-	$(PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
+	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
+	$(IDF_PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \
 	--force-defaults \
 	$^
 

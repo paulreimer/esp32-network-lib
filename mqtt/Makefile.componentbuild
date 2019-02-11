@@ -3,15 +3,15 @@
 $(COMPILING_COMPONENT_PATH)/secrets/gen/%.mqtt.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.mqtt.json
 	flatc --binary -o $(@D) \
 	--root-type MQTT.MQTTClientConfiguration \
-	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
-	$(PROJECT_PATH)/esp32-network-lib/mqtt/mqtt.fbs \
+	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
+	$(IDF_PROJECT_PATH)/esp32-network-lib/mqtt/mqtt.fbs \
 	--force-defaults \
 	$^
 
 # in any component's assets/ directory:
 $(COMPILING_COMPONENT_PATH)/assets/gen/%.mqtt.fb: $(COMPILING_COMPONENT_PATH)/assets/%.mqtt.json
 	flatc --binary -o $(@D) \
-	-I $(PROJECT_PATH)/esp32-network-lib/uuid \
-	$(PROJECT_PATH)/esp32-network-lib/mqtt/mqtt.fbs \
+	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
+	$(IDF_PROJECT_PATH)/esp32-network-lib/mqtt/mqtt.fbs \
 	--force-defaults \
 	$^

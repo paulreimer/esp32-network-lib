@@ -23,8 +23,8 @@ if(CONFIG_AWS_IOT_SDK)
       COMMAND flatc --binary
         -o "secrets/gen"
         --root-type MQTT.MQTTClientConfiguration
-        -I "${PROJECT_PATH}/esp32-network-lib/uuid"
-        "${PROJECT_PATH}/esp32-network-lib/mqtt/mqtt.fbs"
+        -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
+        "${IDF_PROJECT_PATH}/esp32-network-lib/mqtt/mqtt.fbs"
         --force-defaults
         "secrets/gen/${mqtt_client_config}.mqtt.json"
       DEPENDS
@@ -45,11 +45,11 @@ if(CONFIG_AWS_IOT_SDK)
     list(APPEND GENERATED_OUTPUTS "secrets/gen/${mqtt_client_config}.mqtt.fb")
 
     add_custom_command(
-      OUTPUT "${PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
+      OUTPUT "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
       COMMAND
         cp
           "secrets/gen/${mqtt_client_config}.mqtt.fb"
-          "${PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
+          "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
       DEPENDS
         ${mqtt_client_config}_FB_TARGET
         "secrets/gen/${mqtt_client_config}.mqtt.fb"
@@ -57,11 +57,11 @@ if(CONFIG_AWS_IOT_SDK)
       VERBATIM
     )
     set_source_files_properties(
-      "${PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
+      "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
       PROPERTIES
       GENERATED TRUE
     )
-    list(APPEND GENERATED_OUTPUTS "${PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb")
+    list(APPEND GENERATED_OUTPUTS "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb")
 
     set_property(
       DIRECTORY "${COMPONENT_PATH}"
@@ -76,20 +76,20 @@ if(CONFIG_AWS_IOT_SDK)
   function(MQTT_EMBED_MQTT_CERTIFICATE mqtt_cert)
     set(GENERATED_OUTPUTS)
     add_custom_command(
-      OUTPUT "${PROJECT_PATH}/fs/${mqtt_cert}.pem"
+      OUTPUT "${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem"
       COMMAND sh -c "\
-        cp \"secrets/${mqtt_cert}.pem\" \"${PROJECT_PATH}/fs/${mqtt_cert}.pem\" \
-        && truncate -s +1 \"${PROJECT_PATH}/fs/${mqtt_cert}.pem\""
+        cp \"secrets/${mqtt_cert}.pem\" \"${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem\" \
+        && truncate -s +1 \"${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem\""
       DEPENDS "secrets/${mqtt_cert}.pem"
       WORKING_DIRECTORY "${COMPONENT_PATH}"
       VERBATIM
     )
     set_source_files_properties(
-      "${PROJECT_PATH}/fs/${mqtt_cert}.pem"
+      "${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem"
       PROPERTIES
       GENERATED TRUE
     )
-    list(APPEND GENERATED_OUTPUTS "${PROJECT_PATH}/fs/${mqtt_cert}.pem")
+    list(APPEND GENERATED_OUTPUTS "${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem")
 
     set_property(
       DIRECTORY "${COMPONENT_PATH}"

@@ -7,10 +7,10 @@ add_custom_command(
   OUTPUT "${FATFS_IMAGE}"
   COMMAND
     mkfatfs
-      -c "${PROJECT_PATH}/fs"
+      -c "${IDF_PROJECT_PATH}/fs"
       -s "${CONFIG_FATFS_PARTITION_SIZE}"
       "${FATFS_IMAGE}"
-  DEPENDS "${PROJECT_PATH}/fs"
+  DEPENDS "${IDF_PROJECT_PATH}/fs"
   VERBATIM
 )
 

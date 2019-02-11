@@ -1,7 +1,7 @@
 FATFS_IMAGE := $(BUILD_DIR_BASE)/fatfs_image.img
 
-$(FATFS_IMAGE): $(SDKCONFIG_MAKEFILE) $(shell find $(PROJECT_PATH)/fs -type f)
-	mkfatfs -c $(PROJECT_PATH)/fs -s $(CONFIG_FATFS_PARTITION_SIZE) $(FATFS_IMAGE)
+$(FATFS_IMAGE): $(SDKCONFIG_MAKEFILE) $(shell find $(IDF_PROJECT_PATH)/fs -type f)
+	mkfatfs -c $(IDF_PROJECT_PATH)/fs -s $(CONFIG_FATFS_PARTITION_SIZE) $(FATFS_IMAGE)
 
 .PHONY: flash_fatfs
 flash_fatfs: $(FATFS_IMAGE)

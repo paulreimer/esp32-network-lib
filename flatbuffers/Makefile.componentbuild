@@ -2,7 +2,7 @@
 # For *.fbs files, generate *_generated.h
 $(COMPILING_COMPONENT_PATH)/src/gen/%_generated.h: $(COMPILING_COMPONENT_PATH)/%.fbs
 	flatc --cpp -o $(@D) \
-		-I $(PROJECT_PATH)/esp32-network-lib/uuid \
+		-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
 		--scoped-enums \
 		--gen-mutable \
 		--gen-name-strings \
@@ -12,5 +12,5 @@ $(COMPILING_COMPONENT_PATH)/src/gen/%_generated.h: $(COMPILING_COMPONENT_PATH)/%
 
 $(COMPILING_COMPONENT_PATH)/src/gen/%.bfbs: $(COMPILING_COMPONENT_PATH)/%.fbs
 	flatc --schema -b -o $(@D) \
-		-I $(PROJECT_PATH)/esp32-network-lib/uuid \
+		-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
 		$^

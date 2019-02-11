@@ -21,7 +21,7 @@ add_dependencies(${COMPONENT_TARGET} firmware_update_generated_h_TARGET)
 set_property(
   SOURCE src/firmware_update.cpp
   APPEND PROPERTY
-  OBJECT_DEPENDS "${PROJECT_PATH}/VERSION"
+  OBJECT_DEPENDS "${IDF_PROJECT_PATH}/VERSION"
 )
 add_custom_target(VERSION_FILE_TARGET DEPENDS "${IDF_PROJECT_PATH}/VERSION")
 add_dependencies(${COMPONENT_TARGET} VERSION_FILE_TARGET)

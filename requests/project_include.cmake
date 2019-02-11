@@ -26,8 +26,8 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
     OUTPUT "${COMPONENT_PATH}/secrets/gen/${req_intent}.req.fb"
     COMMAND flatc --binary
       -o "secrets/gen"
-      -I "${PROJECT_PATH}/esp32-network-lib/uuid"
-      "${PROJECT_PATH}/esp32-network-lib/requests/requests.fbs"
+      -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
+      "${IDF_PROJECT_PATH}/esp32-network-lib/requests/requests.fbs"
       --force-defaults
       "secrets/gen/${req_intent}.req.json"
     DEPENDS "secrets/gen/${req_intent}.req.json"
@@ -42,21 +42,21 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
   list(APPEND GENERATED_OUTPUTS "secrets/gen/${req_intent}.req.fb")
 
   add_custom_command(
-    OUTPUT "${PROJECT_PATH}/fs/${req_intent}.req.fb"
+    OUTPUT "${IDF_PROJECT_PATH}/fs/${req_intent}.req.fb"
     COMMAND
       cp
       "secrets/gen/${req_intent}.req.fb"
-      "${PROJECT_PATH}/fs/${req_intent}.req.fb"
+      "${IDF_PROJECT_PATH}/fs/${req_intent}.req.fb"
     DEPENDS "secrets/gen/${req_intent}.req.fb"
     WORKING_DIRECTORY "${COMPONENT_PATH}"
     VERBATIM
   )
   set_source_files_properties(
-    "${PROJECT_PATH}/fs/${req_intent}.req.fb"
+    "${IDF_PROJECT_PATH}/fs/${req_intent}.req.fb"
     PROPERTIES
     GENERATED TRUE
   )
-  list(APPEND GENERATED_OUTPUTS "${PROJECT_PATH}/fs/${req_intent}.req.fb")
+  list(APPEND GENERATED_OUTPUTS "${IDF_PROJECT_PATH}/fs/${req_intent}.req.fb")
 
   set_property(
     DIRECTORY "${COMPONENT_PATH}"
@@ -82,13 +82,13 @@ function(REQUESTS_EMBED_CERTIFICATE_DER cert)
   list(APPEND GENERATED_OUTPUTS "${COMPONENT_PATH}/assets/gen/${cert}.der")
 
   add_custom_command(
-    OUTPUT "${PROJECT_PATH}/fs/${cert}.der"
-    COMMAND cp "assets/gen/${cert}.der" "${PROJECT_PATH}/fs/${cert}.der"
+    OUTPUT "${IDF_PROJECT_PATH}/fs/${cert}.der"
+    COMMAND cp "assets/gen/${cert}.der" "${IDF_PROJECT_PATH}/fs/${cert}.der"
     DEPENDS "assets/gen/${cert}.der"
     WORKING_DIRECTORY "${COMPONENT_PATH}"
     VERBATIM
   )
-  list(APPEND GENERATED_OUTPUTS "${PROJECT_PATH}/fs/${cert}.der")
+  list(APPEND GENERATED_OUTPUTS "${IDF_PROJECT_PATH}/fs/${cert}.der")
 
   set_property(
     DIRECTORY "${COMPONENT_PATH}"
