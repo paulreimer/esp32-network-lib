@@ -1,12 +1,12 @@
 CXXFLAGS += \
 	-DFIRMWARE_UPDATE_ACTOR_TASK_STACK_SIZE="4096" \
 	-DFIRMWARE_UPDATE_ACTOR_MAILBOX_SIZE="8192" \
-	-DFIRMWARE_UPDATE_CURRENT_VERSION="$(shell cat $(IDF_PROJECT_PATH)/VERSION)"
+	-DFIRMWARE_UPDATE_CURRENT_VERSION="$(shell cat $(BUILD_DIR_BASE)/VERSION)"
 
 # Cache the component name so it can be used correctly within make targets
 FIRMWARE_UPDATE_COMPONENT_PATH := $(COMPONENT_PATH)
 
-FILESYSTEM_FILES = $(shell find $(IDF_PROJECT_PATH)/fs/ -type f)
+FILESYSTEM_FILES = $(shell find $(BUILD_DIR_BASE)/fs/ -type f)
 
 # Generate latest.fw.json from config settings in 'make menuconfig'
 $(BUILD_DIR_BASE)/latest.fw.json: \
@@ -14,7 +14,7 @@ $(BUILD_DIR_BASE)/latest.fw.json: \
 	$(APP_BIN)
 	# Replace config values with expanded values
 	sed \
-		-e 's#@FIRMWARE_UPDATE_CURRENT_VERSION@#$(shell cat $(IDF_PROJECT_PATH)/VERSION)#' \
+		-e 's#@FIRMWARE_UPDATE_CURRENT_VERSION@#$(shell cat $(BUILD_DIR_BASE)/VERSION)#' \
 		-e 's#@CONFIG_FIRMWARE_UPDATE_LATEST_URL@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_LATEST_URL))#' \
 		-e 's#@CONFIG_FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_CHECK_INTERVAL_SECONDS))#' \
 		-e 's#@FIRMWARE_UPDATE_LATEST_CHECKSUM@#$(shell md5 -q $(APP_BIN))#' \

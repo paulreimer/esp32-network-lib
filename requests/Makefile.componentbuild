@@ -1,6 +1,6 @@
 # Generate *.req.fb binary RequestIntent flatbuffer from *.req.json
 # in any component's secrets/gen/ directory:
-$(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.fb: $(COMPILING_COMPONENT_PATH)/secrets/gen/%.req.json
+$(BUILD_DIR_BASE)/secrets/gen/%.req.fb: $(BUILD_DIR_BASE)/secrets/gen/%.req.json
 	flatc --binary -o $(@D) \
 	-I $(IDF_PROJECT_PATH)/esp32-network-lib/uuid \
 	$(IDF_PROJECT_PATH)/esp32-network-lib/requests/requests.fbs \

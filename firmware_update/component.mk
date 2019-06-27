@@ -24,5 +24,5 @@ CXXFLAGS += -std=c++14
 # Depends on firmware_update.fbs
 src/firmware_update.o: $(COMPONENT_PATH)/src/gen/firmware_update_generated.h
 # Depends on top-level VERSION file contents
-src/firmware_update.o: $(IDF_PROJECT_PATH)/VERSION
+src/firmware_update.o: $(BUILD_DIR_BASE)/VERSION
 src/firmware_update_actor.o: $(COMPONENT_PATH)/src/gen/firmware_update_generated.h

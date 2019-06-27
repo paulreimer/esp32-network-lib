@@ -4,22 +4,26 @@ if(CONFIG_AWS_IOT_SDK)
 
     configure_file(
       "templates/${mqtt_client_config}.mqtt.json.tpl"
-      "${COMPONENT_PATH}/secrets/gen/${mqtt_client_config}.mqtt.json"
+      "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.json"
       @ONLY
     )
     set_source_files_properties(
-      "secrets/gen/${mqtt_client_config}.mqtt.json"
+      "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.json"
       PROPERTIES
       GENERATED TRUE
     )
     add_custom_target(
       ${mqtt_client_config}_JSON_TARGET
-      DEPENDS "secrets/gen/${mqtt_client_config}.mqtt.json"
+      DEPENDS
+        "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.json"
     )
-    list(APPEND GENERATED_OUTPUTS "secrets/gen/${mqtt_client_config}.mqtt.json")
+    list(
+      APPEND GENERATED_OUTPUTS
+        "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.json"
+    )
 
     add_custom_command(
-      OUTPUT "secrets/gen/${mqtt_client_config}.mqtt.fb"
+      OUTPUT "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.fb"
       COMMAND flatc --binary
         -o "secrets/gen"
         --root-type MQTT.MQTTClientConfiguration
@@ -29,44 +33,44 @@ if(CONFIG_AWS_IOT_SDK)
         "secrets/gen/${mqtt_client_config}.mqtt.json"
       DEPENDS
         ${mqtt_client_config}_JSON_TARGET
-        "secrets/gen/${mqtt_client_config}.mqtt.json"
-      WORKING_DIRECTORY "${COMPONENT_PATH}"
+        "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.json"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
       VERBATIM
     )
     set_source_files_properties(
-      "secrets/gen/${mqtt_client_config}.mqtt.fb"
+      "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.fb"
       PROPERTIES
       GENERATED TRUE
     )
     add_custom_target(
       ${mqtt_client_config}_FB_TARGET
-      DEPENDS "secrets/gen/${mqtt_client_config}.mqtt.fb"
+      DEPENDS "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.fb"
     )
-    list(APPEND GENERATED_OUTPUTS "secrets/gen/${mqtt_client_config}.mqtt.fb")
+    list(
+      APPEND GENERATED_OUTPUTS
+        "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.fb"
+    )
 
     add_custom_command(
-      OUTPUT "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
+      OUTPUT "${PROJECT_BINARY_DIR}/fs/${mqtt_client_config}.mqtt.fb"
       COMMAND
         cp
           "secrets/gen/${mqtt_client_config}.mqtt.fb"
-          "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
+          "fs/${mqtt_client_config}.mqtt.fb"
       DEPENDS
         ${mqtt_client_config}_FB_TARGET
-        "secrets/gen/${mqtt_client_config}.mqtt.fb"
-      WORKING_DIRECTORY "${COMPONENT_PATH}"
+        "${PROJECT_BINARY_DIR}/secrets/gen/${mqtt_client_config}.mqtt.fb"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
       VERBATIM
     )
     set_source_files_properties(
-      "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb"
+      "${PROJECT_BINARY_DIR}/fs/${mqtt_client_config}.mqtt.fb"
       PROPERTIES
       GENERATED TRUE
     )
-    list(APPEND GENERATED_OUTPUTS "${IDF_PROJECT_PATH}/fs/${mqtt_client_config}.mqtt.fb")
-
-    set_property(
-      DIRECTORY "${COMPONENT_PATH}"
-      APPEND PROPERTY
-      ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_OUTPUTS}"
+    list(
+      APPEND GENERATED_OUTPUTS
+        "${PROJECT_BINARY_DIR}/fs/${mqtt_client_config}.mqtt.fb"
     )
 
     set(${mqtt_client_config}_OUTPUTS ${GENERATED_OUTPUTS} PARENT_SCOPE)
@@ -76,23 +80,23 @@ if(CONFIG_AWS_IOT_SDK)
   function(MQTT_EMBED_MQTT_CERTIFICATE mqtt_cert)
     set(GENERATED_OUTPUTS)
     add_custom_command(
-      OUTPUT "${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem"
+      OUTPUT "${PROJECT_BINARY_DIR}/fs/${mqtt_cert}.pem"
       COMMAND sh -c "\
-        cp \"secrets/${mqtt_cert}.pem\" \"${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem\" \
-        && truncate -s +1 \"${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem\""
+        cp \"secrets/${mqtt_cert}.pem\" \"fs/${mqtt_cert}.pem\" \
+        && truncate -s +1 \"fs/${mqtt_cert}.pem\""
       DEPENDS "secrets/${mqtt_cert}.pem"
-      WORKING_DIRECTORY "${COMPONENT_PATH}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
       VERBATIM
     )
     set_source_files_properties(
-      "${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem"
+      "${PROJECT_BINARY_DIR}/fs/${mqtt_cert}.pem"
       PROPERTIES
       GENERATED TRUE
     )
-    list(APPEND GENERATED_OUTPUTS "${IDF_PROJECT_PATH}/fs/${mqtt_cert}.pem")
+    list(APPEND GENERATED_OUTPUTS "${PROJECT_BINARY_DIR}/fs/${mqtt_cert}.pem")
 
     set_property(
-      DIRECTORY "${COMPONENT_PATH}"
+      DIRECTORY "${PROJECT_BINARY_DIR}"
       APPEND PROPERTY
       ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_OUTPUTS}"
     )

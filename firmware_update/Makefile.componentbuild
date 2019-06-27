@@ -1,5 +1,5 @@
 # Generate secret *.json files from *.json.tpl, via menuconfig values
-$(COMPILING_COMPONENT_PATH)/secrets/gen/firmware_update_check_request_intent.req.json: $(COMPILING_COMPONENT_PATH)/templates/firmware_update_check_request_intent.req.json.tpl
+$(BUILD_DIR_BASE)/secrets/gen/firmware_update_check_request_intent.req.json: $(COMPILING_COMPONENT_PATH)/templates/firmware_update_check_request_intent.req.json.tpl
 	sed \
 		-e 's#@CONFIG_FIRMWARE_UPDATE_CHECK_URL@#$(call dequote,$(CONFIG_FIRMWARE_UPDATE_CHECK_URL))#' \
 		$^ > $@
