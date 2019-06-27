@@ -1181,22 +1181,22 @@ struct ProcessExecutionConfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tab
     return SetField<uint32_t>(VT_MAILBOX_SIZE, _mailbox_size, 2048);
   }
   uint32_t send_timeout_microseconds() const {
-    return GetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, 10000000);
+    return GetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, 4294967295);
   }
   bool mutate_send_timeout_microseconds(uint32_t _send_timeout_microseconds) {
-    return SetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, _send_timeout_microseconds, 10000000);
+    return SetField<uint32_t>(VT_SEND_TIMEOUT_MICROSECONDS, _send_timeout_microseconds, 4294967295);
   }
   uint32_t receive_timeout_microseconds() const {
-    return GetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, 10000000);
+    return GetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, 4294967295);
   }
   bool mutate_receive_timeout_microseconds(uint32_t _receive_timeout_microseconds) {
-    return SetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, _receive_timeout_microseconds, 10000000);
+    return SetField<uint32_t>(VT_RECEIVE_TIMEOUT_MICROSECONDS, _receive_timeout_microseconds, 4294967295);
   }
   uint32_t receive_lock_timeout_microseconds() const {
-    return GetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, 10000000);
+    return GetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, 4294967295);
   }
   bool mutate_receive_lock_timeout_microseconds(uint32_t _receive_lock_timeout_microseconds) {
-    return SetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, _receive_lock_timeout_microseconds, 10000000);
+    return SetField<uint32_t>(VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, _receive_lock_timeout_microseconds, 4294967295);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1223,13 +1223,13 @@ struct ProcessExecutionConfigBuilder {
     fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_MAILBOX_SIZE, mailbox_size, 2048);
   }
   void add_send_timeout_microseconds(uint32_t send_timeout_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_SEND_TIMEOUT_MICROSECONDS, send_timeout_microseconds, 10000000);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_SEND_TIMEOUT_MICROSECONDS, send_timeout_microseconds, 4294967295);
   }
   void add_receive_timeout_microseconds(uint32_t receive_timeout_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_TIMEOUT_MICROSECONDS, receive_timeout_microseconds, 10000000);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_TIMEOUT_MICROSECONDS, receive_timeout_microseconds, 4294967295);
   }
   void add_receive_lock_timeout_microseconds(uint32_t receive_lock_timeout_microseconds) {
-    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, receive_lock_timeout_microseconds, 10000000);
+    fbb_.AddElement<uint32_t>(ProcessExecutionConfig::VT_RECEIVE_LOCK_TIMEOUT_MICROSECONDS, receive_lock_timeout_microseconds, 4294967295);
   }
   explicit ProcessExecutionConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1248,9 +1248,9 @@ inline flatbuffers::Offset<ProcessExecutionConfig> CreateProcessExecutionConfig(
     int32_t task_prio = 5,
     uint32_t task_stack_size = 2560,
     uint32_t mailbox_size = 2048,
-    uint32_t send_timeout_microseconds = 10000000,
-    uint32_t receive_timeout_microseconds = 10000000,
-    uint32_t receive_lock_timeout_microseconds = 10000000) {
+    uint32_t send_timeout_microseconds = 4294967295,
+    uint32_t receive_timeout_microseconds = 4294967295,
+    uint32_t receive_lock_timeout_microseconds = 4294967295) {
   ProcessExecutionConfigBuilder builder_(_fbb);
   builder_.add_receive_lock_timeout_microseconds(receive_lock_timeout_microseconds);
   builder_.add_receive_timeout_microseconds(receive_timeout_microseconds);
