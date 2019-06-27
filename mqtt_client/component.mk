@@ -4,10 +4,11 @@
 
 COMPONENT_DEPENDS := \
 	actor_model \
-	aws_iot \
 	embedded_files \
 	jwt \
-	uuid
+	mqtt \
+	uuid \
+	utils
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src/gen \
