@@ -20,4 +20,4 @@ auto mqtt_client_actor_behaviour(
   const ActorModel::Message& message
 ) -> ActorModel::ResultUnion;
 
-} // namespace FirmwareUpdate
+} // namespace MQTT
