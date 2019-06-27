@@ -24,7 +24,7 @@ if(CONFIG_AWS_IOT_SDK)
         -o "secrets/gen"
         --root-type MQTT.MQTTClientConfiguration
         -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
-        "${IDF_PROJECT_PATH}/esp32-network-lib/mqtt/mqtt.fbs"
+        "${IDF_PROJECT_PATH}/esp32-network-lib/mqtt_client/mqtt.fbs"
         --force-defaults
         "secrets/gen/${mqtt_client_config}.mqtt.json"
       DEPENDS
