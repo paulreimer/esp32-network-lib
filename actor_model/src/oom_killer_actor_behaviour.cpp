@@ -16,8 +16,8 @@
 
 #include <unordered_map>
 
+#include "esp_debug_helpers.h"
 #include "esp_heap_task_info.h"
-#include "esp_panic.h"
 
 namespace ActorModel {
 
