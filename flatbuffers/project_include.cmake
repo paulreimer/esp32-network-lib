@@ -1,3 +1,5 @@
+idf_build_get_property(project_dir PROJECT_DIR)
+
 function(FLATBUFFERS_GENERATE_GENERATED_H schema_generated_h)
   set(GENERATED_OUTPUTS)
   foreach(FILE ${ARGN})
@@ -10,7 +12,7 @@ function(FLATBUFFERS_GENERATE_GENERATED_H schema_generated_h)
       COMMAND
         flatc
           --cpp -o "${COMPONENT_PATH}/src/gen/"
-          -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
+          -I "${project_dir}/esp32-network-lib/uuid"
           --scoped-enums
           --gen-mutable
           --gen-name-strings
@@ -47,7 +49,7 @@ function(FLATBUFFERS_GENERATE_BFBS schema_bfbs)
       COMMAND
         flatc
           --schema -b -o "${COMPONENT_PATH}/src/gen/"
-          -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
+          -I "${project_dir}/esp32-network-lib/uuid"
           "${FILE}"
       DEPENDS "${FILE}"
       COMMENT "Building flatbuffers binary schema for ${FILE}"

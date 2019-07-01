@@ -20,14 +20,16 @@ add_definitions(
 #  -DREQUESTS_SUPPORT_JSON=1
 #)
 
+idf_build_get_property(project_dir PROJECT_DIR)
+
 function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
   set(GENERATED_OUTPUTS)
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/secrets/gen/${req_intent}.req.fb"
     COMMAND flatc --binary
       -o "secrets/gen"
-      -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
-      "${IDF_PROJECT_PATH}/esp32-network-lib/requests/requests.fbs"
+      -I "${project_dir}/esp32-network-lib/uuid"
+      "${project_dir}/esp32-network-lib/requests/requests.fbs"
       --force-defaults
       "secrets/gen/${req_intent}.req.json"
     DEPENDS "secrets/gen/${req_intent}.req.json"

@@ -1,3 +1,5 @@
+idf_build_get_property(project_dir PROJECT_DIR)
+
 function(MQTT_EMBED_CLIENT_CONFIG mqtt_client_config)
   set(GENERATED_OUTPUTS)
 
@@ -26,8 +28,8 @@ function(MQTT_EMBED_CLIENT_CONFIG mqtt_client_config)
     COMMAND flatc --binary
       -o "secrets/gen"
       --root-type MQTT.MQTTClientConfiguration
-      -I "${IDF_PROJECT_PATH}/esp32-network-lib/uuid"
-      "${IDF_PROJECT_PATH}/esp32-network-lib/mqtt_client/mqtt.fbs"
+      -I "${project_dir}/esp32-network-lib/uuid"
+      "${project_dir}/esp32-network-lib/mqtt_client/mqtt.fbs"
       --force-defaults
       "secrets/gen/${mqtt_client_config}.mqtt.json"
     DEPENDS
@@ -81,9 +83,9 @@ function(MQTT_EMBED_MQTT_CERTIFICATE mqtt_cert)
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/fs/${mqtt_cert}.pem"
     COMMAND sh -c "\
-      cp \"secrets/${mqtt_cert}.pem\" \"fs/${mqtt_cert}.pem\" \
+      cp \"${COMPONENT_PATH}/secrets/${mqtt_cert}.pem\" \"fs/${mqtt_cert}.pem\" \
       && truncate -s +1 \"fs/${mqtt_cert}.pem\""
-    DEPENDS "secrets/${mqtt_cert}.pem"
+    DEPENDS "${COMPONENT_PATH}/secrets/${mqtt_cert}.pem"
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
     VERBATIM
   )
