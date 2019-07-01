@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 #include <unistd.h>
