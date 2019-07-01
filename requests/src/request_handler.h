@@ -100,7 +100,7 @@ private:
   std::unique_ptr<ServerSentEventsEmitter> server_sent_events_emitter;
 
 #if REQUESTS_SUPPORT_JSON
-  using JsonEmitter = Json::JsonEmitter;
+  using JsonEmitter = JsonStreaming::JsonEmitter;
   std::unique_ptr<JsonEmitter> json_path_emitter;
 
 #if REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS

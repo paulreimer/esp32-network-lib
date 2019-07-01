@@ -27,12 +27,12 @@ class JsonToFlatbuffersConverter
 public:
   using string_view = std::experimental::string_view;
 
-  using PostCallbackAction = Json::JsonEmitter::PostCallbackAction;
+  using PostCallbackAction = JsonStreaming::JsonEmitter::PostCallbackAction;
 
   using Callback = delegate<PostCallbackAction(string_view)>;
   using Errback = delegate<PostCallbackAction(string_view)>;
 
-  using JsonEmitter = Json::JsonEmitter;
+  using JsonEmitter = JsonStreaming::JsonEmitter;
   using JsonPath = JsonEmitter::JsonPath;
 
   JsonToFlatbuffersConverter(

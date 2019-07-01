@@ -1,4 +1,4 @@
-set(COMPONENT_REQUIRES flatbuffers json)
+set(COMPONENT_REQUIRES flatbuffers json_streaming)
 
 set(COMPONENT_ADD_INCLUDEDIRS src)
 

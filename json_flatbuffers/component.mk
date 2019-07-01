@@ -4,7 +4,7 @@
 
 COMPONENT_DEPENDS := \
 	flatbuffers \
-	json
+	json_streaming
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	src

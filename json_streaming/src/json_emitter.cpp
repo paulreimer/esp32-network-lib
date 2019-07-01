@@ -12,7 +12,7 @@
 
 #include <cstdio>
 
-namespace Json {
+namespace JsonStreaming {
 
 using string_view = std::experimental::string_view;
 using string = std::string;
@@ -678,4 +678,4 @@ auto JsonEmitter::parse_json_path(const string_view json_path_str)
   return json_path;
 }
 
-} // namespace Json
+} // namespace JsonStreaming

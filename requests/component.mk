@@ -6,7 +6,7 @@ COMPONENT_DEPENDS := \
 	actor_model \
 	curl \
 	embedded_files \
-	json \
+	json_streaming \
 	nghttp \
 	uuid
 

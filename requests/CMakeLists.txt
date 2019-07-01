@@ -4,7 +4,7 @@ set(
     curl
     embedded_files
     esp-tls
-    json
+    json_streaming
     nghttp
     sh2lib
     uuid

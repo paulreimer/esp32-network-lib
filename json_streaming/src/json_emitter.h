@@ -22,7 +22,7 @@
 #include "yajl/yajl_gen.h"
 #include "yajl/yajl_parse.h"
 
-namespace Json {
+namespace JsonStreaming {
 
 class JsonEmitter
 {
@@ -110,4 +110,4 @@ private:
   JsonGenPtr json_gen;
 };
 
-} // namespace Json
+} // namespace JsonStreaming
