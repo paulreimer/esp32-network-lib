@@ -1,23 +1,25 @@
-set(COMPONENT_REQUIRES actor_model requests)
-
-set(COMPONENT_ADD_INCLUDEDIRS src lib/yajl/include)
-set(COMPONENT_PRIV_INCLUDEDIRS lib lib/yajl)
-
-set(
-  COMPONENT_SRCS
-    "lib/yajl/src/yajl_parser.c"
+idf_component_register(
+  SRCS
+    "lib/yajl/src/yajl.c"
     "lib/yajl/src/yajl_alloc.c"
-    "lib/yajl/src/yajl_lex.c"
+    "lib/yajl/src/yajl_buf.c"
+    "lib/yajl/src/yajl_encode.c"
     "lib/yajl/src/yajl_gen.c"
+    "lib/yajl/src/yajl_lex.c"
+    "lib/yajl/src/yajl_parser.c"
     "lib/yajl/src/yajl_tree.c"
     "lib/yajl/src/yajl_version.c"
-    "lib/yajl/src/yajl_buf.c"
-    "lib/yajl/src/yajl.c"
-    "lib/yajl/src/yajl_encode.c"
     "src/json_emitter.cpp"
+  INCLUDE_DIRS
+    "lib/yajl/include"
+    "src"
+  PRIV_INCLUDE_DIRS
+    "lib"
+    "lib/yajl"
+  REQUIRES
+    "actor_model"
+    "requests"
 )
-
-register_component()
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

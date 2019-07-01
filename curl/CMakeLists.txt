@@ -1,10 +1,5 @@
-set(COMPONENT_REQUIRES mbedtls)
-
-set(COMPONENT_ADD_INCLUDEDIRS lib/curl/include)
-set(COMPONENT_PRIV_INCLUDEDIRS lib lib/curl/lib lib/curl/include lib/zlib)
-
-set(
-  COMPONENT_SRCS
+idf_component_register(
+  SRCS
     "lib/curl/lib/amigaos.c"
     "lib/curl/lib/asyn-ares.c"
     "lib/curl/lib/asyn-thread.c"
@@ -145,9 +140,16 @@ set(
     "lib/zlib/trees.c"
     "lib/zlib/uncompr.c"
     "lib/zlib/zutil.c"
+  INCLUDE_DIRS
+    "lib/curl/include"
+  PRIV_INCLUDE_DIRS
+    "lib"
+    "lib/curl/include"
+    "lib/curl/lib"
+    "lib/zlib"
+  PRIV_REQUIRES
+    "mbedtls"
 )
-
-register_component()
 
 component_compile_options(
   -DHAVE_CONFIG_H=1

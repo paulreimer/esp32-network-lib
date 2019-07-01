@@ -1,12 +1,17 @@
-set(COMPONENT_REQUIRES actor_model embedded_files requests uuid)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen)
-
-set(
-  COMPONENT_SRCS
+idf_component_register(
+  SRCS
     "src/googleapis.cpp"
     "src/spreadsheet_insert_row_actor.cpp"
     "src/visualization_query_actor.cpp"
+  INCLUDE_DIRS
+    "src"
+    "src/gen"
+  PRIV_REQUIRES
+    "actor_model"
+    "embedded_files"
+    "requests"
+    "utils"
+    "uuid"
 )
 
 set_property(
@@ -14,8 +19,6 @@ set_property(
   APPEND PROPERTY
   COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
 )
-
-register_component()
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

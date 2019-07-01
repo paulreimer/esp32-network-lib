@@ -1,10 +1,14 @@
-set(COMPONENT_REQUIRES flatbuffers uuid)
-
-set(COMPONENT_ADD_INCLUDEDIRS src lib/tinyosc)
-
-set(COMPONENT_SRCS "lib/tinyosc/tinyosc.c" "src/osc.cpp")
-
-register_component()
+idf_component_register(
+  SRCS
+    "lib/tinyosc/tinyosc.c"
+    "src/osc.cpp"
+  INCLUDE_DIRS
+    "lib/tinyosc"
+    "src"
+  PRIV_REQUIRES
+    "flatbuffers"
+    "uuid"
+)
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

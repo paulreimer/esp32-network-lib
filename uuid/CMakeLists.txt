@@ -1,10 +1,13 @@
-set(COMPONENT_REQUIRES flatbuffers)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/sole)
-
-set(COMPONENT_SRCS "src/uuid.cpp")
-
-register_component()
+idf_component_register(
+  SRCS
+    "src/uuid.cpp"
+  INCLUDE_DIRS
+    "lib/sole"
+    "src"
+    "src/gen"
+  REQUIRES
+    "flatbuffers"
+)
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

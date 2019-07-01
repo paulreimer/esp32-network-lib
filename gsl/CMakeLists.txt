@@ -1,3 +1,4 @@
-set(COMPONENT_ADD_INCLUDEDIRS lib/GSL/include)
-
-register_component()
+idf_component_register(
+  INCLUDE_DIRS
+    "lib/GSL/include"
+)

@@ -1,10 +1,14 @@
-set(COMPONENT_REQUIRES actor_model lwip)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen)
-
-set(COMPONENT_SRCS "src/http_server_actor.cpp")
-
-register_component()
+idf_component_register(
+  SRCS
+    "src/http_server_actor.cpp"
+  INCLUDE_DIRS
+    "src"
+    "src/gen"
+  PRIV_REQUIRES
+    "actor_model"
+    "lwip"
+    "utils"
+)
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

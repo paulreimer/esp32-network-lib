@@ -1,8 +1,9 @@
-set(COMPONENT_ADD_INCLUDEDIRS lib/flatbuffers/include)
-
-set(COMPONENT_SRCS "lib/flatbuffers/src/reflection.cpp")
-
-register_component()
+idf_component_register(
+  SRCS
+    "lib/flatbuffers/src/reflection.cpp"
+  INCLUDE_DIRS
+    "lib/flatbuffers/include"
+)
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

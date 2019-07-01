@@ -1,20 +1,5 @@
-set(
-  COMPONENT_REQUIRES
-    actor_model
-    curl
-    embedded_files
-    esp-tls
-    json_streaming
-    nghttp
-    sh2lib
-    uuid
-)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/cpp17_headers/include)
-set(COMPONENT_PRIV_INCLUDEDIRS lib)
-
-set(
-  COMPONENT_SRCS
+idf_component_register(
+  SRCS
     "src/curl_library_info.cpp"
     "src/http_utils.cpp"
     "src/queued_endpoint_actor.cpp"
@@ -23,11 +8,25 @@ set(
     "src/request_manager_actor.cpp"
     "src/requests.cpp"
     "src/server_sent_events_emitter.cpp"
+  INCLUDE_DIRS
+    "lib/cpp17_headers/include"
+    "src"
+    "src/gen"
+  PRIV_INCLUDE_DIRS
+    "lib"
+  PRIV_REQUIRES
+    "actor_model"
+    "curl"
+    "embedded_files"
+    "esp-tls"
+    "json_streaming"
+    "nghttp"
+    "sh2lib"
+    "utils"
+    "uuid"
+  EMBED_FILES
+    "src/gen/requests.bfbs"
 )
-
-set(COMPONENT_EMBED_FILES src/gen/requests.bfbs)
-
-register_component()
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

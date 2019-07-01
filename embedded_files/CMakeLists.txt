@@ -1,3 +1,4 @@
-set(COMPONENT_ADD_INCLUDEDIRS src)
-
-register_component()
+idf_component_register(
+  INCLUDE_DIRS
+    "src"
+)

@@ -1,9 +1,5 @@
-set(COMPONENT_REQUIRES esp_ringbuf heap utils uuid)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/delegate)
-
-set(
-  COMPONENT_SRCS
+idf_component_register(
+  SRCS
     "src/actor.cpp"
     "src/actor_model.cpp"
     "src/mailbox.cpp"
@@ -13,9 +9,17 @@ set(
     "src/process.cpp"
     "src/received_message.cpp"
     "src/supervisor_actor_behaviour.cpp"
+  INCLUDE_DIRS
+    "lib/delegate"
+    "src"
+    "src/gen"
+  REQUIRES
+    "uuid"
+  PRIV_REQUIRES
+    "esp_ringbuf"
+    "heap"
+    "utils"
 )
-
-register_component()
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

@@ -1,18 +1,23 @@
-set(COMPONENT_REQUIRES actor_model lwip mdns tcpip_adapter)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/date/include)
-
-set(
-  COMPONENT_SRCS
+idf_component_register(
+  SRCS
     "src/mdns_actor.cpp"
     "src/network_check_actor.cpp"
     "src/network_manager.cpp"
     "src/ntp.cpp"
     "src/ntp_actor.cpp"
     "src/wifi_actor.cpp"
+  INCLUDE_DIRS
+    "lib/date/include"
+    "src"
+    "src/gen"
+  PRIV_REQUIRES
+    "actor_model"
+    "flatbuffers"
+    "lwip"
+    "mdns"
+    "tcpip_adapter"
+    "utils"
 )
-
-register_component()
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

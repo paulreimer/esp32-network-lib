@@ -1,20 +1,25 @@
-set(COMPONENT_REQUIRES actor_model gsl embedded_files requests utils)
-
-set(COMPONENT_ADD_INCLUDEDIRS src src/gen lib/libelfin)
-
-set(COMPONENT_PRIV_INCLUDEDIRS lib/libelfin/elf)
-set(
-  COMPONENT_SRCS
+idf_component_register(
+  SRCS
+    "${COMPONENT_PATH}/src/gen/symbols.c"
     "lib/libelfin/elf/elf.cc"
     "lib/libelfin/elf/to_string.cc"
+    "src/executable.cpp"
     "src/file_buffer_loader.cpp"
     "src/loader.cpp"
-    "src/executable.cpp"
     "src/string_view_buffer_loader.cpp"
-    "${COMPONENT_PATH}/src/gen/symbols.c"
+  INCLUDE_DIRS
+    "lib/libelfin"
+    "src"
+    "src/gen"
+  PRIV_INCLUDE_DIRS
+    "lib/libelfin/elf"
+  PRIV_REQUIRES
+    "actor_model"
+    "embedded_files"
+    "gsl"
+    "requests"
+    "utils"
 )
-
-register_component()
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)

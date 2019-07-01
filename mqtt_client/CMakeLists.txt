@@ -1,12 +1,20 @@
-set(COMPONENT_REQUIRES actor_model embedded_files jwt mqtt uuid utils)
-
-set(COMPONENT_ADD_INCLUDEDIRS src/gen src)
-
-set(COMPONENT_SRCS "src/mqtt.cpp" "src/mqtt_client_actor.cpp")
-
-set(COMPONENT_EMBED_FILES src/gen/mqtt.bfbs)
-
-register_component()
+idf_component_register(
+  SRCS
+    "src/mqtt.cpp"
+    "src/mqtt_client_actor.cpp"
+  INCLUDE_DIRS
+    "src/gen"
+    "src"
+  PRIV_REQUIRES
+    "actor_model"
+    "embedded_files"
+    "jwt"
+    "mqtt"
+    "utils"
+    "uuid"
+  EMBED_FILES
+    "src/gen/mqtt.bfbs"
+)
 
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
 set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
