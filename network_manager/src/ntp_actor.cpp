@@ -43,7 +43,7 @@ struct NTPActorState
   MutableNTPConfigurationFlatbuffer ntp_config_mutable_buf;
 
   Timestamp last_ntp_connect_timestamp;
-  static constexpr auto ntp_connect_wait_interval = 10s;
+  static constexpr auto ntp_connect_wait_interval = 60s;
 };
 
 constexpr char TAG[] = "NTP";
