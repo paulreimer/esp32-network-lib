@@ -456,7 +456,7 @@ auto JsonEmitter::on_json_parse_map_key(const unsigned char* s, const size_t l)
   }
 
   current_path.emplace_back(
-    string_view(reinterpret_cast<const char*>(s), l)
+    string(reinterpret_cast<const char*>(s), l)
   );
 
   if (is_emitting_at_path(match_path, current_path))
