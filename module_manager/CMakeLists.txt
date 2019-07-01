@@ -64,5 +64,5 @@ set_property(
 )
 
 add_custom_target(src_gen_symbols_c DEPENDS "src/gen/symbols.c")
-add_dependencies(${COMPONENT_TARGET} src_gen_symbols_c)
+add_dependencies(${COMPONENT_LIB} src_gen_symbols_c)
 endif(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)

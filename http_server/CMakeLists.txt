@@ -19,4 +19,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${http_server_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} http_server_generated_h_TARGET)
+add_dependencies(${COMPONENT_LIB} http_server_generated_h_TARGET)

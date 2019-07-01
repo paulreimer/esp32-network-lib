@@ -41,18 +41,18 @@ FLATBUFFERS_GENERATE_BFBS(requests_bfbs requests.fbs)
 
 add_custom_target(requests_generated_h DEPENDS src/gen/requests_generated.h)
 add_custom_target(requests_bfbs DEPENDS src/gen/requests.bfbs)
-add_dependencies(${COMPONENT_TARGET} requests_generated_h requests_bfbs)
+add_dependencies(${COMPONENT_LIB} requests_generated_h requests_bfbs)
 
 set_property(
   SOURCE src/request_handler.cpp src/request_manager.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${requests_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} requests_generated_h_TARGET)
+add_dependencies(${COMPONENT_LIB} requests_generated_h_TARGET)
 
 set_property(
   SOURCE src/requests.cpp
   APPEND PROPERTY
   OBJECT_DEPENDS "${requests_bfbs_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} requests_bfbs_TARGET)
+add_dependencies(${COMPONENT_LIB} requests_bfbs_TARGET)

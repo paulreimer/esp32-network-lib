@@ -37,7 +37,7 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${visualization_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} visualization_generated_h_TARGET)
+add_dependencies(${COMPONENT_LIB} visualization_generated_h_TARGET)
 
 foreach(
   req_intent

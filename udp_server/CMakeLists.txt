@@ -19,4 +19,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${udp_server_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} udp_server_generated_h_TARGET)
+add_dependencies(${COMPONENT_LIB} udp_server_generated_h_TARGET)

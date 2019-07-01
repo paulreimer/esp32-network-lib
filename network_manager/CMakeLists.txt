@@ -44,4 +44,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${network_manager_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} network_manager_generated_h_TARGET)
+add_dependencies(${COMPONENT_LIB} network_manager_generated_h_TARGET)

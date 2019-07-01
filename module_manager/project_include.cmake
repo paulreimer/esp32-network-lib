@@ -19,7 +19,7 @@ target_compile_features(${mod_name}_LIBRARY PUBLIC cxx_std_17)
 
   target_include_directories(
     ${mod_name}_LIBRARY
-    PRIVATE "$<TARGET_PROPERTY:${COMPONENT_TARGET},INCLUDE_DIRECTORIES>"
+    PRIVATE "$<TARGET_PROPERTY:${COMPONENT_LIB},INCLUDE_DIRECTORIES>"
   )
 
   add_custom_command(

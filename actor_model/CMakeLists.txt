@@ -45,4 +45,4 @@ set_property(
   APPEND PROPERTY
   OBJECT_DEPENDS "${actor_model_generated_h_OUTPUTS}"
 )
-add_dependencies(${COMPONENT_TARGET} actor_model_generated_h_TARGET)
+add_dependencies(${COMPONENT_LIB} actor_model_generated_h_TARGET)
