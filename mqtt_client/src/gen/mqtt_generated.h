@@ -44,7 +44,7 @@ inline const MQTT_QOS (&EnumValuesMQTT_QOS())[3] {
 }
 
 inline const char * const *EnumNamesMQTT_QOS() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "AtMostOnce",
     "AtLeastOnce",
     "ExactlyOnce",
@@ -55,7 +55,7 @@ inline const char * const *EnumNamesMQTT_QOS() {
 
 inline const char *EnumNameMQTT_QOS(MQTT_QOS e) {
   if (e < MQTT_QOS::AtMostOnce || e > MQTT_QOS::ExactlyOnce) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesMQTT_QOS()[index];
 }
 

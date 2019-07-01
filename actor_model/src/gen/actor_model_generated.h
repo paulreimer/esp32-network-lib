@@ -78,7 +78,7 @@ inline const SupervisionStrategy (&EnumValuesSupervisionStrategy())[4] {
 }
 
 inline const char * const *EnumNamesSupervisionStrategy() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "one_for_one",
     "one_for_all",
     "rest_for_one",
@@ -90,7 +90,7 @@ inline const char * const *EnumNamesSupervisionStrategy() {
 
 inline const char *EnumNameSupervisionStrategy(SupervisionStrategy e) {
   if (e < SupervisionStrategy::one_for_one || e > SupervisionStrategy::simple_one_for_one) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesSupervisionStrategy()[index];
 }
 
@@ -108,7 +108,7 @@ inline const ProcessFlag (&EnumValuesProcessFlag())[1] {
 }
 
 inline const char * const *EnumNamesProcessFlag() {
-  static const char * const names[] = {
+  static const char * const names[2] = {
     "trap_exit",
     nullptr
   };
@@ -117,7 +117,7 @@ inline const char * const *EnumNamesProcessFlag() {
 
 inline const char *EnumNameProcessFlag(ProcessFlag e) {
   if (e < ProcessFlag::trap_exit || e > ProcessFlag::trap_exit) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesProcessFlag()[index];
 }
 
@@ -137,7 +137,7 @@ inline const EventTerminationAction (&EnumValuesEventTerminationAction())[2] {
 }
 
 inline const char * const *EnumNamesEventTerminationAction() {
-  static const char * const names[] = {
+  static const char * const names[3] = {
     "StopProcessing",
     "ContinueProcessing",
     nullptr
@@ -147,7 +147,7 @@ inline const char * const *EnumNamesEventTerminationAction() {
 
 inline const char *EnumNameEventTerminationAction(EventTerminationAction e) {
   if (e < EventTerminationAction::StopProcessing || e > EventTerminationAction::ContinueProcessing) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesEventTerminationAction()[index];
 }
 
@@ -171,7 +171,7 @@ inline const Result (&EnumValuesResult())[4] {
 }
 
 inline const char * const *EnumNamesResult() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "NONE",
     "Ok",
     "Error",
@@ -183,7 +183,7 @@ inline const char * const *EnumNamesResult() {
 
 inline const char *EnumNameResult(Result e) {
   if (e < Result::NONE || e > Result::Unhandled) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesResult()[index];
 }
 
@@ -224,7 +224,7 @@ inline const ChildSpecRestartFlag (&EnumValuesChildSpecRestartFlag())[3] {
 }
 
 inline const char * const *EnumNamesChildSpecRestartFlag() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "permanent",
     "temporary",
     "transient",
@@ -235,7 +235,7 @@ inline const char * const *EnumNamesChildSpecRestartFlag() {
 
 inline const char *EnumNameChildSpecRestartFlag(ChildSpecRestartFlag e) {
   if (e < ChildSpecRestartFlag::permanent || e > ChildSpecRestartFlag::transient) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesChildSpecRestartFlag()[index];
 }
 
@@ -255,7 +255,7 @@ inline const ChildSpecTypeFlag (&EnumValuesChildSpecTypeFlag())[2] {
 }
 
 inline const char * const *EnumNamesChildSpecTypeFlag() {
-  static const char * const names[] = {
+  static const char * const names[3] = {
     "worker",
     "supervisor",
     nullptr
@@ -265,7 +265,7 @@ inline const char * const *EnumNamesChildSpecTypeFlag() {
 
 inline const char *EnumNameChildSpecTypeFlag(ChildSpecTypeFlag e) {
   if (e < ChildSpecTypeFlag::worker || e > ChildSpecTypeFlag::supervisor) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesChildSpecTypeFlag()[index];
 }
 

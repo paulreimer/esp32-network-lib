@@ -69,7 +69,7 @@ inline const DatatableColumnType (&EnumValuesDatatableColumnType())[7] {
 }
 
 inline const char * const *EnumNamesDatatableColumnType() {
-  static const char * const names[] = {
+  static const char * const names[8] = {
     "boolean",
     "number",
     "string",
@@ -84,7 +84,7 @@ inline const char * const *EnumNamesDatatableColumnType() {
 
 inline const char *EnumNameDatatableColumnType(DatatableColumnType e) {
   if (e < DatatableColumnType::boolean || e > DatatableColumnType::unknown) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesDatatableColumnType()[index];
 }
 
@@ -106,7 +106,7 @@ inline const QueryOption (&EnumValuesQueryOption())[3] {
 }
 
 inline const char * const *EnumNamesQueryOption() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "defaults",
     "no_format",
     "no_values",
@@ -117,7 +117,7 @@ inline const char * const *EnumNamesQueryOption() {
 
 inline const char *EnumNameQueryOption(QueryOption e) {
   if (e < QueryOption::defaults || e > QueryOption::no_values) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesQueryOption()[index];
 }
 
@@ -159,7 +159,7 @@ inline const WhereClauseOp (&EnumValuesWhereClauseOp())[13] {
 }
 
 inline const char * const *EnumNamesWhereClauseOp() {
-  static const char * const names[] = {
+  static const char * const names[14] = {
     "Equals",
     "NotEquals",
     "GreaterThan",
@@ -180,7 +180,7 @@ inline const char * const *EnumNamesWhereClauseOp() {
 
 inline const char *EnumNameWhereClauseOp(WhereClauseOp e) {
   if (e < WhereClauseOp::Equals || e > WhereClauseOp::Like) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesWhereClauseOp()[index];
 }
 
@@ -202,7 +202,7 @@ inline const WhereClauseJoinOp (&EnumValuesWhereClauseJoinOp())[3] {
 }
 
 inline const char * const *EnumNamesWhereClauseJoinOp() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "And",
     "Or",
     "Not",
@@ -213,7 +213,7 @@ inline const char * const *EnumNamesWhereClauseJoinOp() {
 
 inline const char *EnumNameWhereClauseJoinOp(WhereClauseJoinOp e) {
   if (e < WhereClauseJoinOp::And || e > WhereClauseJoinOp::Not) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesWhereClauseJoinOp()[index];
 }
 

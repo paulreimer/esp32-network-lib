@@ -18,11 +18,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) UUID FLATBUFFERS_FINAL_CLASS {
   uint64_t cd_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return UUIDTypeTable();
+  }
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "UUID.UUID";
   }
   UUID() {
-    memset(this, 0, sizeof(UUID));
+    memset(static_cast<void *>(this), 0, sizeof(UUID));
   }
   UUID(uint64_t _ab, uint64_t _cd)
       : ab_(flatbuffers::EndianScalar(_ab)),

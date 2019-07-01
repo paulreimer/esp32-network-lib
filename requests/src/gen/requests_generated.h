@@ -58,7 +58,7 @@ inline const PostCallbackAction (&EnumValuesPostCallbackAction())[2] {
 }
 
 inline const char * const *EnumNamesPostCallbackAction() {
-  static const char * const names[] = {
+  static const char * const names[3] = {
     "AbortProcessing",
     "ContinueProcessing",
     nullptr
@@ -68,7 +68,7 @@ inline const char * const *EnumNamesPostCallbackAction() {
 
 inline const char *EnumNamePostCallbackAction(PostCallbackAction e) {
   if (e < PostCallbackAction::AbortProcessing || e > PostCallbackAction::ContinueProcessing) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesPostCallbackAction()[index];
 }
 
@@ -94,7 +94,7 @@ inline const ResponseFilter (&EnumValuesResponseFilter())[5] {
 }
 
 inline const char * const *EnumNamesResponseFilter() {
-  static const char * const names[] = {
+  static const char * const names[6] = {
     "FullResponseBody",
     "PartialResponseChunks",
     "ServerSentEvents",
@@ -107,7 +107,7 @@ inline const char * const *EnumNamesResponseFilter() {
 
 inline const char *EnumNameResponseFilter(ResponseFilter e) {
   if (e < ResponseFilter::FullResponseBody || e > ResponseFilter::JsonPathAsFlatbuffers) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesResponseFilter()[index];
 }
 
