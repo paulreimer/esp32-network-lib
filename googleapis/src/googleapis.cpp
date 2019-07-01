@@ -181,7 +181,7 @@ auto update_columns(
   if (from_cols and to_cols)
   {
     // Iterate 'to' cols first, attempt to match each with one from 'from'
-    for (size_t to_col_idx = 0; to_col_idx < to_cols->Length(); ++to_col_idx)
+    for (size_t to_col_idx = 0; to_col_idx < to_cols->size(); ++to_col_idx)
     {
       auto* to_col = to_cols->GetMutableObject(to_col_idx);
       auto did_update = update_column(from_cols, to_col);
@@ -270,7 +270,7 @@ auto build_column_list(
 
   if (cols)
   {
-    for (size_t col_idx = 0; col_idx < cols->Length(); ++col_idx)
+    for (size_t col_idx = 0; col_idx < cols->size(); ++col_idx)
     {
       auto* col = cols->Get(col_idx);
 
@@ -294,7 +294,7 @@ auto build_where_clauses(
 
   if (where)
   {
-    for (size_t clause_idx = 0; clause_idx < where->Length(); ++clause_idx)
+    for (size_t clause_idx = 0; clause_idx < where->size(); ++clause_idx)
     {
       auto* where_clause = where->Get(clause_idx);
       auto* col = where_clause->column();
@@ -504,7 +504,7 @@ auto datatable_has_columns(const Datatable* datatable)
   return (
     datatable
     and datatable->cols()
-    and (datatable->cols()->Length() > 0)
+    and (datatable->cols()->size() > 0)
   );
 }
 
@@ -514,7 +514,7 @@ auto datatable_has_rows(const Datatable* datatable)
   return (
     datatable
     and datatable->rows()
-    and (datatable->rows()->Length() > 0)
+    and (datatable->rows()->size() > 0)
   );
 }
 
