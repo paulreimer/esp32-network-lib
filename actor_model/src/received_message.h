@@ -21,7 +21,7 @@ class Mailbox;
 class ReceivedMessage
 {
 public:
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   ReceivedMessage(
     Mailbox& _mailbox,

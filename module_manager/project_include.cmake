@@ -9,8 +9,7 @@ function(MODULE_GENERATE_ELF target_prefix mod_name)
 
   add_library(${mod_name}_LIBRARY OBJECT "${ARGN}")
 
-  set_property(TARGET ${mod_name}_LIBRARY PROPERTY CXX_STANDARD 14)
-  set_property(TARGET ${mod_name}_LIBRARY PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(${mod_name}_LIBRARY PUBLIC cxx_std_17)
 
   target_compile_options(
     ${mod_name}_LIBRARY

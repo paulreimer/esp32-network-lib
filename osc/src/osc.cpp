@@ -21,7 +21,7 @@ namespace OSC {
 using UUID::uuidgen;
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 using UUID::compare_uuids;
 using UUID::update_uuid;
@@ -33,7 +33,7 @@ using UUID = UUID::UUID;
 auto update_flatbuffer_from_osc_message(
   MutableGenericFlatbuffer& flatbuffer_mutable_buf,
   const std::vector<uint8_t>& flatbuffer_bfbs,
-  const std::experimental::string_view osc_packet
+  const std::string_view osc_packet
 ) -> bool
 {
   auto did_update_flatbuffer = false;

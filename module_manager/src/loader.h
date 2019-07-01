@@ -24,7 +24,7 @@ namespace ModuleManager {
 class Loader
 {
 public:
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   auto load(const string_view elf_bin)
     -> Executable;

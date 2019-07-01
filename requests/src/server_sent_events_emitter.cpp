@@ -14,7 +14,7 @@
 
 namespace Requests {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using string = std::string;
 
 auto find_next_line_ending(const string_view chunk, const size_t start)

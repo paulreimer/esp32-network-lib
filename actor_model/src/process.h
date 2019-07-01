@@ -17,7 +17,7 @@
 
 #include "actor_model_generated.h"
 
-#include <experimental/string_view>
+#include <string_view>
 
 #include <unordered_map>
 #include <unordered_set>
@@ -40,11 +40,11 @@ class Process
   friend class Node;
 public:
   // type aliases:
-  using Reason = std::experimental::string_view;
+  using Reason = std::string_view;
   using LinkList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
   using MonitorList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
 
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   struct ProcessFlagHashFunc
   {
@@ -78,7 +78,7 @@ protected:
     const Pid& _pid,
     const Behaviour&& _behaviour,
     const ProcessExecutionConfig& execution_config = get_default_execution_config(),
-    const MaybePid& initial_link_pid = std::experimental::nullopt,
+    const MaybePid& initial_link_pid = std::nullopt,
     const ProcessDictionary::AncestorList&& _ancestors = {},
     Node* const _current_node = nullptr
   );

@@ -15,7 +15,7 @@
 
 namespace Requests {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using string = std::string;
 
 // Extract the HTTP response code from a matching header
@@ -86,7 +86,7 @@ auto is_char_url_safe(const char c)
   );
 }
 
-auto urlencode(const std::experimental::string_view raw_str)
+auto urlencode(const std::string_view raw_str)
   -> std::string
 {
   string encoded_str;

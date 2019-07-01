@@ -7,5 +7,4 @@ idf_component_register(
     "src"
 )
 
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)

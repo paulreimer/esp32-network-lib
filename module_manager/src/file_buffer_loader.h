@@ -12,7 +12,7 @@
 
 #include "elf/elf++.hh"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 #include <unordered_map>
 
@@ -23,7 +23,7 @@ class FileBufferLoader
 {
   const std::string path;
 public:
-  explicit FileBufferLoader(const std::experimental::string_view _path);
+  explicit FileBufferLoader(const std::string_view _path);
   virtual ~FileBufferLoader();
 
   auto load(const off_t offset, const size_t size)

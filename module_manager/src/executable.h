@@ -17,7 +17,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <experimental/string_view>
+#include <string_view>
 
 namespace ModuleManager {
 
@@ -28,7 +28,7 @@ class Executable
   friend class Loader;
 public:
   using string = std::string;
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
   using ModuleFlatbuffer = std::vector<uint8_t>;
 
   using Address = uint32_t;

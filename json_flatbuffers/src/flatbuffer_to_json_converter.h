@@ -15,7 +15,7 @@
 
 #include "delegate.hpp"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 
 //private
@@ -29,7 +29,7 @@ namespace JsonFlatbuffers {
 class FlatbufferToJsonConverter
 {
 public:
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
   using string = std::string;
 
   template <typename NS_X_print_json_as_root_T, typename NS_X_verify_as_root_T>

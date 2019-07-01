@@ -24,7 +24,7 @@ using namespace std::chrono_literals;
 
 using namespace ActorModel;
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using string = std::string;
 
 auto request_manager_actor_behaviour(

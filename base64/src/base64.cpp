@@ -16,7 +16,7 @@ extern "C" {
 }
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 namespace base64 {
 auto encode(string_view in)

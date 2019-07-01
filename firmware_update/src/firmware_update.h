@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 #include <array>
 
 #include "firmware_update_generated.h"
@@ -50,7 +50,7 @@ auto checksum_partition_md5(
 ) -> MD5Sum;
 
 auto checksum_file_md5(
-  const std::experimental::string_view path
+  const std::string_view path
 ) -> MD5Sum;
 
 auto get_md5sum_hex_str(const MD5Sum& md5sum)

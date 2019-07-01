@@ -25,7 +25,7 @@ namespace ModuleManager {
 
 using namespace std::chrono_literals;
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using XtensaElf32::RelocType;
 
 constexpr char TAG[] = "Loader";

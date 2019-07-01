@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 
 namespace Requests {
 
-auto parse_http_status_line(const std::experimental::string_view chunk)
+auto parse_http_status_line(const std::string_view chunk)
   -> int;
 
 auto is_char_url_safe(const char c)
   -> bool;
 
-auto urlencode(const std::experimental::string_view raw_str)
+auto urlencode(const std::string_view raw_str)
   -> std::string;
 
 } // namespace Requests

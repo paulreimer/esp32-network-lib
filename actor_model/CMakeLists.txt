@@ -21,8 +21,7 @@ idf_component_register(
     "utils"
 )
 
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
 set_property(
   SOURCE src/node.cpp

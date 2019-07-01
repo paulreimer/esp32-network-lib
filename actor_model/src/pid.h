@@ -12,12 +12,12 @@
 
 #include "uuid.h"
 
-#include <experimental/optional>
+#include <optional>
 
 namespace ActorModel {
 
 using Pid = UUID::UUID;
-using MaybePid = std::experimental::optional<Pid>;
+using MaybePid = std::optional<Pid>;
 
 static Pid& NullPid = UUID::NullUUID;
 

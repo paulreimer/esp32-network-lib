@@ -25,7 +25,7 @@
 
 namespace Requests {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using string = std::string;
 
 using UUID::compare_uuids;

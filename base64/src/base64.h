@@ -9,16 +9,16 @@
  */
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 
 #include <string>
 
 #include <stdio.h>
 
 namespace base64 {
-auto encode(std::experimental::string_view in)
+auto encode(std::string_view in)
   -> std::string;
 
-auto decode(std::experimental::string_view in)
+auto decode(std::string_view in)
   -> std::string;
 } // namespace base64

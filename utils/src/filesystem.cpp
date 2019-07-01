@@ -14,12 +14,12 @@
 
 #include "esp_log.h"
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 constexpr char TAG[] = "filesystem";
 
 auto filesystem_exists(
-  std::experimental::string_view path
+  std::string_view path
 ) -> bool
 {
   return (access(path.data(), F_OK) != -1);

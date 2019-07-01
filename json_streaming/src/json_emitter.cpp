@@ -14,13 +14,11 @@
 
 namespace JsonStreaming {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using string = std::string;
 
 using JsonPathComponent = JsonEmitter::JsonPathComponent;
 using JsonPath = JsonEmitter::JsonPath;
-
-using namespace stx;
 
 yajl_callbacks json_parse_callbacks = {
   // null
@@ -76,7 +74,7 @@ auto path_component_is_wildcard_map(
 
   // Accept only wildcards which used the correct wildcard type
   return (
-    holds_alternative<string>(match)
+    std::holds_alternative<string>(match)
     and (match == wildcard_map_str)
   );
 }
@@ -321,10 +319,10 @@ auto JsonEmitter::on_json_parse_null()
   // Check if we are an item in an array
   if (
     not current_path.empty()
-    and holds_alternative<int>(current_path.back())
+    and std::holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = get<int>(current_path.back());
+    auto& array_idx = std::get<int>(current_path.back());
     array_idx++;
   }
 
@@ -345,10 +343,10 @@ auto JsonEmitter::on_json_parse_boolean(const int b)
   // Check if we are an item in an array
   if (
     not current_path.empty()
-    and holds_alternative<int>(current_path.back())
+    and std::holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = get<int>(current_path.back());
+    auto& array_idx = std::get<int>(current_path.back());
     array_idx++;
   }
 
@@ -369,10 +367,10 @@ auto JsonEmitter::on_json_parse_number(const char* s, size_t l)
   // Check if we are an item in an array
   if (
     not current_path.empty()
-    and holds_alternative<int>(current_path.back())
+    and std::holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = get<int>(current_path.back());
+    auto& array_idx = std::get<int>(current_path.back());
     array_idx++;
   }
 
@@ -401,10 +399,10 @@ auto JsonEmitter::on_json_parse_string(const unsigned char* s, const size_t l)
   // Check if we are an item in an array
   if (
     not current_path.empty()
-    and holds_alternative<int>(current_path.back())
+    and std::holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = get<int>(current_path.back());
+    auto& array_idx = std::get<int>(current_path.back());
     array_idx++;
   }
 
@@ -418,8 +416,8 @@ auto JsonEmitter::on_json_parse_map_key(const unsigned char* s, const size_t l)
 
   auto is_first_key = (
     not current_path.empty()
-    and holds_alternative<string>(current_path.back())
-    and get<string>(current_path.back()).empty()
+    and std::holds_alternative<string>(current_path.back())
+    and std::get<string>(current_path.back()).empty()
   );
 
   auto needs_map_workaround = apply_map_workaround(match_path, current_path);
@@ -503,10 +501,10 @@ auto JsonEmitter::on_json_parse_start_map()
   // Check if we are an item in an array
   if (
     not current_path.empty()
-    and holds_alternative<int>(current_path.back())
+    and std::holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = get<int>(current_path.back());
+    auto& array_idx = std::get<int>(current_path.back());
     array_idx++;
   }
 
@@ -553,10 +551,10 @@ auto JsonEmitter::on_json_parse_start_array()
   // Check if we are an item in an array
   if (
     not current_path.empty()
-    and holds_alternative<int>(current_path.back())
+    and std::holds_alternative<int>(current_path.back())
   )
   {
-    auto& array_idx = get<int>(current_path.back());
+    auto& array_idx = std::get<int>(current_path.back());
     array_idx++;
   }
 

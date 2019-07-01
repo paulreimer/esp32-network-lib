@@ -25,7 +25,7 @@ namespace Requests {
 using UUID::uuidgen;
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 using UUID::compare_uuids;
 using UUID::update_uuid;
@@ -76,7 +76,7 @@ auto make_request_payload(
 }
 
 auto make_request_payload(
-  const std::experimental::string_view payload
+  const std::string_view payload
 ) -> RequestIntentFlatbuffer
 {
   flatbuffers::FlatBufferBuilder fbb;
@@ -124,7 +124,7 @@ auto make_response_payload(
 
 auto make_response_payload(
   const UUID& request_id,
-  const std::experimental::string_view payload
+  const std::string_view payload
 ) -> RequestIntentFlatbuffer
 {
   flatbuffers::FlatBufferBuilder fbb;
@@ -590,7 +590,7 @@ auto set_request_body(
 
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const Response*& response,
   const UUID& request_intent_id
 ) -> bool
@@ -624,7 +624,7 @@ auto update_request_intent_ids(
 }
 
 auto parse_request_intent(
-  const std::experimental::string_view req_fb,
+  const std::string_view req_fb,
   const ActorModel::Pid& to_pid
 ) -> MutableRequestIntentFlatbuffer
 {

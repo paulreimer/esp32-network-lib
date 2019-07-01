@@ -18,7 +18,7 @@
 
 #include <algorithm>
 #include <chrono>
-#include <experimental/string_view>
+#include <string_view>
 #include <limits>
 #include <queue>
 #include <unordered_map>
@@ -32,7 +32,7 @@ using namespace Requests;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using MutableRequestPayload = std::vector<uint8_t>;
 using RequestPayloadFlatbuffer = flatbuffers::DetachedBuffer;
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 
 #include "elf/elf++.hh"
 
@@ -19,9 +19,9 @@ namespace ModuleManager {
 class StringViewBufferLoader
 : public elf::loader
 {
-  const std::experimental::string_view buffer;
+  const std::string_view buffer;
 public:
-  explicit StringViewBufferLoader(const std::experimental::string_view _buffer);
+  explicit StringViewBufferLoader(const std::string_view _buffer);
   auto load(const off_t offset, const size_t size)
     -> const void*;
 };

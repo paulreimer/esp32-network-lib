@@ -12,7 +12,7 @@
 
 #include "mqtt_generated.h"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <vector>
 
 namespace MQTT {
@@ -21,12 +21,12 @@ using MutableMQTTClientConfigurationFlatbuffer = std::vector<uint8_t>;
 
 auto set_mqtt_client_id(
   MutableMQTTClientConfigurationFlatbuffer& request_intent_mutable_buf,
-  const std::experimental::string_view mqtt_client_id
+  const std::string_view mqtt_client_id
 ) -> bool;
 
 auto set_mqtt_client_password(
   MutableMQTTClientConfigurationFlatbuffer& request_intent_mutable_buf,
-  const std::experimental::string_view mqtt_client_password
+  const std::string_view mqtt_client_password
 ) -> bool;
 
 } // namespace MQTT

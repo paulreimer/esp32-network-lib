@@ -5,8 +5,7 @@ idf_component_register(
     "lib/flatbuffers/include"
 )
 
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
 set_source_files_properties(
   lib/flatbuffers/src/reflection.cpp

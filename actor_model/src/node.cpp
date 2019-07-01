@@ -58,7 +58,7 @@ auto Node::spawn(
 {
   return _spawn(
     std::move(_behaviour),
-    std::experimental::nullopt,
+    std::nullopt,
     std::move(_exec_config_callback)
   );
 }
@@ -687,7 +687,7 @@ auto Node::whereis(const string_view name)
     return pid_iter->second;
   }
 
-  return std::experimental::nullopt;
+  return std::nullopt;
 }
 
 auto Node::module(const string_view module_flatbuffer)

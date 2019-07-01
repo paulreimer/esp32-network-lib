@@ -25,7 +25,7 @@ extern "C" {
 }
 #endif // REQUESTS_USE_SH2LIB
 
-#include <experimental/string_view>
+#include <string_view>
 
 #include <memory>
 #include <string>
@@ -55,7 +55,7 @@ public:
 #endif // REQUESTS_USE_SH2LIB
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   RequestManager();
   ~RequestManager();

@@ -14,7 +14,7 @@
 
 #include "requests_generated.h"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 
 namespace Requests {
@@ -22,7 +22,7 @@ namespace Requests {
 class ServerSentEventsEmitter
 {
 public:
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
   using string = std::string;
 
   using PostCallbackAction = bool;

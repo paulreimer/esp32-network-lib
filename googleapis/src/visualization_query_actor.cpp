@@ -18,7 +18,7 @@
 
 #include "esp_log.h"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <chrono>
 #include <deque>
 #include <string>
@@ -32,7 +32,7 @@ using namespace Requests;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 using StringPair = std::pair<string, string>;
 

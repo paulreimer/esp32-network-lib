@@ -18,7 +18,7 @@
 
 #include "timestamp.h"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <memory>
 #include <string>
 
@@ -36,7 +36,7 @@ using namespace Firmware;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 using UUID::NullUUID;
 using UUID = UUID::UUID;

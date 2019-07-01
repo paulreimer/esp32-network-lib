@@ -20,7 +20,7 @@ namespace googleapis {
 
 namespace Visualization {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using string = std::string;
 using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
 
@@ -91,7 +91,7 @@ auto get_column_from_label(
 }
 
 auto mutate_value(
-  const std::experimental::string_view from_value,
+  const std::string_view from_value,
   flatbuffers::String* to_value
 ) -> bool
 {

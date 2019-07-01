@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 
 #include "mbedtls/pk.h"
 
@@ -23,18 +23,18 @@ public:
     ES256, // Not supported
   };
 
-  JWTGenerator(std::experimental::string_view privkey_pem, Alg _alg=RS256);
+  JWTGenerator(std::string_view privkey_pem, Alg _alg=RS256);
 
   ~JWTGenerator();
 
   Alg alg = RS256;
 
-  std::string mint(std::experimental::string_view payload);
-  std::string sign(std::experimental::string_view jwt_header_and_payload);
+  std::string mint(std::string_view payload);
+  std::string sign(std::string_view jwt_header_and_payload);
   bool verify();
 
 private:
-  std::string sign_RS256(std::experimental::string_view jwt_header_and_payload);
+  std::string sign_RS256(std::string_view jwt_header_and_payload);
 
   mbedtls_pk_context ctx;
   bool valid = false;

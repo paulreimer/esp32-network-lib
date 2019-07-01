@@ -14,7 +14,7 @@
 
 #include "delegate.hpp"
 
-#include <experimental/string_view>
+#include <string_view>
 
 #include "flatbuffers/idl.h"
 
@@ -25,7 +25,7 @@ namespace JsonFlatbuffers {
 class JsonToFlatbuffersConverter
 {
 public:
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   using PostCallbackAction = JsonStreaming::JsonEmitter::PostCallbackAction;
 

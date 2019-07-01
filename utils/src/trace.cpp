@@ -18,7 +18,7 @@ auto get_free_heap_size()
   return xPortGetFreeHeapSize();
 }
 
-auto heap_check(const std::experimental::string_view msg)
+auto heap_check(const std::string_view msg)
   -> void
 {
   printf(

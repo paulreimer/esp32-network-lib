@@ -18,7 +18,7 @@
 #include "delegate.hpp"
 
 #include <chrono>
-#include <experimental/string_view>
+#include <string_view>
 #include <set>
 #include <unordered_map>
 
@@ -33,7 +33,7 @@ using Time = std::chrono::milliseconds;
 using TRef = size_t;
 using SignalRef = size_t;
 using TTL = int;
-using Reason = std::experimental::string_view;
+using Reason = std::string_view;
 
 using ModuleFlatbuffer = std::vector<uint8_t>;
 
@@ -73,7 +73,7 @@ class Node
 public:
   // type aliases:
   using string = std::string;
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   using ProcessPtr = std::unique_ptr<Process>;
 
@@ -201,7 +201,7 @@ public:
 protected:
   auto _spawn(
     const Behaviour&& _behaviour,
-    const MaybePid& _initial_link_pid = std::experimental::nullopt,
+    const MaybePid& _initial_link_pid = std::nullopt,
     const ExecConfigCallback&& _exec_config_callback = nullptr
   ) -> Pid;
 

@@ -22,7 +22,7 @@
 #endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 #include <vector>
 
@@ -43,7 +43,7 @@ struct RequestHandler
   friend class RequestManager;
 
   using string = std::string;
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   using flatbuf = std::vector<uint8_t>;
 

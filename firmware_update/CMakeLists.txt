@@ -16,8 +16,7 @@ idf_component_register(
     "utils"
 )
 
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD 14)
-set_property(TARGET "${COMPONENT_TARGET}" PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)
 

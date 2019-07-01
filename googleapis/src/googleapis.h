@@ -17,7 +17,7 @@
 
 #include "embedded_files_string_view_wrapper.h"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 
 namespace googleapis {
@@ -37,12 +37,12 @@ using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
 
 auto get_column_from_label(
   const DatatableColumns* cols,
-  const std::experimental::string_view match_label,
-  const std::experimental::string_view prefix = ""
+  const std::string_view match_label,
+  const std::string_view prefix = ""
 ) -> const DatatableColumn*;
 
 auto mutate_value(
-  const std::experimental::string_view from_value,
+  const std::string_view from_value,
   flatbuffers::String* to_value
 ) -> bool;
 

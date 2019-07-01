@@ -13,7 +13,7 @@
 
 namespace ActorModel {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 using Reason = Process::Reason;
 
 // free functions bound to default node
@@ -264,7 +264,7 @@ auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   return node.exit(pid, pid2, exit_reason);
 }
 
-auto module(const std::experimental::string_view module_flatbuffer)
+auto module(const std::string_view module_flatbuffer)
  -> bool
 {
   auto& node = Process::get_default_node();
@@ -273,8 +273,8 @@ auto module(const std::experimental::string_view module_flatbuffer)
 
 auto apply(
   const Pid& pid,
-  const std::experimental::string_view function_name,
-  const std::experimental::string_view args
+  const std::string_view function_name,
+  const std::string_view args
 ) -> ResultUnion
 {
   auto& node = Process::get_default_node();
@@ -283,9 +283,9 @@ auto apply(
 
 auto apply(
   const Pid& pid,
-  const std::experimental::string_view module_name,
-  const std::experimental::string_view function_name,
-  const std::experimental::string_view args
+  const std::string_view module_name,
+  const std::string_view function_name,
+  const std::string_view args
 ) -> ResultUnion
 {
   auto& node = Process::get_default_node();

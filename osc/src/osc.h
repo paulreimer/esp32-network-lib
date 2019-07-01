@@ -14,7 +14,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include <experimental/string_view>
+#include <string_view>
 
 namespace OSC {
 
@@ -24,7 +24,7 @@ using MutableGenericFlatbuffer = std::vector<uint8_t>;
 auto update_flatbuffer_from_osc_message(
   MutableGenericFlatbuffer& flatbuffer_mutable_buf,
   const std::vector<uint8_t>& flatbuffer_bfbs,
-  const std::experimental::string_view osc_packet
+  const std::string_view osc_packet
 ) -> bool;
 
 } // namespace OSC

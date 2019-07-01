@@ -16,7 +16,7 @@
 
 #include "actor_model_generated.h"
 
-#include <experimental/string_view>
+#include <string_view>
 #include <string>
 #include <unordered_map>
 
@@ -33,7 +33,7 @@ class Mailbox
   friend class ReceivedMessage;
 public:
   using string = std::string;
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
 
   using ReceivedMessagePtr = std::unique_ptr<ReceivedMessage>;
 

@@ -18,7 +18,7 @@
 #include <chrono>
 #include <string>
 #include <vector>
-#include <experimental/string_view>
+#include <string_view>
 
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
@@ -30,7 +30,7 @@
 namespace UDPServer {
 
 using string = std::string;
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 using namespace ActorModel;
 

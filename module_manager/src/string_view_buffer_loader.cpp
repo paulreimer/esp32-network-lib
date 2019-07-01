@@ -14,7 +14,7 @@
 
 namespace ModuleManager {
 
-using string_view = std::experimental::string_view;
+using string_view = std::string_view;
 
 StringViewBufferLoader::StringViewBufferLoader(const string_view _buffer)
 : buffer(_buffer)

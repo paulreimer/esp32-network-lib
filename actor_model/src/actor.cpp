@@ -19,7 +19,7 @@ namespace ActorModel {
 // Helper factory function
 auto _actor_spawn(
   const ActorBehaviours&& _actor_behaviours,
-  const MaybePid& _initial_link_pid = std::experimental::nullopt,
+  const MaybePid& _initial_link_pid = std::nullopt,
   const ExecConfigCallback&& _exec_config_callback = nullptr
 ) -> Pid;
 
@@ -31,7 +31,7 @@ auto spawn(
 {
   return _actor_spawn(
     {std::move(_actor_behaviour)},
-    std::experimental::nullopt,
+    std::nullopt,
     std::move(_exec_config_callback)
   );
 }
@@ -57,7 +57,7 @@ auto spawn(
 {
   return _actor_spawn(
     std::move(_actor_behaviours),
-    std::experimental::nullopt,
+    std::nullopt,
     std::move(_exec_config_callback)
   );
 }

@@ -12,11 +12,10 @@
 
 #include "delegate.hpp"
 
-#include "stx/variant.hpp"
-#include <experimental/string_view>
-
 #include <memory>
 #include <string>
+#include <string_view>
+#include <variant>
 #include <vector>
 
 #include "yajl/yajl_gen.h"
@@ -27,10 +26,10 @@ namespace JsonStreaming {
 class JsonEmitter
 {
 public:
-  using string_view = std::experimental::string_view;
+  using string_view = std::string_view;
   using string = std::string;
 
-  using JsonPathComponent = stx::variant<int, string>;
+  using JsonPathComponent = std::variant<int, string>;
   using JsonPath = std::vector<JsonPathComponent>;
 
   using PostCallbackAction = bool;

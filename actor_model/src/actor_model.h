@@ -16,7 +16,7 @@
 
 #include "actor_model_generated.h"
 
-#include <experimental/string_view>
+#include <string_view>
 
 namespace ActorModel {
 
@@ -50,25 +50,25 @@ auto send(
 
 auto send(
   const Pid& pid,
-  const std::experimental::string_view type,
-  const std::experimental::string_view payload = ""
+  const std::string_view type,
+  const std::string_view payload = ""
 ) -> bool;
 
 auto send(
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const std::vector<uint8_t>& payload_vec
 ) -> bool;
 
 auto send(
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const flatbuffers::Vector<uint8_t>& payload_fbvec
 ) -> bool;
 
 auto send(
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool;
 
@@ -81,21 +81,21 @@ auto send_after(
 auto send_after(
   const Time time,
   const Pid& pid,
-  const std::experimental::string_view type,
-  const std::experimental::string_view payload = ""
+  const std::string_view type,
+  const std::string_view payload = ""
 ) -> TRef;
 
 auto send_after(
   const Time time,
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const std::vector<uint8_t>& payload_vec
 ) -> TRef;
 
 auto send_after(
   const Time time,
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef;
 
@@ -108,21 +108,21 @@ auto send_interval(
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const std::experimental::string_view type,
-  const std::experimental::string_view payload = ""
+  const std::string_view type,
+  const std::string_view payload = ""
 ) -> TRef;
 
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const std::vector<uint8_t>& payload_vec
 ) -> TRef;
 
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef;
 
@@ -132,32 +132,32 @@ auto cancel(const TRef tref)
 auto exit(const Pid& pid, const Pid& pid2, const Process::Reason exit_reason)
   -> bool;
 
-auto register_name(const std::experimental::string_view name, const Pid& pid)
+auto register_name(const std::string_view name, const Pid& pid)
   -> bool;
 
-auto unregister(const std::experimental::string_view name)
+auto unregister(const std::string_view name)
   -> bool;
 
 auto registered()
   -> const Node::NamedProcessRegistry;
 
-auto whereis(const std::experimental::string_view name)
+auto whereis(const std::string_view name)
   -> MaybePid;
 
-auto module(const std::experimental::string_view module_flatbuffer)
+auto module(const std::string_view module_flatbuffer)
  -> bool;
 
 auto apply(
   const Pid& pid,
-  const std::experimental::string_view function_name,
-  const std::experimental::string_view args
+  const std::string_view function_name,
+  const std::string_view args
 ) -> ResultUnion;
 
 auto apply(
   const Pid& pid,
-  const std::experimental::string_view module_name,
-  const std::experimental::string_view function_name,
-  const std::experimental::string_view args
+  const std::string_view module_name,
+  const std::string_view function_name,
+  const std::string_view args
 ) -> ResultUnion;
 
 inline
@@ -171,7 +171,7 @@ auto matches(
 inline
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type
+  const std::string_view type
 ) -> bool
 {
   return (message.type() and message.type()->string_view() == type);
@@ -180,13 +180,13 @@ auto matches(
 inline
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type,
-  std::experimental::string_view& payload
+  const std::string_view type,
+  std::string_view& payload
 ) -> bool
 {
   if (matches(message, type) and (message.payload()->size() > 0))
   {
-    payload = std::experimental::string_view{
+    payload = std::string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
       message.payload()->size()
     };
@@ -200,7 +200,7 @@ auto matches(
 inline
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type,
+  const std::string_view type,
   std::string& payload
 ) -> bool
 {
@@ -220,7 +220,7 @@ auto matches(
 inline
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type,
+  const std::string_view type,
   MutableFlatbuffer& payload
 ) -> bool
 {
@@ -241,7 +241,7 @@ template<typename TableT>
 inline
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type,
+  const std::string_view type,
   const TableT*& payload_ptr
 ) -> bool
 {
@@ -274,7 +274,7 @@ template<typename TableObjT, class /* SFINAE */ = typename TableObjT::TableType>
 inline
 auto matches(
   const ActorModel::Message& message,
-  const std::experimental::string_view type,
+  const std::string_view type,
   TableObjT& obj
 ) -> bool
 {
