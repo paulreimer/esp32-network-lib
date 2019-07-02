@@ -13,8 +13,8 @@
 #include "freertos/FreeRTOSConfig.h"
 #include "xtensa/hal.h"
 
+#include "esp32/clk.h"
 #include "esp_log.h"
-#include "esp_clk.h"
 
 #include <cstdio>
 #include <cstring>
