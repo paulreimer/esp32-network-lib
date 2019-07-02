@@ -78,7 +78,7 @@ inline const SupervisionStrategy (&EnumValuesSupervisionStrategy())[4] {
 }
 
 inline const char * const *EnumNamesSupervisionStrategy() {
-  static const char * const names[5] = {
+  static const char * const names[] = {
     "one_for_one",
     "one_for_all",
     "rest_for_one",
@@ -108,7 +108,7 @@ inline const ProcessFlag (&EnumValuesProcessFlag())[1] {
 }
 
 inline const char * const *EnumNamesProcessFlag() {
-  static const char * const names[2] = {
+  static const char * const names[] = {
     "trap_exit",
     nullptr
   };
@@ -137,7 +137,7 @@ inline const EventTerminationAction (&EnumValuesEventTerminationAction())[2] {
 }
 
 inline const char * const *EnumNamesEventTerminationAction() {
-  static const char * const names[3] = {
+  static const char * const names[] = {
     "StopProcessing",
     "ContinueProcessing",
     nullptr
@@ -171,7 +171,7 @@ inline const Result (&EnumValuesResult())[4] {
 }
 
 inline const char * const *EnumNamesResult() {
-  static const char * const names[5] = {
+  static const char * const names[] = {
     "NONE",
     "Ok",
     "Error",
@@ -224,7 +224,7 @@ inline const ChildSpecRestartFlag (&EnumValuesChildSpecRestartFlag())[3] {
 }
 
 inline const char * const *EnumNamesChildSpecRestartFlag() {
-  static const char * const names[4] = {
+  static const char * const names[] = {
     "permanent",
     "temporary",
     "transient",
@@ -255,7 +255,7 @@ inline const ChildSpecTypeFlag (&EnumValuesChildSpecTypeFlag())[2] {
 }
 
 inline const char * const *EnumNamesChildSpecTypeFlag() {
-  static const char * const names[3] = {
+  static const char * const names[] = {
     "worker",
     "supervisor",
     nullptr

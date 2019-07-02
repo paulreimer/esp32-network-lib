@@ -44,7 +44,7 @@ inline const MQTT_QOS (&EnumValuesMQTT_QOS())[3] {
 }
 
 inline const char * const *EnumNamesMQTT_QOS() {
-  static const char * const names[4] = {
+  static const char * const names[] = {
     "AtMostOnce",
     "AtLeastOnce",
     "ExactlyOnce",

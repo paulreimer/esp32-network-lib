@@ -69,7 +69,7 @@ inline const DatatableColumnType (&EnumValuesDatatableColumnType())[7] {
 }
 
 inline const char * const *EnumNamesDatatableColumnType() {
-  static const char * const names[8] = {
+  static const char * const names[] = {
     "boolean",
     "number",
     "string",
@@ -106,7 +106,7 @@ inline const QueryOption (&EnumValuesQueryOption())[3] {
 }
 
 inline const char * const *EnumNamesQueryOption() {
-  static const char * const names[4] = {
+  static const char * const names[] = {
     "defaults",
     "no_format",
     "no_values",
@@ -159,7 +159,7 @@ inline const WhereClauseOp (&EnumValuesWhereClauseOp())[13] {
 }
 
 inline const char * const *EnumNamesWhereClauseOp() {
-  static const char * const names[14] = {
+  static const char * const names[] = {
     "Equals",
     "NotEquals",
     "GreaterThan",
@@ -202,7 +202,7 @@ inline const WhereClauseJoinOp (&EnumValuesWhereClauseJoinOp())[3] {
 }
 
 inline const char * const *EnumNamesWhereClauseJoinOp() {
-  static const char * const names[4] = {
+  static const char * const names[] = {
     "And",
     "Or",
     "Not",

@@ -58,7 +58,7 @@ inline const PostCallbackAction (&EnumValuesPostCallbackAction())[2] {
 }
 
 inline const char * const *EnumNamesPostCallbackAction() {
-  static const char * const names[3] = {
+  static const char * const names[] = {
     "AbortProcessing",
     "ContinueProcessing",
     nullptr
@@ -94,7 +94,7 @@ inline const ResponseFilter (&EnumValuesResponseFilter())[5] {
 }
 
 inline const char * const *EnumNamesResponseFilter() {
-  static const char * const names[6] = {
+  static const char * const names[] = {
     "FullResponseBody",
     "PartialResponseChunks",
     "ServerSentEvents",
