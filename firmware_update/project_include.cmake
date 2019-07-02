@@ -1,5 +1,7 @@
+idf_build_get_property(build_dir BUILD_DIR)
+
 execute_process(
-  COMMAND cat "${PROJECT_BINARY_DIR}/VERSION"
+  COMMAND cat "${build_dir}/VERSION"
   OUTPUT_VARIABLE VERSION_FILE_CONTENTS
 )
 

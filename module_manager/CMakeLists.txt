@@ -21,6 +21,8 @@ idf_component_register(
     "utils"
 )
 
+idf_build_get_property(build_dir BUILD_DIR)
+
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
 set_property(
@@ -39,8 +41,8 @@ if(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)
 add_custom_command(
   OUTPUT "src/gen/symbols.c"
   COMMAND sh -c "\
-  if [ -f \"${PROJECT_BINARY_DIR}/${PROJECT_NAME}.elf\" ]; then \
-      ${CMAKE_NM} ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.elf | ./gen_symbols_c.py > src/gen/symbols.c; \
+  if [ -f \"${build_dir}/${PROJECT_NAME}.elf\" ]; then \
+      ${CMAKE_NM} ${build_dir}/${PROJECT_NAME}.elf | ./gen_symbols_c.py > src/gen/symbols.c; \
     else \
       : | ./gen_symbols_c.py > src/gen/symbols.c; \
     fi \

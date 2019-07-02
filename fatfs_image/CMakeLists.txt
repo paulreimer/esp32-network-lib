@@ -1,16 +1,18 @@
-set (FATFS_IMAGE "${PROJECT_BINARY_DIR}/fatfs_image.img")
-set (FATFS_IMAGE_ARGS "${PROJECT_BINARY_DIR}/flash_fatfs_image_args")
-
 register_config_only_component()
+
+idf_build_get_property(build_dir BUILD_DIR)
+
+set (FATFS_IMAGE "${build_dir}/fatfs_image.img")
+set (FATFS_IMAGE_ARGS "${build_dir}/flash_fatfs_image_args")
 
 add_custom_command(
   OUTPUT "${FATFS_IMAGE}"
   COMMAND
     mkfatfs
-      -c "${PROJECT_BINARY_DIR}/fs"
+      -c "${build_dir}/fs"
       -s "${CONFIG_FATFS_PARTITION_SIZE}"
       "${FATFS_IMAGE}"
-  DEPENDS "${PROJECT_BINARY_DIR}/fs"
+  DEPENDS "${build_dir}/fs"
   VERBATIM
 )
 
@@ -27,7 +29,7 @@ add_custom_command(
   COMMAND
     echo "${CONFIG_FATFS_PARTITION_BASE_ADDR} ${FATFS_IMAGE}"
     > "${FATFS_IMAGE_ARGS}"
-  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  WORKING_DIRECTORY "${build_dir}"
   VERBATIM
 )
 

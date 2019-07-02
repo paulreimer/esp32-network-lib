@@ -21,11 +21,12 @@ add_definitions(
 #)
 
 idf_build_get_property(project_dir PROJECT_DIR)
+idf_build_get_property(build_dir BUILD_DIR)
 
 function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
   set(GENERATED_OUTPUTS)
   add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/secrets/gen/${req_intent}.req.fb"
+    OUTPUT "${build_dir}/secrets/gen/${req_intent}.req.fb"
     COMMAND flatc --binary
       -o "secrets/gen"
       -I "${project_dir}/esp32-network-lib/uuid"
@@ -33,7 +34,7 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
       --force-defaults
       "secrets/gen/${req_intent}.req.json"
     DEPENDS "secrets/gen/${req_intent}.req.json"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+    WORKING_DIRECTORY "${build_dir}"
     VERBATIM
   )
   set_source_files_properties(
@@ -41,27 +42,27 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
     PROPERTIES
     GENERATED TRUE
   )
-  list(APPEND GENERATED_OUTPUTS "${PROJECT_BINARY_DIR}/secrets/gen/${req_intent}.req.fb")
+  list(APPEND GENERATED_OUTPUTS "${build_dir}/secrets/gen/${req_intent}.req.fb")
 
   add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/fs/${req_intent}.req.fb"
+    OUTPUT "${build_dir}/fs/${req_intent}.req.fb"
     COMMAND
       cp
       "secrets/gen/${req_intent}.req.fb"
       "fs/${req_intent}.req.fb"
     DEPENDS "secrets/gen/${req_intent}.req.fb"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+    WORKING_DIRECTORY "${build_dir}"
     VERBATIM
   )
   set_source_files_properties(
-    "${PROJECT_BINARY_DIR}/fs/${req_intent}.req.fb"
+    "${build_dir}/fs/${req_intent}.req.fb"
     PROPERTIES
     GENERATED TRUE
   )
-  list(APPEND GENERATED_OUTPUTS "${PROJECT_BINARY_DIR}/fs/${req_intent}.req.fb")
+  list(APPEND GENERATED_OUTPUTS "${build_dir}/fs/${req_intent}.req.fb")
 
   set_property(
-    DIRECTORY "${PROJECT_BINARY_DIR}"
+    DIRECTORY "${build_dir}"
     APPEND PROPERTY
     ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_OUTPUTS}"
   )
@@ -84,13 +85,13 @@ function(REQUESTS_EMBED_CERTIFICATE_DER cert)
   list(APPEND GENERATED_OUTPUTS "${COMPONENT_PATH}/assets/gen/${cert}.der")
 
   add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/fs/${cert}.der"
-    COMMAND cp "assets/gen/${cert}.der" "${PROJECT_BINARY_DIR}/fs/${cert}.der"
+    OUTPUT "${build_dir}/fs/${cert}.der"
+    COMMAND cp "assets/gen/${cert}.der" "${build_dir}/fs/${cert}.der"
     DEPENDS "assets/gen/${cert}.der"
     WORKING_DIRECTORY "${COMPONENT_PATH}"
     VERBATIM
   )
-  list(APPEND GENERATED_OUTPUTS "${PROJECT_BINARY_DIR}/fs/${cert}.der")
+  list(APPEND GENERATED_OUTPUTS "${build_dir}/fs/${cert}.der")
 
   set_property(
     DIRECTORY "${COMPONENT_PATH}"

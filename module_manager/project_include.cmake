@@ -1,5 +1,7 @@
 function(MODULE_GENERATE_ELF target_prefix mod_name)
-  set(OUT "${PROJECT_BINARY_DIR}/${mod_name}.elf")
+  idf_build_get_property(build_dir BUILD_DIR)
+
+  set(OUT "${build_dir}/${mod_name}.elf")
 
   set_property(
     DIRECTORY "${COMPONENT_PATH}"

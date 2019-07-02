@@ -16,6 +16,8 @@ idf_component_register(
     "utils"
 )
 
+idf_build_get_property(build_dir BUILD_DIR)
+
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)
@@ -30,7 +32,7 @@ add_dependencies(${COMPONENT_LIB} firmware_update_generated_h_TARGET)
 set_property(
   SOURCE src/firmware_update.cpp
   APPEND PROPERTY
-  OBJECT_DEPENDS "${PROJECT_BINARY_DIR}/VERSION"
+  OBJECT_DEPENDS "${build_dir}/VERSION"
 )
-add_custom_target(VERSION_FILE_TARGET DEPENDS "${PROJECT_BINARY_DIR}/VERSION")
+add_custom_target(VERSION_FILE_TARGET DEPENDS "${build_dir}/VERSION")
 add_dependencies(${COMPONENT_LIB} VERSION_FILE_TARGET)
