@@ -103,47 +103,26 @@ auto supervisor_actor_behaviour(
   }
   auto& state = *(std::static_pointer_cast<SupervisorActorState>(_state));
 
+  if (matches(message, "init", state.supervisor_args_mutable_buf))
   {
-    if (matches(message, "init", state.supervisor_args_mutable_buf))
+    if (not state.supervisor_args_mutable_buf.empty())
     {
-      if (not state.supervisor_args_mutable_buf.empty())
+      const auto* supervisor_args = flatbuffers::GetRoot<SupervisorArgs>(
+        state.supervisor_args_mutable_buf.data()
+      );
+
+      if (
+        supervisor_args
+        and supervisor_args->child_specs()
+        and supervisor_args->child_specs()->size() > 0
+      )
       {
-        const auto* supervisor_args = flatbuffers::GetRoot<SupervisorArgs>(
-          state.supervisor_args_mutable_buf.data()
-        );
+        // Trap exit from all processes linked to our Pid
+        process_flag(self, ProcessFlag::trap_exit, true);
 
-        if (
-          supervisor_args
-          and supervisor_args->child_specs()
-          and supervisor_args->child_specs()->size() > 0
-        )
+        for (const auto* child_spec : *(supervisor_args->child_specs()))
         {
-          // Trap exit from all processes linked to our Pid
-          process_flag(self, ProcessFlag::trap_exit, true);
-
-          for (const auto* child_spec : *(supervisor_args->child_specs()))
-          {
-            state.init_child(child_spec->id()->string_view(), self);
-          }
-        }
-      }
-
-      return {Result::Ok};
-    }
-  }
-
-  {
-    string_view reason;
-    if (matches(message, "kill", reason))
-    {
-      if (message.from_pid())
-      {
-        const auto& from_pid = *(message.from_pid());
-
-        const auto& child_iter = state.children.find(from_pid);
-        if (child_iter != state.children.end())
-        {
-          state.init_child(child_iter->second, self);
+          state.init_child(child_spec->id()->string_view(), self);
         }
       }
     }
@@ -151,6 +130,24 @@ auto supervisor_actor_behaviour(
     return {Result::Ok};
   }
 
+  if (
+    string_view reason;
+    matches(message, "kill", reason)
+  )
+  {
+    if (message.from_pid())
+    {
+      const auto& from_pid = *(message.from_pid());
+
+      const auto& child_iter = state.children.find(from_pid);
+      if (child_iter != state.children.end())
+      {
+        state.init_child(child_iter->second, self);
+      }
+    }
+
+    return {Result::Ok};
+  }
 
   return {Result::Unhandled};
 }

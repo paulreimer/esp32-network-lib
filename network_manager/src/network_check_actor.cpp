@@ -76,40 +76,38 @@ auto network_check_actor_behaviour(
   }
   auto& state = *(std::static_pointer_cast<NetworkCheckActorState>(_state));
 
+  if (matches(message, "ping"))
   {
-    if (matches(message, "ping"))
+    if (not state.ping_init_done)
     {
-      if (not state.ping_init_done)
+      const auto& network_details = get_network_details();
+      if (network_details.gw.addr)
       {
-        const auto& network_details = get_network_details();
-        if (network_details.gw.addr)
-        {
-          ping_init();
-          state.ping_init_done = true;
-        }
+        ping_init();
+        state.ping_init_done = true;
       }
-
-      if (state.ping_init_done)
-      {
-        const auto& network_details = get_network_details();
-        if (network_details.gw.addr)
-        {
-          uint32_t _cnt = state.ping_count;
-          uint32_t _timeout = std::chrono::milliseconds(ping_timeout).count();
-          uint32_t _delay = std::chrono::milliseconds(ping_delay).count();
-          uint32_t _addr = network_details.gw.addr;
-          void* _fn = (void*)&ping_result_callback;
-
-          esp_ping_set_target(PING_TARGET_IP_ADDRESS_COUNT, &_cnt, sizeof(_cnt));
-          esp_ping_set_target(PING_TARGET_RCV_TIMEO, &_timeout, sizeof(_timeout));
-          esp_ping_set_target(PING_TARGET_DELAY_TIME, &_delay, sizeof(_delay));
-          esp_ping_set_target(PING_TARGET_IP_ADDRESS, &_addr, sizeof(_addr));
-          esp_ping_set_target(PING_TARGET_RES_FN, _fn, sizeof(_fn));
-        }
-      }
-
-      return {Result::Ok};
     }
+
+    if (state.ping_init_done)
+    {
+      const auto& network_details = get_network_details();
+      if (network_details.gw.addr)
+      {
+        uint32_t _cnt = state.ping_count;
+        uint32_t _timeout = std::chrono::milliseconds(ping_timeout).count();
+        uint32_t _delay = std::chrono::milliseconds(ping_delay).count();
+        uint32_t _addr = network_details.gw.addr;
+        void* _fn = (void*)&ping_result_callback;
+
+        esp_ping_set_target(PING_TARGET_IP_ADDRESS_COUNT, &_cnt, sizeof(_cnt));
+        esp_ping_set_target(PING_TARGET_RCV_TIMEO, &_timeout, sizeof(_timeout));
+        esp_ping_set_target(PING_TARGET_DELAY_TIME, &_delay, sizeof(_delay));
+        esp_ping_set_target(PING_TARGET_IP_ADDRESS, &_addr, sizeof(_addr));
+        esp_ping_set_target(PING_TARGET_RES_FN, _fn, sizeof(_fn));
+      }
+    }
+
+    return {Result::Ok};
   }
 
   return {Result::Unhandled};

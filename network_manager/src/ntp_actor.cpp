@@ -60,89 +60,85 @@ auto ntp_actor_behaviour(
   }
   auto& state = *(std::static_pointer_cast<NTPActorState>(_state));
 
+  if (matches(message, "ntp_client_start", state.ntp_config_mutable_buf))
   {
-    if (matches(message, "ntp_client_start", state.ntp_config_mutable_buf))
+    auto now = std::chrono::system_clock::now();
+    state.last_ntp_connect_timestamp = now;
+
+    if (not state.ntp_config_mutable_buf.empty())
     {
-      auto now = std::chrono::system_clock::now();
-      state.last_ntp_connect_timestamp = now;
+      const auto* ntp_config = flatbuffers::GetRoot<NTPConfiguration>(
+        state.ntp_config_mutable_buf.data()
+      );
 
-      if (not state.ntp_config_mutable_buf.empty())
+      if (not state.did_setup and ntp_config and ntp_config->ntp_server())
       {
-        const auto* ntp_config = flatbuffers::GetRoot<NTPConfiguration>(
-          state.ntp_config_mutable_buf.data()
-        );
+        const auto* ntp_server = ntp_config->ntp_server()->c_str();
+        ESP_LOGI(TAG, "Initializing NTP");
+        sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        sntp_setservername(0, const_cast<char*>(ntp_server));
+        sntp_init();
 
-        if (not state.did_setup and ntp_config and ntp_config->ntp_server())
-        {
-          const auto* ntp_server = ntp_config->ntp_server()->c_str();
-          ESP_LOGI(TAG, "Initializing NTP");
-          sntp_setoperatingmode(SNTP_OPMODE_POLL);
-          sntp_setservername(0, const_cast<char*>(ntp_server));
-          sntp_init();
-
-          state.did_setup = true;
-        }
-
-        if (not state.tick_timer_ref)
-        {
-          // Re-trigger ourselves periodically (timer will be cancelled later)
-          ESP_LOGI(TAG, "Initiating NTP connection");
-          state.tick_timer_ref = send_interval(2s, self, "tick");
-        }
+        state.did_setup = true;
       }
 
-      return {Result::Ok};
+      if (not state.tick_timer_ref)
+      {
+        // Re-trigger ourselves periodically (timer will be cancelled later)
+        ESP_LOGI(TAG, "Initiating NTP connection");
+        state.tick_timer_ref = send_interval(2s, self, "tick");
+      }
     }
+
+    return {Result::Ok};
   }
 
+  if (matches(message, "tick"))
   {
-    if (matches(message, "tick"))
+    // Only process tick messages if our timer is running
+    if (state.tick_timer_ref)
     {
-      // Only process tick messages if our timer is running
-      if (state.tick_timer_ref)
+      if (is_time_set())
       {
-        if (is_time_set())
-        {
-          // We are done! Notify any event group listeners
-          set_network(NETWORK_TIME_AVAILABLE);
+        // We are done! Notify any event group listeners
+        set_network(NETWORK_TIME_AVAILABLE);
 
-          // Display the source of the NTP time
-          if (not state.ntp_config_mutable_buf.empty())
-          {
-            const auto* ntp_config = flatbuffers::GetRoot<NTPConfiguration>(
-              state.ntp_config_mutable_buf.data()
-            );
-            const auto* ntp_server = ntp_config->ntp_server()->c_str();
-            ESP_LOGI(TAG, "Time has been set from %s", ntp_server);
-          }
+        // Display the source of the NTP time
+        if (not state.ntp_config_mutable_buf.empty())
+        {
+          const auto* ntp_config = flatbuffers::GetRoot<NTPConfiguration>(
+            state.ntp_config_mutable_buf.data()
+          );
+          const auto* ntp_server = ntp_config->ntp_server()->c_str();
+          ESP_LOGI(TAG, "Time has been set from %s", ntp_server);
+        }
+
+        // Cancel the tick timer
+        cancel(state.tick_timer_ref);
+        state.tick_timer_ref = NullTRef;
+      }
+      else {
+        auto now = std::chrono::system_clock::now();
+        auto elapsed = (now - state.last_ntp_connect_timestamp);
+        if (elapsed < state.ntp_connect_wait_interval)
+        {
+          ESP_LOGI(TAG, "Waiting for system time to be set... ");
+        }
+        else {
+          ESP_LOGW(TAG, "Failed to set system time from NTP");
 
           // Cancel the tick timer
           cancel(state.tick_timer_ref);
           state.tick_timer_ref = NullTRef;
+
+          state.did_setup = false;
+
+          // Crash the system, reboot to try again
+          throw std::runtime_error("Failed to set system time from NTP");
         }
-        else {
-          auto now = std::chrono::system_clock::now();
-          auto elapsed = (now - state.last_ntp_connect_timestamp);
-          if (elapsed < state.ntp_connect_wait_interval)
-          {
-            ESP_LOGI(TAG, "Waiting for system time to be set... ");
-          }
-          else {
-            ESP_LOGW(TAG, "Failed to set system time from NTP");
-
-            // Cancel the tick timer
-            cancel(state.tick_timer_ref);
-            state.tick_timer_ref = NullTRef;
-
-            state.did_setup = false;
-
-            // Crash the system, reboot to try again
-            throw std::runtime_error("Failed to set system time from NTP");
-          }
-        }
-
-        return {Result::Ok, EventTerminationAction::ContinueProcessing};
       }
+
+      return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
   }
 

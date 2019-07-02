@@ -168,354 +168,349 @@ auto visualization_query_actor_behaviour(
     std::static_pointer_cast<VisualizationQueryActorState>(_state)
   );
 
-  {
+  if (
     MutableQueryIntentFlatbuffer query_mutable_buf;
-    if (matches(message, "query", query_mutable_buf))
+    matches(message, "query", query_mutable_buf)
+  )
+  {
+    // Enqueue the query
+    state.pending_queries.emplace_back(query_mutable_buf);
+
+    if (not state.tick_timer_ref)
     {
-      // Enqueue the query
-      state.pending_queries.emplace_back(query_mutable_buf);
-
-      if (not state.tick_timer_ref)
-      {
-        // Re-trigger ourselves periodically (timer will be cancelled later)
-        state.tick_timer_ref = send_interval(200ms, self, "tick");
-      }
-
-      return {Result::Ok};
+      // Re-trigger ourselves periodically (timer will be cancelled later)
+      state.tick_timer_ref = send_interval(200ms, self, "tick");
     }
+
+    return {Result::Ok};
   }
 
-  {
+  if (
     const QueryIntent* query_intent = nullptr;
-    if (matches(message, "update_columns", query_intent))
-    {
-      if (
-        not uuid_valid(state.current_update_columns_request_id)
-        and not state.access_token_str.empty()
-      )
-      {
-        auto request_manager_actor_pid = *(whereis("request_manager"));
-
-        // Update the request intent with arguments from the query
-        update_request_intent_for_query_intent(
-          state.current_columns_request_intent_mutable_buf,
-          query_intent
-        );
-
-        // Override the query to select all columns, with zero rows
-        set_request_query_arg(
-          state.current_columns_request_intent_mutable_buf,
-          "tq",
-          "limit 0"
-        );
-
-        // Send the request intent message to the request manager actor
-        send(
-          request_manager_actor_pid,
-          "request",
-          state.current_columns_request_intent_mutable_buf
-        );
-
-        // Mark the request id as the current one
-        const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
-          state.current_columns_request_intent_mutable_buf.data()
-        );
-        state.current_update_columns_request_id = *(request_intent->id());
-        state.requests_in_progress++;
-
-        return {Result::Ok};
-      }
-    }
-  }
-
+    matches(message, "update_columns", query_intent)
+  )
   {
-    const Response* response = nullptr;
-    if (matches(message, "response_chunk", response, state.current_update_columns_request_id))
+    if (
+      not uuid_valid(state.current_update_columns_request_id)
+      and not state.access_token_str.empty()
+    )
     {
-      if (
-        not state.spreadsheet_column_ids_key.first.empty()
-        and not state.spreadsheet_column_ids_key.second.empty()
-        and (response->body()->size() > 0)
-      )
-      {
-        const auto* query_results = flatbuffers::GetRoot<Datatable>(
-          response->body()->data()
-        );
+      auto request_manager_actor_pid = *(whereis("request_manager"));
 
-        if (datatable_has_columns(query_results))
-        {
-          // Determine the key for identifying the spreadsheet (id) and sheet (gid)
-          const auto& k = state.spreadsheet_column_ids_key;
+      // Update the request intent with arguments from the query
+      update_request_intent_for_query_intent(
+        state.current_columns_request_intent_mutable_buf,
+        query_intent
+      );
 
-          // Insert (or overwrite) the previous stored columns ID mapping
-          state.spreadsheet_column_ids[k].assign(
-            response->body()->data(),
-            response->body()->data() + response->body()->size()
-          );
-        }
-      }
+      // Override the query to select all columns, with zero rows
+      set_request_query_arg(
+        state.current_columns_request_intent_mutable_buf,
+        "tq",
+        "limit 0"
+      );
+
+      // Send the request intent message to the request manager actor
+      send(
+        request_manager_actor_pid,
+        "request",
+        state.current_columns_request_intent_mutable_buf
+      );
+
+      // Mark the request id as the current one
+      const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+        state.current_columns_request_intent_mutable_buf.data()
+      );
+      state.current_update_columns_request_id = *(request_intent->id());
+      state.requests_in_progress++;
 
       return {Result::Ok};
     }
   }
 
-  {
+  if (
     const Response* response = nullptr;
-    if (matches(message, "response_chunk", response, state.current_query_request_id))
+    matches(message, "response_chunk", response, state.current_update_columns_request_id)
+  )
+  {
+    if (
+      not state.spreadsheet_column_ids_key.first.empty()
+      and not state.spreadsheet_column_ids_key.second.empty()
+      and (response->body()->size() > 0)
+    )
     {
       const auto* query_results = flatbuffers::GetRoot<Datatable>(
         response->body()->data()
       );
 
-      const auto* current_query_intent = flatbuffers::GetRoot<QueryIntent>(
-        state.current_query_intent_mutable_buf.data()
+      if (datatable_has_columns(query_results))
+      {
+        // Determine the key for identifying the spreadsheet (id) and sheet (gid)
+        const auto& k = state.spreadsheet_column_ids_key;
+
+        // Insert (or overwrite) the previous stored columns ID mapping
+        state.spreadsheet_column_ids[k].assign(
+          response->body()->data(),
+          response->body()->data() + response->body()->size()
+        );
+      }
+    }
+
+    return {Result::Ok};
+  }
+
+  if (
+    const Response* response = nullptr;
+    matches(message, "response_chunk", response, state.current_query_request_id)
+  )
+  {
+    const auto* query_results = flatbuffers::GetRoot<Datatable>(
+      response->body()->data()
+    );
+
+    const auto* current_query_intent = flatbuffers::GetRoot<QueryIntent>(
+      state.current_query_intent_mutable_buf.data()
+    );
+
+    if (
+      datatable_has_rows(query_results)
+      and query_intent_valid(current_query_intent)
+    )
+    {
+      const auto& to_pid = *(current_query_intent->to_pid());
+      send(
+        to_pid,
+        "query_results",
+        string_view{
+          reinterpret_cast<const char*>(response->body()),
+          response->body()->size()
+        }
+      );
+    }
+
+    return {Result::Ok};
+  }
+
+  if (
+    const Response* response = nullptr;
+    matches(message, "response_finished", response, state.current_query_request_id)
+  )
+  {
+    if (response->code() < 0)
+    {
+      ESP_LOGE(TAG, "query: Internal error, re-queueing (%d): '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
+    }
+
+    if (
+      response->code() == 302
+      or response->code() < 0
+    )
+    {
+      // Check if 'access_token' query arg is present now, re-send
+      auto request_manager_actor_pid = *(whereis("request_manager"));
+      send(
+        request_manager_actor_pid,
+        "request",
+        state.current_query_request_intent_mutable_buf
       );
 
-      if (
-        datatable_has_rows(query_results)
-        and query_intent_valid(current_query_intent)
-      )
-      {
-        const auto& to_pid = *(current_query_intent->to_pid());
-        send(
-          to_pid,
-          "query_results",
-          string_view{
-            reinterpret_cast<const char*>(response->body()),
-            response->body()->size()
-          }
-        );
-      }
-
-      return {Result::Ok};
+      const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+        state.current_query_request_intent_mutable_buf.data()
+      );
+      state.current_query_request_id = *(request_intent->id());
     }
+    else {
+      state.current_query_request_id = NullUUID;
+      state.current_query_intent_mutable_buf.clear();
+      state.requests_in_progress--;
+    }
+
+    // If there are no more pending rows to insert, cancel the tick timer
+    if (
+      state.pending_queries.empty()
+      and state.tick_timer_ref
+    )
+    {
+      cancel(state.tick_timer_ref);
+      state.tick_timer_ref = NullTRef;
+    }
+
+    return {Result::Ok};
   }
 
-  {
+  if (
     const Response* response = nullptr;
-    if (matches(message, "response_finished", response, state.current_query_request_id))
-    {
-      if (response->code() < 0)
-      {
-        ESP_LOGE(TAG, "query: Internal error, re-queueing (%d): '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
-      }
-
-      if (
-        response->code() == 302
-        or response->code() < 0
-      )
-      {
-        // Check if 'access_token' query arg is present now, re-send
-        auto request_manager_actor_pid = *(whereis("request_manager"));
-        send(
-          request_manager_actor_pid,
-          "request",
-          state.current_query_request_intent_mutable_buf
-        );
-
-        const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
-          state.current_query_request_intent_mutable_buf.data()
-        );
-        state.current_query_request_id = *(request_intent->id());
-      }
-      else {
-        state.current_query_request_id = NullUUID;
-        state.current_query_intent_mutable_buf.clear();
-        state.requests_in_progress--;
-      }
-
-      // If there are no more pending rows to insert, cancel the tick timer
-      if (
-        state.pending_queries.empty()
-        and state.tick_timer_ref
-      )
-      {
-        cancel(state.tick_timer_ref);
-        state.tick_timer_ref = NullTRef;
-      }
-
-      return {Result::Ok};
-    }
-  }
-
+    matches(message, "response_finished", response, state.current_update_columns_request_id)
+  )
   {
-    const Response* response = nullptr;
-    if (matches(message, "response_finished", response, state.current_update_columns_request_id))
+    if (response->code() < 0)
     {
-      if (response->code() < 0)
-      {
-        ESP_LOGE(TAG, "update_columns: Internal error, re-queueing (%d): '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
-      }
-
-      // 302 means OAuth info was omitted, so re-send the request again
-      // -1 or lower means internal error, and request may not have been sent
-      if (
-        response->code() == 302
-        or response->code() < 0
-      )
-      {
-        // Check if 'access_token' query arg is present now, re-send
-        auto request_manager_actor_pid = *(whereis("request_manager"));
-        send(
-          request_manager_actor_pid,
-          "request",
-          state.current_columns_request_intent_mutable_buf
-        );
-
-        const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
-          state.current_columns_request_intent_mutable_buf.data()
-        );
-        state.current_update_columns_request_id = *(request_intent->id());
-      }
-      else {
-        // Invalidate the request id now that this request has been completed
-        state.current_update_columns_request_id = NullUUID;
-        state.requests_in_progress--;
-      }
-
-      return {Result::Ok};
+      ESP_LOGE(TAG, "update_columns: Internal error, re-queueing (%d): '%.*s'\n", response->code(), response->body()->size(), response->body()->data());
     }
-  }
 
-  {
-    const Response* response = nullptr;
-    if (matches(message, "response_error", response, state.current_query_request_id))
+    // 302 means OAuth info was omitted, so re-send the request again
+    // -1 or lower means internal error, and request may not have been sent
+    if (
+      response->code() == 302
+      or response->code() < 0
+    )
     {
-      if (response->code() == 401)
-      {
-        auto auth_actor_pid = *(whereis("auth"));
-        send(auth_actor_pid, "auth");
-      }
-
-      return {Result::Ok};
-    }
-  }
-
-  {
-    const Response* response = nullptr;
-    if (matches(message, "response_error", response, state.current_update_columns_request_id))
-    {
-      if (response->code() == 401)
-      {
-        auto auth_actor_pid = *(whereis("auth"));
-        send(auth_actor_pid, "auth");
-      }
-
-      return {Result::Ok};
-    }
-  }
-
-  {
-    if (matches(message, "access_token", state.access_token_str))
-    {
-      // Use access_token to auth spreadsheet Users query request
-      set_request_query_arg(
-        state.current_query_request_intent_mutable_buf,
-        "access_token",
-        state.access_token_str
+      // Check if 'access_token' query arg is present now, re-send
+      auto request_manager_actor_pid = *(whereis("request_manager"));
+      send(
+        request_manager_actor_pid,
+        "request",
+        state.current_columns_request_intent_mutable_buf
       );
 
-      set_request_query_arg(
-        state.current_columns_request_intent_mutable_buf,
-        "access_token",
-        state.access_token_str
+      const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+        state.current_columns_request_intent_mutable_buf.data()
       );
-
-      return {Result::Ok, EventTerminationAction::ContinueProcessing};
+      state.current_update_columns_request_id = *(request_intent->id());
     }
+    else {
+      // Invalidate the request id now that this request has been completed
+      state.current_update_columns_request_id = NullUUID;
+      state.requests_in_progress--;
+    }
+
+    return {Result::Ok};
   }
 
+  if (
+    const Response* response = nullptr;
+    matches(message, "response_error", response, state.current_query_request_id))
   {
-    // A tick message should trigger an attempt to schedule more requests
-    if (matches(message, "tick"))
+    if (response->code() == 401)
     {
-      // Ensure an access_token is present before working on requests
-      if (
-        state.tick_timer_ref
-        and not state.access_token_str.empty()
+      auto auth_actor_pid = *(whereis("auth"));
+      send(auth_actor_pid, "auth");
+    }
+
+    return {Result::Ok};
+  }
+
+  if (
+    const Response* response = nullptr;
+    matches(message, "response_error", response, state.current_update_columns_request_id)
+  )
+  {
+    if (response->code() == 401)
+    {
+      auto auth_actor_pid = *(whereis("auth"));
+      send(auth_actor_pid, "auth");
+    }
+
+    return {Result::Ok};
+  }
+
+  if (matches(message, "access_token", state.access_token_str))
+  {
+    // Use access_token to auth spreadsheet Users query request
+    set_request_query_arg(
+      state.current_query_request_intent_mutable_buf,
+      "access_token",
+      state.access_token_str
+    );
+
+    set_request_query_arg(
+      state.current_columns_request_intent_mutable_buf,
+      "access_token",
+      state.access_token_str
+    );
+
+    return {Result::Ok, EventTerminationAction::ContinueProcessing};
+  }
+
+  // A tick message should trigger an attempt to schedule more requests
+  if (matches(message, "tick"))
+  {
+    // Ensure an access_token is present before working on requests
+    if (
+      state.tick_timer_ref
+      and not state.access_token_str.empty()
+    )
+    {
+      for (
+        auto i = state.pending_queries.begin();
+        i != state.pending_queries.end();
       )
       {
-        for (
-          auto i = state.pending_queries.begin();
-          i != state.pending_queries.end();
-        )
+        // Check that no requests are currently in progress
+        // Before attempting to send a new one
+        if (state.requests_in_progress < state.max_requests_in_progress)
         {
-          // Check that no requests are currently in progress
-          // Before attempting to send a new one
-          if (state.requests_in_progress < state.max_requests_in_progress)
+          auto& pending_query_intent_mutable_buf = *(i);
+
+          const auto* query_intent = flatbuffers::GetRoot<QueryIntent>(
+            pending_query_intent_mutable_buf.data()
+          );
+
+          if (query_intent_valid(query_intent))
           {
-            auto& pending_query_intent_mutable_buf = *(i);
-
-            const auto* query_intent = flatbuffers::GetRoot<QueryIntent>(
-              pending_query_intent_mutable_buf.data()
+            auto did_update_all_ids = state.fixup_query_intent_columns(
+              pending_query_intent_mutable_buf
             );
-
-            if (query_intent_valid(query_intent))
+            if (did_update_all_ids)
             {
-              auto did_update_all_ids = state.fixup_query_intent_columns(
-                pending_query_intent_mutable_buf
+              auto request_manager_actor_pid = *(whereis("request_manager"));
+
+              // Update the request intent with arguments from the query
+              update_request_intent_for_query_intent(
+                state.current_query_request_intent_mutable_buf,
+                query_intent
               );
-              if (did_update_all_ids)
+
+              // Send the request intent message to the request manager actor
+              send(
+                request_manager_actor_pid,
+                "request",
+                state.current_query_request_intent_mutable_buf
+              );
+
+              // Mark the request id as active
+              const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
+                state.current_query_request_intent_mutable_buf.data()
+              );
+              state.current_query_request_id = *(request_intent->id());
+              state.requests_in_progress++;
+
+              // Copy the current pending query for future reference
+              state.current_query_intent_mutable_buf = *(i);
+
+              // Erase the current pending query now that it has been sent
+              i = state.pending_queries.erase(i);
+              continue;
+            }
+            else {
+              // Not all column ids could be updated
+              // Check if no existing update_columns request is active
+              // Generate and send a update_columns request in that case
+              if (not uuid_valid(state.current_update_columns_request_id))
               {
-                auto request_manager_actor_pid = *(whereis("request_manager"));
+                // Make a request for all columns in the sheet
+                // To determine label<->name mapping
+                send(self, "update_columns", pending_query_intent_mutable_buf);
 
-                // Update the request intent with arguments from the query
-                update_request_intent_for_query_intent(
-                  state.current_query_request_intent_mutable_buf,
-                  query_intent
+                // Extract the spreadsheet/sheet ids for the query
+                const auto* query_intent = flatbuffers::GetRoot<QueryIntent>(
+                  pending_query_intent_mutable_buf.data()
                 );
-
-                // Send the request intent message to the request manager actor
-                send(
-                  request_manager_actor_pid,
-                  "request",
-                  state.current_query_request_intent_mutable_buf
+                state.spreadsheet_column_ids_key = make_pair(
+                  query_intent->spreadsheet_id()->str(),
+                  query_intent->gid()->str()
                 );
-
-                // Mark the request id as active
-                const auto* request_intent = flatbuffers::GetRoot<RequestIntent>(
-                  state.current_query_request_intent_mutable_buf.data()
-                );
-                state.current_query_request_id = *(request_intent->id());
-                state.requests_in_progress++;
-
-                // Copy the current pending query for future reference
-                state.current_query_intent_mutable_buf = *(i);
-
-                // Erase the current pending query now that it has been sent
-                i = state.pending_queries.erase(i);
-                continue;
-              }
-              else {
-                // Not all column ids could be updated
-                // Check if no existing update_columns request is active
-                // Generate and send a update_columns request in that case
-                if (not uuid_valid(state.current_update_columns_request_id))
-                {
-                  // Make a request for all columns in the sheet
-                  // To determine label<->name mapping
-                  send(self, "update_columns", pending_query_intent_mutable_buf);
-
-                  // Extract the spreadsheet/sheet ids for the query
-                  const auto* query_intent = flatbuffers::GetRoot<QueryIntent>(
-                    pending_query_intent_mutable_buf.data()
-                  );
-                  state.spreadsheet_column_ids_key = make_pair(
-                    query_intent->spreadsheet_id()->str(),
-                    query_intent->gid()->str()
-                  );
-                }
               }
             }
           }
-
-          // If we didn't already delete a query, then increment to the next one
-          ++(i);
         }
-      }
 
-      return {Result::Ok, EventTerminationAction::ContinueProcessing};
+        // If we didn't already delete a query, then increment to the next one
+        ++(i);
+      }
     }
+
+    return {Result::Ok, EventTerminationAction::ContinueProcessing};
   }
 
   return {Result::Unhandled};

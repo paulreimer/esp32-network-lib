@@ -40,74 +40,71 @@ auto request_manager_actor_behaviour(
 
   auto& requests = *(std::static_pointer_cast<RequestManager>(state));
 
-  {
+  if (
     string_view cacert_der_str;
-    if (matches(message, "add_cacert_der", cacert_der_str))
-    {
-      requests.add_cacert_der(cacert_der_str);
+    matches(message, "add_cacert_der", cacert_der_str)
+  )
+  {
+    requests.add_cacert_der(cacert_der_str);
 
-      return {Result::Ok};
-    }
+    return {Result::Ok};
   }
 
-  {
+  if (
     string_view cacert_pem_str;
-    if (matches(message, "add_cacert_pem", cacert_pem_str))
-    {
-      requests.add_cacert_pem(cacert_pem_str);
+    matches(message, "add_cacert_pem", cacert_pem_str)
+  )
+  {
+    requests.add_cacert_pem(cacert_pem_str);
 
-      return {Result::Ok};
-    }
+    return {Result::Ok};
   }
 
-  {
+  if (
     const RequestIntent* request_intent = nullptr;
-    if (matches(message, "request", request_intent))
-    {
-      if (request_intent and request_intent->request())
-      {
-        if (message.payload()->size() > 0)
-        {
-          const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
-            const_cast<uint8_t*>(message.payload()->data()),
-            message.payload()->size()
-          };
-          requests.fetch(request_intent_buf_ref);
-
-          // Re-trigger ourselves immediately with an arbitrary message
-          send(self, "tick", "");
-        }
-      }
-
-      return {Result::Ok};
-    }
-  }
-
+    matches(message, "request", request_intent))
   {
-    if (matches(message, "tick"))
+    if (request_intent and request_intent->request())
     {
-      auto requests_remaining = requests.wait_any();
-
-      if (requests_remaining > 0)
+      if (message.payload()->size() > 0)
       {
+        const auto request_intent_buf_ref = RequestIntentFlatbufferRef{
+          const_cast<uint8_t*>(message.payload()->data()),
+          message.payload()->size()
+        };
+        requests.fetch(request_intent_buf_ref);
+
         // Re-trigger ourselves immediately with an arbitrary message
         send(self, "tick", "");
       }
-
-      return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
+
+    return {Result::Ok};
   }
 
+  if (matches(message, "tick"))
   {
-    string exit_reason;
-    if (matches(message, "exit", exit_reason))
+    auto requests_remaining = requests.wait_any();
+
+    if (requests_remaining > 0)
     {
-      return {
-        Result::Error,
-        EventTerminationAction::StopProcessing,
-        exit_reason
-      };
+      // Re-trigger ourselves immediately with an arbitrary message
+      send(self, "tick", "");
     }
+
+    return {Result::Ok, EventTerminationAction::ContinueProcessing};
+  }
+
+  if (
+    string exit_reason;
+    matches(message, "exit", exit_reason)
+  )
+  {
+    return {
+      Result::Error,
+      EventTerminationAction::StopProcessing,
+      exit_reason
+    };
   }
 
   return {Result::Unhandled};

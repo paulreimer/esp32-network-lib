@@ -39,75 +39,73 @@ auto wifi_actor_behaviour(
   }
   auto& state = *(std::static_pointer_cast<WifiActorState>(_state));
 
+  if (matches(message, "connect_wifi_sta"))
   {
-    if (matches(message, "connect_wifi_sta"))
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    auto ret = esp_wifi_init(&cfg);
+    if (ret == ESP_OK)
     {
-      wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-      auto ret = esp_wifi_init(&cfg);
-      if (ret == ESP_OK)
+      // Check for existing config (e.g. stored in NVS)
+      wifi_config_t existing_wifi_config = {};
+      auto ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &existing_wifi_config);
+
+      if (
+        ret != ESP_OK
+        or not strlen(reinterpret_cast<char*>(existing_wifi_config.sta.ssid))
+      )
       {
-        // Check for existing config (e.g. stored in NVS)
-        wifi_config_t existing_wifi_config = {};
-        auto ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &existing_wifi_config);
+        wifi_config_t default_wifi_config = {};
+        strcpy((char*)default_wifi_config.sta.ssid, CONFIG_WIFI_SSID);
+        strcpy((char*)default_wifi_config.sta.password, CONFIG_WIFI_PASSWORD);
 
-        if (
-          ret != ESP_OK
-          or not strlen(reinterpret_cast<char*>(existing_wifi_config.sta.ssid))
-        )
-        {
-          wifi_config_t default_wifi_config = {};
-          strcpy((char*)default_wifi_config.sta.ssid, CONFIG_WIFI_SSID);
-          strcpy((char*)default_wifi_config.sta.password, CONFIG_WIFI_PASSWORD);
+        ESP_LOGW(
+          TAG,
+          "Setting default WiFi configuration SSID %s...",
+          default_wifi_config.sta.ssid
+        );
 
-          ESP_LOGW(
-            TAG,
-            "Setting default WiFi configuration SSID %s...",
-            default_wifi_config.sta.ssid
-          );
-
-          ret = esp_wifi_set_mode(WIFI_MODE_STA);
-          if (ret == ESP_OK)
-          {
-            ret = esp_wifi_set_config(ESP_IF_WIFI_STA, &default_wifi_config);
-            if (ret == ESP_OK)
-            {
-              ESP_LOGI(
-                TAG,
-                "Successfully updated to use SSID %s",
-                existing_wifi_config.sta.ssid
-              );
-            }
-            else {
-              ESP_LOGE(TAG, "Could not configure WiFi STA settings");
-            }
-          }
-          else {
-            ESP_LOGE(TAG, "Could not set WiFi mode to STA");
-          }
-        }
-        else {
-          ESP_LOGI(
-            TAG,
-            "Using existing WiFi configuration SSID %s...",
-            existing_wifi_config.sta.ssid
-          );
-        }
-
-        ret = esp_wifi_start();
+        ret = esp_wifi_set_mode(WIFI_MODE_STA);
         if (ret == ESP_OK)
         {
-          return {Result::Ok};
+          ret = esp_wifi_set_config(ESP_IF_WIFI_STA, &default_wifi_config);
+          if (ret == ESP_OK)
+          {
+            ESP_LOGI(
+              TAG,
+              "Successfully updated to use SSID %s",
+              existing_wifi_config.sta.ssid
+            );
+          }
+          else {
+            ESP_LOGE(TAG, "Could not configure WiFi STA settings");
+          }
         }
         else {
-          ESP_LOGE(TAG, "Could not start WiFi device");
+          ESP_LOGE(TAG, "Could not set WiFi mode to STA");
         }
       }
       else {
-        ESP_LOGE(TAG, "Could not initialize WiFi");
+        ESP_LOGI(
+          TAG,
+          "Using existing WiFi configuration SSID %s...",
+          existing_wifi_config.sta.ssid
+        );
       }
 
-      return {Result::Error};
+      ret = esp_wifi_start();
+      if (ret == ESP_OK)
+      {
+        return {Result::Ok};
+      }
+      else {
+        ESP_LOGE(TAG, "Could not start WiFi device");
+      }
     }
+    else {
+      ESP_LOGE(TAG, "Could not initialize WiFi");
+    }
+
+    return {Result::Error};
   }
 
   return {Result::Unhandled};

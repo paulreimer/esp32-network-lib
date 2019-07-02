@@ -137,225 +137,216 @@ auto mqtt_client_actor_behaviour(
   }
   auto& state = *(std::static_pointer_cast<MQTTClientActorState>(_state));
 
+  if (
+    matches(
+      message,
+      "connect",
+      state.mutable_mqtt_client_config
+    )
+  )
   {
-    //const MQTTClientConfiguration* mqtt_client_config = nullptr;
+    printf("mqtt_client:connect\n");
+    const auto* mqtt_client_config = flatbuffers::GetRoot
+    <
+      MQTTClientConfiguration
+    >
+    (
+      state.mutable_mqtt_client_config.data()
+    );
+
+    state.mqtt_client_config.host = (
+      mqtt_client_config->host()->c_str()
+    );
+    state.mqtt_client_config.port = mqtt_client_config->port();
+
+
+
+    // Set the root certificate path
     if (
-      matches(
-        message,
-        "connect",
-        state.mutable_mqtt_client_config
+      mqtt_client_config->root_certificate_path()
+      and filesystem_exists(
+        mqtt_client_config->root_certificate_path()->string_view()
       )
     )
     {
-      printf("mqtt_client:connect\n");
-      const auto* mqtt_client_config = flatbuffers::GetRoot
-      <
-        MQTTClientConfiguration
-      >
-      (
-        state.mutable_mqtt_client_config.data()
+      state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
+
+      state.root_certificate_pem = filesystem_read(
+        mqtt_client_config->root_certificate_path()->c_str()
+      );
+      state.mqtt_client_config.cert_pem = reinterpret_cast<const char*>(
+        state.root_certificate_pem.data()
+      );
+    }
+    // Set the client certificate path
+    if (
+      mqtt_client_config->client_certificate_path()
+      and filesystem_exists(
+        mqtt_client_config->client_certificate_path()->string_view()
+      )
+    )
+    {
+      state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
+
+      state.client_certificate_pem = filesystem_read(
+        mqtt_client_config->client_certificate_path()->string_view()
+      );
+      state.mqtt_client_config.client_cert_pem = reinterpret_cast<const char*>(
+        state.client_certificate_pem.data()
+      );
+    }
+    // Set the client private key path
+    if (
+      mqtt_client_config->client_private_key_path()
+      and filesystem_exists(
+        mqtt_client_config->client_private_key_path()->string_view()
+      )
+    )
+    {
+      state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
+
+      state.client_private_key_pem = filesystem_read(
+        mqtt_client_config->client_private_key_path()->string_view()
+      );
+      state.mqtt_client_config.client_key_pem = reinterpret_cast<const char*>(
+        state.client_private_key_pem.data()
+      );
+    }
+    // Set the client ID
+    if (mqtt_client_config->client_id())
+    {
+      state.mqtt_client_config.client_id = (
+        mqtt_client_config->client_id()->c_str()
+      );
+    }
+    // Set the username
+    if (mqtt_client_config->client_username())
+    {
+      state.mqtt_client_config.username = (
+        mqtt_client_config->client_username()->c_str()
+      );
+    }
+    // Set the password
+    if (mqtt_client_config->client_password())
+    {
+      state.mqtt_client_config.password = (
+        mqtt_client_config->client_password()->c_str()
+      );
+    }
+
+    state.mqtt_client_config.event_handle = _mqtt_event_handler;
+    state.mqtt_client_config.user_context = const_cast<void*>(
+      static_cast<const void*>(&self)
+    );
+
+    state.mqtt_client = esp_mqtt_client_init(&state.mqtt_client_config);
+    auto ret = esp_mqtt_client_start(state.mqtt_client);
+
+    if (ret == ESP_OK)
+    {
+      ESP_LOGI(TAG, "esp_mqtt_client_start started successfully");
+    }
+    else {
+      ESP_LOGE(TAG, "esp_mqtt_client_start returned error : %d ", ret);
+    }
+
+    return {Result::Ok};
+  }
+
+  if (
+    const Subscription* subscription = nullptr;
+    matches(
+      message,
+      "subscribe",
+      subscription
+    )
+  )
+  {
+    if (subscription->topic() and subscription->topic()->size() > 0)
+    {
+      const auto qos = static_cast<int8_t>(subscription->qos());
+      ESP_LOGI(TAG, "Subscribing at QoS %d...", qos);
+      auto ret = esp_mqtt_client_subscribe(
+        state.mqtt_client,
+        subscription->topic()->c_str(),
+        qos
       );
 
-      state.mqtt_client_config.host = (
-        mqtt_client_config->host()->c_str()
-      );
-      state.mqtt_client_config.port = mqtt_client_config->port();
-
-
-
-      // Set the root certificate path
-      if (
-        mqtt_client_config->root_certificate_path()
-        and filesystem_exists(
-          mqtt_client_config->root_certificate_path()->string_view()
-        )
-      )
+      if (ret >= 0)
       {
-        state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
-
-        state.root_certificate_pem = filesystem_read(
-          mqtt_client_config->root_certificate_path()->c_str()
+        ESP_LOGI(
+          TAG,
+          "Subscribed to topic '%s'",
+          subscription->topic()->c_str()
         );
-        state.mqtt_client_config.cert_pem = reinterpret_cast<const char*>(
-          state.root_certificate_pem.data()
-        );
-      }
-      // Set the client certificate path
-      if (
-        mqtt_client_config->client_certificate_path()
-        and filesystem_exists(
-          mqtt_client_config->client_certificate_path()->string_view()
-        )
-      )
-      {
-        state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
-
-        state.client_certificate_pem = filesystem_read(
-          mqtt_client_config->client_certificate_path()->string_view()
-        );
-        state.mqtt_client_config.client_cert_pem = reinterpret_cast<const char*>(
-          state.client_certificate_pem.data()
-        );
-      }
-      // Set the client private key path
-      if (
-        mqtt_client_config->client_private_key_path()
-        and filesystem_exists(
-          mqtt_client_config->client_private_key_path()->string_view()
-        )
-      )
-      {
-        state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
-
-        state.client_private_key_pem = filesystem_read(
-          mqtt_client_config->client_private_key_path()->string_view()
-        );
-        state.mqtt_client_config.client_key_pem = reinterpret_cast<const char*>(
-          state.client_private_key_pem.data()
-        );
-      }
-      // Set the client ID
-      if (mqtt_client_config->client_id())
-      {
-        state.mqtt_client_config.client_id = (
-          mqtt_client_config->client_id()->c_str()
-        );
-      }
-      // Set the username
-      if (mqtt_client_config->client_username())
-      {
-        state.mqtt_client_config.username = (
-          mqtt_client_config->client_username()->c_str()
-        );
-      }
-      // Set the password
-      if (mqtt_client_config->client_password())
-      {
-        state.mqtt_client_config.password = (
-          mqtt_client_config->client_password()->c_str()
-        );
-      }
-
-      state.mqtt_client_config.event_handle = _mqtt_event_handler;
-      state.mqtt_client_config.user_context = const_cast<void*>(
-        static_cast<const void*>(&self)
-      );
-
-      state.mqtt_client = esp_mqtt_client_init(&state.mqtt_client_config);
-      auto ret = esp_mqtt_client_start(state.mqtt_client);
-
-      if (ret == ESP_OK)
-      {
-        ESP_LOGI(TAG, "esp_mqtt_client_start started successfully");
       }
       else {
-        ESP_LOGE(TAG, "esp_mqtt_client_start returned error : %d ", ret);
+        ESP_LOGE(TAG, "esp_mqtt_client_subscribe returned error : %d ", ret);
       }
 
       return {Result::Ok};
     }
   }
 
-  {
-    const Subscription* subscription = nullptr;
-    if (
-      matches(
-        message,
-        "subscribe",
-        subscription
-      )
-    )
-    {
-      if (subscription->topic() and subscription->topic()->size() > 0)
-      {
-        const auto qos = static_cast<int8_t>(subscription->qos());
-        ESP_LOGI(TAG, "Subscribing at QoS %d...", qos);
-        auto ret = esp_mqtt_client_subscribe(
-          state.mqtt_client,
-          subscription->topic()->c_str(),
-          qos
-        );
-
-        if (ret >= 0)
-        {
-          ESP_LOGI(
-            TAG,
-            "Subscribed to topic '%s'",
-            subscription->topic()->c_str()
-          );
-        }
-        else {
-          ESP_LOGE(TAG, "esp_mqtt_client_subscribe returned error : %d ", ret);
-        }
-
-        return {Result::Ok};
-      }
-    }
-  }
-
-  {
+  if (
     const MQTTMessage* mqtt_message = nullptr;
-    if (
-      matches(
-        message,
-        "publish",
-        mqtt_message
-      )
+    matches(
+      message,
+      "publish",
+      mqtt_message
     )
+  )
+  {
+    if (mqtt_message->topic() and mqtt_message->payload())
     {
-      if (mqtt_message->topic() and mqtt_message->payload())
+      auto ret = esp_mqtt_client_publish(
+        state.mqtt_client,
+        mqtt_message->topic()->c_str(),
+        mqtt_message->payload()->data(),
+        mqtt_message->payload()->size(),
+        static_cast<int8_t>(mqtt_message->qos()),
+        mqtt_message->retain()
+      );
+      if (ret == ESP_OK)
       {
-        auto ret = esp_mqtt_client_publish(
-          state.mqtt_client,
-          mqtt_message->topic()->c_str(),
-          mqtt_message->payload()->data(),
-          mqtt_message->payload()->size(),
-          static_cast<int8_t>(mqtt_message->qos()),
-          mqtt_message->retain()
+        ESP_LOGI(
+          TAG,
+          "Published to '%s'",
+          mqtt_message->topic()->c_str()
         );
-        if (ret == ESP_OK)
-        {
-          ESP_LOGI(
-            TAG,
-            "Published to '%s'",
-            mqtt_message->topic()->c_str()
-          );
-        }
-        else {
-          ESP_LOGE(
-            TAG,
-            "Error(%d) publishing to '%s'",
-            ret,
-            mqtt_message->topic()->c_str()
-          );
-        }
       }
-
-      return {Result::Ok};
+      else {
+        ESP_LOGE(
+          TAG,
+          "Error(%d) publishing to '%s'",
+          ret,
+          mqtt_message->topic()->c_str()
+        );
+      }
     }
+
+    return {Result::Ok};
   }
 
+  if (matches(message, "connected"))
   {
-    if (matches(message, "connected"))
-    {
-      const auto* mqtt_client_config = flatbuffers::GetRoot
-      <
-        MQTTClientConfiguration
-      >
-      (
-        state.mutable_mqtt_client_config.data()
-      );
+    const auto* mqtt_client_config = flatbuffers::GetRoot
+    <
+      MQTTClientConfiguration
+    >
+    (
+      state.mutable_mqtt_client_config.data()
+    );
 
-      if (mqtt_client_config->subscriptions())
+    if (mqtt_client_config->subscriptions())
+    {
+      for (
+        const auto* nested_buf : *(mqtt_client_config->subscriptions())
+      )
       {
-        for (
-          const auto* nested_buf : *(mqtt_client_config->subscriptions())
-        )
-        {
-          const auto* s = nested_buf->subscription_nested_root();
-          const auto* subscription = nested_buf->subscription();
-          send(self, "subscribe", *(subscription));
-        }
+        const auto* s = nested_buf->subscription_nested_root();
+        const auto* subscription = nested_buf->subscription();
+        send(self, "subscribe", *(subscription));
       }
     }
   }

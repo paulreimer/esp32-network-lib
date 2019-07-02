@@ -74,27 +74,27 @@ auto spreadsheet_insert_row_actor_behaviour(
   );
 
 
-  {
+  if (
     MutableInsertRowIntentFlatbuffer insert_row_intent_mutable_buf;
-    if (matches(message, "insert_row", insert_row_intent_mutable_buf))
+    matches(message, "insert_row", insert_row_intent_mutable_buf)
+  )
+  {
+    const auto* insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
+      insert_row_intent_mutable_buf.data()
+    );
+
+    if (insert_row_intent_valid(insert_row_intent))
     {
-      const auto* insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
-        insert_row_intent_mutable_buf.data()
-      );
+      state.pending_insert_row_intents.emplace(insert_row_intent_mutable_buf);
 
-      if (insert_row_intent_valid(insert_row_intent))
+      if (not state.tick_timer_ref)
       {
-        state.pending_insert_row_intents.emplace(insert_row_intent_mutable_buf);
-
-        if (not state.tick_timer_ref)
-        {
-          // Re-trigger ourselves periodically (timer will be cancelled later)
-          state.tick_timer_ref = send_interval(200ms, self, "tick");
-        }
+        // Re-trigger ourselves periodically (timer will be cancelled later)
+        state.tick_timer_ref = send_interval(200ms, self, "tick");
       }
-
-      return {Result::Ok};
     }
+
+    return {Result::Ok};
   }
 
   {
@@ -109,11 +109,13 @@ auto spreadsheet_insert_row_actor_behaviour(
   }
 
   {
-    const Response* response = nullptr;
     auto insert_row_request_intent_id = get_request_intent_id(
       state.insert_row_request_intent_mutable_buf
     );
-    if (matches(message, "response_finished", response, insert_row_request_intent_id))
+
+    if (
+      const Response* response = nullptr;
+      matches(message, "response_finished", response, insert_row_request_intent_id))
     {
       if (response->code() == 200)
       {
@@ -158,14 +160,10 @@ auto spreadsheet_insert_row_actor_behaviour(
 
       return {Result::Ok};
     }
-  }
 
-  {
-    const Response* response = nullptr;
-    auto insert_row_request_intent_id = get_request_intent_id(
-      state.insert_row_request_intent_mutable_buf
-    );
-    if (matches(message, "response_error", response, insert_row_request_intent_id))
+    if (
+      const Response* response = nullptr;
+      matches(message, "response_error", response, insert_row_request_intent_id))
     {
       if (response->code() == 401)
       {
@@ -177,72 +175,68 @@ auto spreadsheet_insert_row_actor_behaviour(
     }
   }
 
+  if (matches(message, "access_token", state.access_token_str))
   {
-    if (matches(message, "access_token", state.access_token_str))
-    {
-      // Use access_token to auth spreadsheet Log insert request
-      set_request_header(
-        state.insert_row_request_intent_mutable_buf,
-        "Authorization",
-        string{"Bearer "} + state.access_token_str
-      );
+    // Use access_token to auth spreadsheet Log insert request
+    set_request_header(
+      state.insert_row_request_intent_mutable_buf,
+      "Authorization",
+      string{"Bearer "} + state.access_token_str
+    );
 
-      return {Result::Ok, EventTerminationAction::ContinueProcessing};
-    }
+    return {Result::Ok, EventTerminationAction::ContinueProcessing};
   }
 
+  if (matches(message, "tick"))
   {
-    if (matches(message, "tick"))
+    if (
+      state.tick_timer_ref
+      and not state.pending_insert_row_intents.empty()
+      and not state.access_token_str.empty()
+    )
     {
-      if (
-        state.tick_timer_ref
-        and not state.pending_insert_row_intents.empty()
-        and not state.access_token_str.empty()
-      )
+      if (not state.insert_row_request_in_progress)
       {
-        if (not state.insert_row_request_in_progress)
+        state.current_insert_row_intent_mutable_buf = (
+          state.pending_insert_row_intents.front()
+        );
+
+        const auto* insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
+          state.current_insert_row_intent_mutable_buf.data()
+        );
+
+        if (insert_row_intent_valid(insert_row_intent))
         {
-          state.current_insert_row_intent_mutable_buf = (
-            state.pending_insert_row_intents.front()
+          // Send append row request
+          set_request_uri(
+            state.insert_row_request_intent_mutable_buf,
+            string{"https://content-sheets.googleapis.com/v4/spreadsheets/"}
+              + insert_row_intent->spreadsheet_id()->str()
+              + "/values/"
+              + insert_row_intent->sheet_name()->str()
+              + ":append"
           );
 
-          const auto* insert_row_intent = flatbuffers::GetRoot<InsertRowIntent>(
-            state.current_insert_row_intent_mutable_buf.data()
+          set_request_body(
+            state.insert_row_request_intent_mutable_buf,
+            insert_row_intent->values_json()->string_view()
           );
 
-          if (insert_row_intent_valid(insert_row_intent))
-          {
-            // Send append row request
-            set_request_uri(
-              state.insert_row_request_intent_mutable_buf,
-              string{"https://content-sheets.googleapis.com/v4/spreadsheets/"}
-                + insert_row_intent->spreadsheet_id()->str()
-                + "/values/"
-                + insert_row_intent->sheet_name()->str()
-                + ":append"
-            );
-
-            set_request_body(
-              state.insert_row_request_intent_mutable_buf,
-              insert_row_intent->values_json()->string_view()
-            );
-
-            state.insert_row_request_in_progress = true;
-            auto request_manager_actor_pid = *(whereis("request_manager"));
-            send(
-              request_manager_actor_pid,
-              "request",
-              state.insert_row_request_intent_mutable_buf
-            );
-          }
-
-          // Pop the row now that it has been processed.
-          state.pending_insert_row_intents.pop();
+          state.insert_row_request_in_progress = true;
+          auto request_manager_actor_pid = *(whereis("request_manager"));
+          send(
+            request_manager_actor_pid,
+            "request",
+            state.insert_row_request_intent_mutable_buf
+          );
         }
-      }
 
-      return {Result::Ok, EventTerminationAction::ContinueProcessing};
+        // Pop the row now that it has been processed.
+        state.pending_insert_row_intents.pop();
+      }
     }
+
+    return {Result::Ok, EventTerminationAction::ContinueProcessing};
   }
 
   return {Result::Unhandled};

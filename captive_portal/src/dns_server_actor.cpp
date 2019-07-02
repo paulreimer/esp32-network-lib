@@ -47,57 +47,51 @@ auto dns_server_actor_behaviour(
   }
   auto& state = *(std::static_pointer_cast<DNSServerActorState>(_state));
 
+  if (matches(message, "dns_server_start"))
   {
-    if (matches(message, "dns_server_start"))
+    const auto& network_details = get_network_details();
+    if (network_details.ip.addr)
     {
-      const auto& network_details = get_network_details();
-      if (network_details.ip.addr)
+      // Set to current IP address
+      state.dns_server.start(53, network_details.ip.addr);
+      state.started = true;
+
+      printf("DNS server started\n");
+
+      if (not state.tick_timer_ref)
       {
-        // Set to current IP address
-        state.dns_server.start(53, network_details.ip.addr);
-        state.started = true;
-
-        printf("DNS server started\n");
-
-        if (not state.tick_timer_ref)
-        {
-          // Re-trigger ourselves periodically (timer will be cancelled later)
-          state.tick_timer_ref = send_interval(200ms, self, "tick");
-        }
+        // Re-trigger ourselves periodically (timer will be cancelled later)
+        state.tick_timer_ref = send_interval(200ms, self, "tick");
       }
-
-      return {Result::Ok};
     }
+
+    return {Result::Ok};
   }
 
+  if (matches(message, "dns_server_stop"))
   {
-    if (matches(message, "dns_server_stop"))
+    printf("DNS server stopping\n");
+    if (state.tick_timer_ref)
     {
-      printf("DNS server stopping\n");
-      if (state.tick_timer_ref)
-      {
-        cancel(state.tick_timer_ref);
-        state.tick_timer_ref = NullTRef;
-      }
-
-      if (state.started)
-      {
-        state.dns_server.stop();
-        state.started = false;
-      }
-      return {Result::Ok};
+      cancel(state.tick_timer_ref);
+      state.tick_timer_ref = NullTRef;
     }
+
+    if (state.started)
+    {
+      state.dns_server.stop();
+      state.started = false;
+    }
+    return {Result::Ok};
   }
 
+  if (matches(message, "tick"))
   {
-    if (matches(message, "tick"))
+    if (state.tick_timer_ref)
     {
-      if (state.tick_timer_ref)
-      {
-        auto handled_request = state.dns_server.process_next_request();
+      auto handled_request = state.dns_server.process_next_request();
 
-        return {Result::Ok, EventTerminationAction::ContinueProcessing};
-      }
+      return {Result::Ok, EventTerminationAction::ContinueProcessing};
     }
   }
 
