@@ -10,7 +10,8 @@
 
 #include "filesystem.h"
 
-#include <stdio.h>
+#include <cstdio>
+#include <unistd.h>
 
 #include "esp_log.h"
 
