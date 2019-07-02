@@ -19,9 +19,9 @@
 #include "timestamp.h"
 
 #include <chrono>
-#include <string_view>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "esp_log.h"

@@ -22,8 +22,8 @@
 #endif // REQUESTS_SUPPORT_JSON_TO_FLATBUFFERS
 #endif // REQUESTS_SUPPORT_JSON
 
-#include <string_view>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #ifdef REQUESTS_USE_CURL

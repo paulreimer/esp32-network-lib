@@ -17,8 +17,8 @@
 
 #include "embedded_files_string_view_wrapper.h"
 
-#include <string_view>
 #include <string>
+#include <string_view>
 
 namespace googleapis {
 

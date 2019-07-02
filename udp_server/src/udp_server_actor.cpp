@@ -17,11 +17,11 @@
 
 #include <chrono>
 #include <string>
-#include <vector>
 #include <string_view>
+#include <vector>
 
-#include "lwip/sockets.h"
 #include "lwip/netdb.h"
+#include "lwip/sockets.h"
 
 #include "esp_log.h"
 

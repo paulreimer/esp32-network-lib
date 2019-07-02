@@ -18,9 +18,9 @@
 
 #include "timestamp.h"
 
-#include <string_view>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "driver/gpio.h"
 #include "esp_log.h"

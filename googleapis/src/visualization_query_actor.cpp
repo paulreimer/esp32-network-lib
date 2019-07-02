@@ -18,10 +18,10 @@
 
 #include "esp_log.h"
 
-#include <string_view>
 #include <chrono>
 #include <deque>
 #include <string>
+#include <string_view>
 
 namespace googleapis {
 namespace Visualization {

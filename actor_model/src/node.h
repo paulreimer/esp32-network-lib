@@ -18,8 +18,8 @@
 #include "delegate.hpp"
 
 #include <chrono>
-#include <string_view>
 #include <set>
+#include <string_view>
 #include <unordered_map>
 
 #include "freertos/FreeRTOS.h"
