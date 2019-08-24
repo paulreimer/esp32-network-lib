@@ -379,12 +379,14 @@ auto Loader::extract_symbols(const elf::elf& parsed_elf, Executable& executable)
         {
           auto func_addr = sym.get_data().value - reloc_segment_base_offset;
           executable.symbols[sym.get_name()] = func_addr;
+          break;
         }
 
         case elf::stt::object:
         {
           auto object_addr = sym.get_data().value - reloc_segment_base_offset;
           executable.symbols[sym.get_name()] = object_addr;
+          break;
         }
 
         case elf::stt::notype:
