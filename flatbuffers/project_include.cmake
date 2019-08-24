@@ -70,3 +70,37 @@ function(FLATBUFFERS_GENERATE_BFBS schema_bfbs)
   add_custom_target(${schema_bfbs}_TARGET DEPENDS ${GENERATED_OUTPUTS})
 endfunction()
 
+function(FLATBUFFERS_EMBED_BFBS)
+  set(GENERATED_OUTPUTS)
+  foreach(FILE ${ARGN})
+    get_filename_component(SCHEMA ${FILE} NAME_WE)
+    set(OUT "${build_dir}/fs/${SCHEMA}.bfbs")
+    list(APPEND GENERATED_OUTPUTS ${OUT})
+
+    add_custom_command(
+      OUTPUT "${OUT}"
+      COMMAND
+        cp
+          "src/gen/${SCHEMA}.bfbs"
+          "${OUT}"
+      DEPENDS
+        "${CMAKE_CURRENT_BINARY_DIR}/src/gen/${SCHEMA}.bfbs"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+      VERBATIM
+    )
+    set_source_files_properties(
+      "${OUT}"
+      PROPERTIES
+      GENERATED TRUE
+    )
+
+    set(${SCHEMA}_OUTPUTS ${OUT} PARENT_SCOPE)
+    add_custom_target(${SCHEMA}_bfbs_EMBED_TARGET DEPENDS ${OUT})
+  endforeach()
+
+  set_property(
+    DIRECTORY
+    APPEND PROPERTY
+    ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_OUTPUTS}"
+  )
+endfunction()
