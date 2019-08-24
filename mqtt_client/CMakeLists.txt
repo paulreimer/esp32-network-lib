@@ -3,8 +3,8 @@ idf_component_register(
     "src/mqtt.cpp"
     "src/mqtt_client_actor.cpp"
   INCLUDE_DIRS
-    "src/gen"
     "src"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_REQUIRES
     "actor_model"
     "embedded_files"
@@ -13,7 +13,7 @@ idf_component_register(
     "utils"
     "uuid"
   EMBED_FILES
-    "src/gen/mqtt.bfbs"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/gen/mqtt.bfbs"
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)

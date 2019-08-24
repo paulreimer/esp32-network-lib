@@ -9,7 +9,7 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/date/include"
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_REQUIRES
     "actor_model"
     "flatbuffers"

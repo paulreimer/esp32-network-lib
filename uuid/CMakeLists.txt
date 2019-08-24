@@ -4,7 +4,7 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/sole"
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   REQUIRES
     "flatbuffers"
 )

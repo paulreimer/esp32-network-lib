@@ -5,7 +5,7 @@ idf_component_register(
     "src/visualization_query_actor.cpp"
   INCLUDE_DIRS
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_REQUIRES
     "actor_model"
     "embedded_files"

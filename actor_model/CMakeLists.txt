@@ -12,7 +12,7 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/delegate"
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   REQUIRES
     "uuid"
   PRIV_REQUIRES

@@ -4,7 +4,7 @@ idf_component_register(
     "src/firmware_update_actor.cpp"
   INCLUDE_DIRS
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   REQUIRES
     "app_update"
   PRIV_REQUIRES

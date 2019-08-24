@@ -11,7 +11,7 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/cpp17_headers/include"
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_INCLUDE_DIRS
     "lib"
   PRIV_REQUIRES
@@ -25,7 +25,7 @@ idf_component_register(
     "utils"
     "uuid"
   EMBED_FILES
-    "src/gen/requests.bfbs"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen/requests.bfbs"
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
@@ -39,8 +39,16 @@ set_property(
 FLATBUFFERS_GENERATE_GENERATED_H(requests_generated_h requests.fbs)
 FLATBUFFERS_GENERATE_BFBS(requests_bfbs requests.fbs)
 
-add_custom_target(requests_generated_h DEPENDS src/gen/requests_generated.h)
-add_custom_target(requests_bfbs DEPENDS src/gen/requests.bfbs)
+add_custom_target(
+  requests_generated_h
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen/requests_generated.h"
+)
+add_custom_target(
+  requests_bfbs
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen/requests.bfbs"
+)
 add_dependencies(${COMPONENT_LIB} requests_generated_h requests_bfbs)
 
 set_property(

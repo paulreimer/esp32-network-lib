@@ -1,17 +1,18 @@
 idf_build_get_property(project_dir PROJECT_DIR)
+idf_build_get_property(build_dir BUILD_DIR)
 
 function(FLATBUFFERS_GENERATE_GENERATED_H schema_generated_h)
   set(GENERATED_OUTPUTS)
   foreach(FILE ${ARGN})
     get_filename_component(SCHEMA ${FILE} NAME_WE)
-    set(OUT "${COMPONENT_PATH}/src/gen/${SCHEMA}_generated.h")
+    set(OUT "${CMAKE_CURRENT_BINARY_DIR}/src/gen/${SCHEMA}_generated.h")
     list(APPEND GENERATED_OUTPUTS ${OUT})
 
     add_custom_command(
       OUTPUT ${OUT}
       COMMAND
         flatc
-          --cpp -o "${COMPONENT_PATH}/src/gen/"
+          --cpp -o "${CMAKE_CURRENT_BINARY_DIR}/src/gen/"
           -I "${project_dir}/esp32-network-lib/uuid"
           --scoped-enums
           --gen-mutable
@@ -41,14 +42,14 @@ function(FLATBUFFERS_GENERATE_BFBS schema_bfbs)
   set(GENERATED_OUTPUTS)
   foreach(FILE ${ARGN})
     get_filename_component(SCHEMA ${FILE} NAME_WE)
-    set(OUT "${COMPONENT_PATH}/src/gen/${SCHEMA}.bfbs")
+    set(OUT "${CMAKE_CURRENT_BINARY_DIR}/src/gen/${SCHEMA}.bfbs")
     list(APPEND GENERATED_OUTPUTS ${OUT})
 
     add_custom_command(
       OUTPUT ${OUT}
       COMMAND
         flatc
-          --schema -b -o "${COMPONENT_PATH}/src/gen/"
+          --schema -b -o "${CMAKE_CURRENT_BINARY_DIR}/src/gen/"
           -I "${project_dir}/esp32-network-lib/uuid"
           "${FILE}"
       DEPENDS "${FILE}"
