@@ -8,8 +8,8 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 
-#include "delay.h"
 #include "loader.h"
+#include "delay.h"
 #include "request_manager_actor.h"
 
 #include "xtensa_elf.h"
