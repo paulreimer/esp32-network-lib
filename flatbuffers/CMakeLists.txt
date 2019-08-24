@@ -2,8 +2,10 @@ idf_component_register(
   SRCS
     "lib/flatbuffers/src/reflection.cpp"
     "lib/flatbuffers/src/util.cpp"
+    "src/flatbuffers_utils.cpp"
   INCLUDE_DIRS
     "lib/flatbuffers/include"
+    "src"
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
