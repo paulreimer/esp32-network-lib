@@ -1,6 +1,7 @@
 idf_component_register(
   SRCS
     "lib/flatbuffers/src/reflection.cpp"
+    "lib/flatbuffers/src/util.cpp"
   INCLUDE_DIRS
     "lib/flatbuffers/include"
 )
