@@ -33,12 +33,12 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
       "${project_dir}/esp32-network-lib/requests/requests.fbs"
       --force-defaults
       "secrets/gen/${req_intent}.req.json"
-    DEPENDS "secrets/gen/${req_intent}.req.json"
+    DEPENDS "${build_dir}/secrets/gen/${req_intent}.req.json"
     WORKING_DIRECTORY "${build_dir}"
     VERBATIM
   )
   set_source_files_properties(
-    "secrets/gen/${req_intent}.req.fb"
+    "${build_dir}/secrets/gen/${req_intent}.req.fb"
     PROPERTIES
     GENERATED TRUE
   )
@@ -46,11 +46,8 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
 
   add_custom_command(
     OUTPUT "${build_dir}/fs/${req_intent}.req.fb"
-    COMMAND
-      cp
-      "secrets/gen/${req_intent}.req.fb"
-      "fs/${req_intent}.req.fb"
-    DEPENDS "secrets/gen/${req_intent}.req.fb"
+    COMMAND cp "secrets/gen/${req_intent}.req.fb" "fs/${req_intent}.req.fb"
+    DEPENDS "${build_dir}/secrets/gen/${req_intent}.req.fb"
     WORKING_DIRECTORY "${build_dir}"
     VERBATIM
   )
@@ -62,7 +59,7 @@ function(REQUESTS_EMBED_REQUEST_INTENT req_intent)
   list(APPEND GENERATED_OUTPUTS "${build_dir}/fs/${req_intent}.req.fb")
 
   set_property(
-    DIRECTORY "${build_dir}"
+    DIRECTORY
     APPEND PROPERTY
     ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_OUTPUTS}"
   )
