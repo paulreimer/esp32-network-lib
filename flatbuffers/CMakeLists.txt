@@ -11,3 +11,9 @@ set_source_files_properties(
   lib/flatbuffers/src/reflection.cpp
   PROPERTIES COMPILE_FLAGS -Wno-missing-declarations
 )
+
+add_definitions(
+  -DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+  -DFLATBUFFERS_PLATFORM_NO_FILE_SUPPORT
+  -DFLATBUFFERS_PREFER_PRINTF
+)

@@ -1,25 +1,3 @@
-# sh2lib:
-#add_definitions(
-#  -DREQUESTS_USE_SH2LIB=1
-#  -DREQUESTS_REQUEST_MANAGER_TASK_STACK_SIZE=30720
-#)
-
-# libcurl:
-add_definitions(
-  -DREQUESTS_USE_CURL=1
-  -DREQUESTS_REQUEST_MANAGER_TASK_STACK_SIZE=10240
-)
-
-add_definitions(
-  -DREQUESTS_REQUEST_MANAGER_MAILBOX_SIZE=4096
-  -DREQUESTS_MAX_CONNECTIONS=2
-)
-
-#add_definitions(
-#  -DREQUESTS_SUPPORT_HTTP2=1
-#  -DREQUESTS_SUPPORT_JSON=1
-#)
-
 idf_build_get_property(project_dir PROJECT_DIR)
 idf_build_get_property(build_dir BUILD_DIR)
 
