@@ -19,7 +19,7 @@ add_custom_command(
 add_custom_target(fatfs_image_img DEPENDS "${FATFS_IMAGE}")
 
 set_property(
-  DIRECTORY "${COMPONENT_PATH}"
+  DIRECTORY
   APPEND PROPERTY
   ADDITIONAL_MAKE_CLEAN_FILES "${FATFS_IMAGE}"
 )
@@ -36,7 +36,7 @@ add_custom_command(
 add_custom_target(flash_fatfs_image_args_TARGET DEPENDS "${FATFS_IMAGE_ARGS}")
 
 set_property(
-  DIRECTORY "${COMPONENT_PATH}"
+  DIRECTORY
   APPEND PROPERTY
   ADDITIONAL_MAKE_CLEAN_FILES "${FATFS_IMAGE}" "${FATFS_IMAGE_ARGS}"
 )

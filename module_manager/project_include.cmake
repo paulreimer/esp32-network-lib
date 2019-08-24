@@ -4,7 +4,7 @@ function(MODULE_GENERATE_ELF target_prefix mod_name)
   set(OUT "${build_dir}/${mod_name}.elf")
 
   set_property(
-    DIRECTORY "${COMPONENT_PATH}"
+    DIRECTORY
     APPEND PROPERTY
     ADDITIONAL_MAKE_CLEAN_FILES "${OUT}"
   )

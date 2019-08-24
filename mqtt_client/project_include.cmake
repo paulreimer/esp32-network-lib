@@ -98,7 +98,7 @@ function(MQTT_EMBED_MQTT_CERTIFICATE mqtt_cert)
   list(APPEND GENERATED_OUTPUTS "${build_dir}/fs/${mqtt_cert}.pem")
 
   set_property(
-    DIRECTORY "${build_dir}"
+    DIRECTORY
     APPEND PROPERTY
     ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_OUTPUTS}"
   )
