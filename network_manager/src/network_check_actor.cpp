@@ -37,7 +37,7 @@ auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found* pf)
 {
   printf(
     "AvgTime:%.1fmS Sent:%d Rec:%d Err:%d min(mS):%d max(mS):%d ",
-    (float)pf->total_time/pf->recv_count,
+    (float)pf->total_time/(float)pf->recv_count,
     pf->send_count,
     pf->recv_count,
     pf->err_count,
