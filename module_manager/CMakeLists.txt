@@ -1,6 +1,8 @@
+idf_build_get_property(build_dir BUILD_DIR)
+
 idf_component_register(
   SRCS
-    "${COMPONENT_PATH}/src/gen/symbols.c"
+    "${build_dir}/src/gen/symbols.c"
     "lib/libelfin/elf/elf.cc"
     "lib/libelfin/elf/to_string.cc"
     "src/executable.cpp"
@@ -10,7 +12,7 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/libelfin"
     "src"
-    "src/gen"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_INCLUDE_DIRS
     "lib/libelfin/elf"
   PRIV_REQUIRES
@@ -20,8 +22,6 @@ idf_component_register(
     "requests"
     "utils"
 )
-
-idf_build_get_property(build_dir BUILD_DIR)
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
@@ -39,32 +39,40 @@ set_property(
 
 if(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)
 add_custom_command(
-  OUTPUT "src/gen/symbols.c"
+  OUTPUT "${build_dir}/src/gen/symbols.c"
   COMMAND sh -c "\
   if [ -f \"${build_dir}/${PROJECT_NAME}.elf\" ]; then \
-      ${CMAKE_NM} ${build_dir}/${PROJECT_NAME}.elf | ./gen_symbols_c.py > src/gen/symbols.c; \
+      ${CMAKE_NM} ${build_dir}/${PROJECT_NAME}.elf | ./gen_symbols_c.py > ${build_dir}/src/gen/symbols.c; \
     else \
-      : | ./gen_symbols_c.py > src/gen/symbols.c; \
+      : | ./gen_symbols_c.py > ${build_dir}/src/gen/symbols.c; \
     fi \
     "
   WORKING_DIRECTORY "${COMPONENT_PATH}"
   VERBATIM
 )
 
-set_source_files_properties("src/gen/symbols.c" PROPERTIES GENERATED TRUE)
+set_source_files_properties(
+  "${build_dir}/src/gen/symbols.c"
+  PROPERTIES
+  GENERATED TRUE
+)
 
 set_property(
-  DIRECTORY "${COMPONENT_PATH}"
+  DIRECTORY
   APPEND PROPERTY
-  ADDITIONAL_MAKE_CLEAN_FILES "src/gen/symbols.c"
+  ADDITIONAL_MAKE_CLEAN_FILES "${build_dir}/src/gen/symbols.c"
 )
 
 set_property(
   SOURCE "src/module_manager.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "src/gen/symbols.c"
+  OBJECT_DEPENDS "${build_dir}/src/gen/symbols.c"
 )
 
-add_custom_target(src_gen_symbols_c DEPENDS "src/gen/symbols.c")
+add_custom_target(
+  src_gen_symbols_c
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/src/gen/symbols.c"
+)
 add_dependencies(${COMPONENT_LIB} src_gen_symbols_c)
 endif(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)
