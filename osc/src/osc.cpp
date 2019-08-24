@@ -66,6 +66,7 @@ auto update_flatbuffer_from_osc_message(
             ) == 0
           )
           {
+            // Parse the field name from the OSC message address
             auto field_name = string_view(tosc_getAddress(&osc));
             if (not field_name.empty())
             {
@@ -75,20 +76,24 @@ auto update_flatbuffer_from_osc_message(
                 tosc_getFormat(&osc)
               );
 
+              // Strip a leading / from the address
               if (field_name[0] == '/')
               {
                 field_name = field_name.substr(1);
               }
 
+              // Search for a matching field name in the flatbuffer root table
               const auto* field = root_table_fields->LookupByKey(
                 field_name.data()
               );
               if (field)
               {
+                // Find the integer/float/... type of the field, set it
                 for (auto i = 0; osc.format[i] != '\0'; ++i)
                 {
                   switch (osc.format[i])
                   {
+                    // float
                     case 'f':
                     {
                       flatbuffers::SetAnyFieldF(
@@ -99,6 +104,7 @@ auto update_flatbuffer_from_osc_message(
                       did_update_flatbuffer = true;
                       break;
                     }
+                    // integer
                     case 'i':
                     {
                       flatbuffers::SetAnyFieldI(
@@ -118,7 +124,10 @@ auto update_flatbuffer_from_osc_message(
 
                 if (did_update_flatbuffer)
                 {
-                  printf("woot!\n");
+                  printf(
+                    "Updated flatbuffer field: %.*s\n",
+                    field_name.size(), field_name.data()
+                  );
                 }
               }
             }
