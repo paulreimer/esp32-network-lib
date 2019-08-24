@@ -71,29 +71,29 @@ endfunction()
 function(REQUESTS_EMBED_CERTIFICATE_DER cert)
   set(GENERATED_OUTPUTS)
   add_custom_command(
-    OUTPUT "${COMPONENT_PATH}/assets/gen/${cert}.der"
+    OUTPUT "${build_dir}/assets/gen/${cert}.der"
     COMMAND openssl x509 -outform der
       -in "assets/${cert}.pem"
-      -out "assets/gen/${cert}.der"
+      -out "${build_dir}/assets/gen/${cert}.der"
     DEPENDS "assets/${cert}.pem"
     WORKING_DIRECTORY "${COMPONENT_PATH}"
     VERBATIM
   )
-  list(APPEND GENERATED_OUTPUTS "${COMPONENT_PATH}/assets/gen/${cert}.der")
+  list(APPEND GENERATED_OUTPUTS "${build_dir}/assets/gen/${cert}.der")
 
   add_custom_command(
     OUTPUT "${build_dir}/fs/${cert}.der"
-    COMMAND cp "assets/gen/${cert}.der" "${build_dir}/fs/${cert}.der"
-    DEPENDS "assets/gen/${cert}.der"
-    WORKING_DIRECTORY "${COMPONENT_PATH}"
+    COMMAND cp "assets/gen/${cert}.der" "fs/${cert}.der"
+    DEPENDS "${build_dir}/assets/gen/${cert}.der"
+    WORKING_DIRECTORY "${build_dir}"
     VERBATIM
   )
   list(APPEND GENERATED_OUTPUTS "${build_dir}/fs/${cert}.der")
 
   set_property(
-    DIRECTORY "${COMPONENT_PATH}"
+    DIRECTORY
     APPEND PROPERTY
-    ADDITIONAL_MAKE_CLEAN_FILES "assets/gen/${cert}.der"
+    ADDITIONAL_MAKE_CLEAN_FILES "${build_dir}/assets/gen/${cert}.der"
   )
 
   set(${cert}_OUTPUTS ${GENERATED_OUTPUTS} PARENT_SCOPE)
