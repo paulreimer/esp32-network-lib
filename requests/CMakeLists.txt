@@ -36,9 +36,11 @@ target_compile_options(
 )
 
 set_property(
-  SOURCE src/request_manager.cpp
+  SOURCE
+    "src/request_manager.cpp"
   APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_source_files_properties(
@@ -66,16 +68,21 @@ add_custom_target(
 add_dependencies(${COMPONENT_LIB} requests_generated_h requests_bfbs)
 
 set_property(
-  SOURCE src/request_handler.cpp src/request_manager.cpp
+  SOURCE
+    "src/request_handler.cpp"
+    "src/request_manager.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${requests_generated_h_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${requests_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} requests_generated_h_TARGET)
 
 set_property(
-  SOURCE src/requests.cpp
+  SOURCE
+    "src/requests.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${requests_bfbs_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${requests_bfbs_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} requests_bfbs_TARGET)
 

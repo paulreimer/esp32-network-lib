@@ -28,8 +28,10 @@ set_source_files_properties(
 FLATBUFFERS_GENERATE_GENERATED_H(udp_server_generated_h udp_server.fbs)
 
 set_property(
-  SOURCE src/udp_server_actor.cpp
+  SOURCE
+    "src/udp_server_actor.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${udp_server_generated_h_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${udp_server_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} udp_server_generated_h_TARGET)

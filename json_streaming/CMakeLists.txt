@@ -29,12 +29,15 @@ target_compile_options(
 )
 
 set_source_files_properties(
-  src/json_emitter.cpp
-  PROPERTIES COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  SOURCE
+    "src/json_emitter.cpp"
+  APPEND PROPERTIES
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/yajl/src/yajl_parser.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -42,7 +45,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/yajl/src/yajl_encode.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -50,7 +53,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/yajl/src/yajl_lex.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS

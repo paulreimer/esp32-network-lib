@@ -27,19 +27,23 @@ target_compile_options(
 )
 
 set_property(
-  SOURCE src/ntp.cpp
+  SOURCE
+    "src/ntp.cpp"
   APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_property(
-  SOURCE src/ntp_actor.cpp
+  SOURCE
+    "src/ntp_actor.cpp"
   APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "src/ntp.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -69,11 +73,12 @@ FLATBUFFERS_GENERATE_GENERATED_H(network_manager_generated_h network_manager.fbs
 
 set_property(
   SOURCE
-    src/mdns_actor.cpp
-    src/network_check_actor.cpp
-    src/ntp_actor.cpp
-    src/wifi_actor.cpp
+    "src/mdns_actor.cpp"
+    "src/network_check_actor.cpp"
+    "src/ntp_actor.cpp"
+    "src/wifi_actor.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${network_manager_generated_h_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${network_manager_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} network_manager_generated_h_TARGET)

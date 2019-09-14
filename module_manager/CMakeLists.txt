@@ -31,19 +31,23 @@ target_compile_options(
 )
 
 set_property(
-  SOURCE "lib/libelfin/elf/elf.cc"
+  SOURCE
+    "lib/libelfin/elf/elf.cc"
   APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_property(
-  SOURCE "lib/libelfin/elf/to_string.cc"
+  SOURCE
+    "lib/libelfin/elf/to_string.cc"
   APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/libelfin/elf/elf.cc"
     "lib/libelfin/elf/to_string.cc"
   APPEND PROPERTIES
@@ -77,7 +81,8 @@ add_custom_command(
 )
 
 set_source_files_properties(
-  "${build_dir}/src/gen/symbols.c"
+  SOURCES
+    "${build_dir}/src/gen/symbols.c"
   PROPERTIES
   GENERATED TRUE
 )
@@ -85,13 +90,16 @@ set_source_files_properties(
 set_property(
   DIRECTORY
   APPEND PROPERTY
-  ADDITIONAL_MAKE_CLEAN_FILES "${build_dir}/src/gen/symbols.c"
+  ADDITIONAL_MAKE_CLEAN_FILES
+    "${build_dir}/src/gen/symbols.c"
 )
 
 set_property(
-  SOURCE "src/module_manager.cpp"
+  SOURCES
+    "src/module_manager.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${build_dir}/src/gen/symbols.c"
+  OBJECT_DEPENDS
+    "${build_dir}/src/gen/symbols.c"
 )
 
 add_custom_target(

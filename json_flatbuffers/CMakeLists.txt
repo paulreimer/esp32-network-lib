@@ -17,7 +17,7 @@ target_compile_options(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "src/json_to_flatbuffers_converter.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -25,7 +25,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/flatbuffers/src/idl_parser.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS

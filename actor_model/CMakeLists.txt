@@ -29,9 +29,11 @@ target_compile_options(
 )
 
 set_property(
-  SOURCE src/node.cpp
+  SOURCE
+    "src/node.cpp"
   APPEND PROPERTY
-  COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+  COMPILE_DEFINITIONS
+    "_GLIBCXX_USE_C99=1"
 )
 
 set_source_files_properties(
@@ -59,6 +61,7 @@ set_property(
     "src/received_message.cpp"
     "src/supervisor_actor_behaviour.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${actor_model_generated_h_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${actor_model_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} actor_model_generated_h_TARGET)

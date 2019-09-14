@@ -18,7 +18,7 @@ target_compile_options(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/tinyosc/tinyosc.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS

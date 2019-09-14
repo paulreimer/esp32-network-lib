@@ -22,7 +22,7 @@ add_definitions(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/flatbuffers/src/reflection.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -30,7 +30,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/flatbuffers/src/util.cpp"
     "src/flatbuffers_utils.cpp"
   APPEND PROPERTIES

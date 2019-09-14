@@ -160,7 +160,7 @@ component_compile_options(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/curl/lib/http2.c"
     "lib/curl/lib/vtls/mbedtls.c"
   APPEND PROPERTIES
@@ -169,7 +169,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/curl/lib/formdata.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -177,7 +177,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/zlib/infback.c"
     "lib/zlib/inflate.c"
   APPEND PROPERTIES

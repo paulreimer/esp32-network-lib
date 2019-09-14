@@ -17,7 +17,7 @@ target_compile_options(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/libb64/src/cdecode.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS
@@ -25,7 +25,7 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "lib/libb64/src/cencode.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS

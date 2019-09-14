@@ -19,14 +19,16 @@ target_compile_options(
 FLATBUFFERS_GENERATE_GENERATED_H(uuid_generated_h uuid.fbs)
 
 set_property(
-  SOURCE src/uuid.cpp
+  SOURCE
+    "src/uuid.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${uuid_generated_h_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${uuid_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} uuid_generated_h_TARGET)
 
 set_source_files_properties(
-  SOURCES
+  SOURCE
     "src/uuid.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS

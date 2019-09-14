@@ -36,16 +36,21 @@ set_source_files_properties(
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)
 
 set_property(
-  SOURCE src/firmware_update.cpp src/firmware_update_actor.cpp
+  SOURCE
+    "src/firmware_update.cpp"
+    "src/firmware_update_actor.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${firmware_update_generated_h_OUTPUTS}"
+  OBJECT_DEPENDS
+    "${firmware_update_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} firmware_update_generated_h_TARGET)
 
 set_property(
-  SOURCE src/firmware_update.cpp
+  SOURCE
+    "src/firmware_update.cpp"
   APPEND PROPERTY
-  OBJECT_DEPENDS "${build_dir}/VERSION"
+  OBJECT_DEPENDS
+    "${build_dir}/VERSION"
 )
 add_custom_target(VERSION_FILE_TARGET DEPENDS "${build_dir}/VERSION")
 add_dependencies(${COMPONENT_LIB} VERSION_FILE_TARGET)
