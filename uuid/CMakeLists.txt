@@ -10,6 +10,11 @@ idf_component_register(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+target_compile_options(
+  ${COMPONENT_LIB}
+  PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${EXTRA_CXX_WARNING_FLAGS}>
+)
 
 FLATBUFFERS_GENERATE_GENERATED_H(uuid_generated_h uuid.fbs)
 
@@ -19,3 +24,11 @@ set_property(
   OBJECT_DEPENDS "${uuid_generated_h_OUTPUTS}"
 )
 add_dependencies(${COMPONENT_LIB} uuid_generated_h_TARGET)
+
+set_source_files_properties(
+  SOURCES
+    "src/uuid.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-conversion;-Wno-old-style-cast"
+)

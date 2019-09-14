@@ -21,6 +21,20 @@ set_property(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+target_compile_options(
+  ${COMPONENT_LIB}
+  PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${EXTRA_CXX_WARNING_FLAGS}>
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/spreadsheet_insert_row_actor.cpp"
+    "src/visualization_query_actor.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-old-style-cast;"
+)
 
 FLATBUFFERS_GENERATE_GENERATED_H(sheets_generated_h sheets.fbs)
 FLATBUFFERS_GENERATE_GENERATED_H(visualization_generated_h visualization.fbs)

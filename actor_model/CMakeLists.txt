@@ -22,11 +22,27 @@ idf_component_register(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+target_compile_options(
+  ${COMPONENT_LIB}
+  PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${EXTRA_CXX_WARNING_FLAGS}>
+)
 
 set_property(
   SOURCE src/node.cpp
   APPEND PROPERTY
   COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/actor.cpp"
+    "src/node.cpp"
+    "src/mailbox.cpp"
+    "src/process.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-old-style-cast;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(actor_model_generated_h actor_model.fbs)

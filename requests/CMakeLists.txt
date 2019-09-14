@@ -29,11 +29,25 @@ idf_component_register(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+target_compile_options(
+  ${COMPONENT_LIB}
+  PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${EXTRA_CXX_WARNING_FLAGS}>
+)
 
 set_property(
   SOURCE src/request_manager.cpp
   APPEND PROPERTY
   COMPILE_DEFINITIONS _GLIBCXX_USE_C99=1
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/queued_endpoint_actor.cpp"
+    "src/request_manager_actor.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-old-style-cast;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(requests_generated_h requests.fbs)

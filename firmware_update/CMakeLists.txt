@@ -19,6 +19,19 @@ idf_component_register(
 idf_build_get_property(build_dir BUILD_DIR)
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+target_compile_options(
+  ${COMPONENT_LIB}
+  PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${EXTRA_CXX_WARNING_FLAGS}>
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/firmware_update_actor.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-old-style-cast;"
+)
 
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)
 

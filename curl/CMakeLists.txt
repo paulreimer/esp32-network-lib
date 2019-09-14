@@ -160,7 +160,27 @@ component_compile_options(
 )
 
 set_source_files_properties(
-  lib/curl/lib/http2.c lib/curl/lib/vtls/mbedtls.c
-  PROPERTIES
-  COMPILE_FLAGS -Wno-unused-variable
+  SOURCES
+    "lib/curl/lib/http2.c"
+    "lib/curl/lib/vtls/mbedtls.c"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-unused-variable;"
+)
+
+set_source_files_properties(
+  SOURCES
+    "lib/curl/lib/formdata.c"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-cast-function-type;"
+)
+
+set_source_files_properties(
+  SOURCES
+    "lib/zlib/infback.c"
+    "lib/zlib/inflate.c"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-implicit-fallthrough;"
 )
