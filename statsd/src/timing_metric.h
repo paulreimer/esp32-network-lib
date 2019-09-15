@@ -23,10 +23,10 @@ public:
 
   static xQueueHandle statsd_queue;
 
-  static constexpr auto statsd_buffer_size_max = 64;
-  static constexpr auto statsd_buffer_max_wait_millis = 10;
-  static constexpr auto statsd_buffer_overhead_size = 8;
-  static constexpr auto statsd_queue_length_max = 10;
+  static constexpr auto statsd_buffer_size_max = 64U;
+  static constexpr auto statsd_buffer_max_wait_millis = 10U;
+  static constexpr auto statsd_buffer_overhead_size = 8U;
+  static constexpr auto statsd_queue_length_max = 10U;
 
 private:
   const char* name;

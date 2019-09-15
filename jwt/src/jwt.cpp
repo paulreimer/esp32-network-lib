@@ -26,17 +26,17 @@ auto esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
 auto esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
   -> int
 {
-  auto i = 0;
+  auto i = 0U;
   // Fill up the buffer 32-bits at a time (4 chars each gen)
-  for (auto off=0; off<len; off+=4)
+  for (auto off=0U; off<len; off+=4)
   {
     // Get 32-bits of random from esp32 H/W RNG
     uint32_t r = esp_random();
 
-    if (i<=len) { buf[i++] = (r >>  0) & 0xff; }
-    if (i<=len) { buf[i++] = (r >>  8) & 0xff; }
-    if (i<=len) { buf[i++] = (r >> 16) & 0xff; }
-    if (i<=len) { buf[i++] = (r >> 24) & 0xff; }
+    if (i<=len) { buf[i++] = static_cast<uint8_t>(r >>  0); }
+    if (i<=len) { buf[i++] = static_cast<uint8_t>(r >>  8); }
+    if (i<=len) { buf[i++] = static_cast<uint8_t>(r >> 16); }
+    if (i<=len) { buf[i++] = static_cast<uint8_t>(r >> 24); }
   }
 
   return 0;

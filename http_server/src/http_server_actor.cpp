@@ -103,7 +103,7 @@ auto http_server_actor_behaviour(
           state.sock_addr.sin_port = htons(http_server_config->port());
           auto ret = bind(
             state.sockfd,
-            (struct sockaddr*)&state.sock_addr,
+            reinterpret_cast<struct sockaddr*>(&state.sock_addr),
             sizeof(state.sock_addr)
           );
 
@@ -121,7 +121,6 @@ auto http_server_actor_behaviour(
               ret = listen(state.sockfd, 32);
               if (ret == 0)
               {
-                socklen_t addr_len = 0;
                 ESP_LOGI(TAG, "OK");
                 if (not state.tick_timer_ref)
                 {
@@ -185,7 +184,7 @@ auto http_server_actor_behaviour(
         socklen_t addr_len = 0;
         state.client_sockfd = accept(
           state.sockfd,
-          (struct sockaddr *)&state.sock_addr,
+          reinterpret_cast<struct sockaddr *>(&state.sock_addr),
           &addr_len
         );
 

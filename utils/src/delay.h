@@ -21,7 +21,7 @@ auto timeout = [](
 ) -> TickType_t
 {
   return (
-    std::chrono::milliseconds(duration).count()
+    static_cast<TickType_t>(std::chrono::milliseconds(duration).count())
     / time_base
   );
 };

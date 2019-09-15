@@ -67,7 +67,7 @@ auto get_wifi_connection_rssi(const size_t samples)
 
   auto interval = 25ms;
 
-  for (auto i = 0; i < samples; ++i)
+  for (auto i = 0U; i < samples; ++i)
   {
     if (esp_wifi_sta_get_ap_info(&current_ap_info) == 0)
     {

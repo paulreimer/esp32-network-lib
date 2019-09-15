@@ -398,7 +398,7 @@ auto RequestHandler::header_callback(const string_view chunk)
     if (_code)
     {
       // Assign the parsed status code to this response object
-      response_code = _code;
+      response_code = static_cast<uint16_t>(_code);
 
       // Print the received status code
       auto status = chunk;

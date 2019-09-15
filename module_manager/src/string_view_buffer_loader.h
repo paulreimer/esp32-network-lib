@@ -23,7 +23,7 @@ class StringViewBufferLoader
 public:
   explicit StringViewBufferLoader(const std::string_view _buffer);
   auto load(const off_t offset, const size_t size)
-    -> const void*;
+    -> const void* override;
 };
 
 } // namespace ModuleManager

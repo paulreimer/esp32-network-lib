@@ -493,7 +493,7 @@ auto visualization_query_actor_behaviour(
                 send(self, "update_columns", pending_query_intent_mutable_buf);
 
                 // Extract the spreadsheet/sheet ids for the query
-                const auto* query_intent = flatbuffers::GetRoot<QueryIntent>(
+                query_intent = flatbuffers::GetRoot<QueryIntent>(
                   pending_query_intent_mutable_buf.data()
                 );
                 state.spreadsheet_column_ids_key = make_pair(

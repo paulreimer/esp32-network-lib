@@ -81,7 +81,7 @@ auto _actor_spawn(
   const ExecConfigCallback&& _exec_config_callback
 ) -> Pid
 {
-  auto&& actor_behaviour = (
+  auto&& behaviour = (
     [actor_behaviours{std::move(_actor_behaviours)}]
     (const Pid& pid, Mailbox& mailbox)
       -> ResultUnion
@@ -138,13 +138,13 @@ auto _actor_spawn(
   {
     return node.spawn_link(
       *(_initial_link_pid),
-      actor_behaviour,
+      behaviour,
       std::move(_exec_config_callback)
     );
   }
   else {
     return node.spawn(
-      actor_behaviour,
+      behaviour,
       std::move(_exec_config_callback)
     );
   }

@@ -190,10 +190,10 @@ auto Mailbox::receive(bool verify)
   if (impl)
   {
     // Extract an item from the ringbuffer
-    size_t size = -1;
+    size_t size = std::numeric_limits<size_t>::max();
     auto* flatbuf = xRingbufferReceive(impl, &size, receive_timeout_ticks);
 
-    if (flatbuf and size != -1)
+    if (flatbuf and size != std::numeric_limits<size_t>::max())
     {
       if (xSemaphoreTake(receive_semaphore, receive_lock_timeout_ticks) == pdTRUE)
       {
@@ -230,10 +230,10 @@ auto Mailbox::receive_raw()
   if (impl)
   {
     // Extract an item from the ringbuffer
-    size_t size = -1;
+    size_t size = std::numeric_limits<size_t>::max();
     auto* flatbuf = xRingbufferReceive(impl, &size, receive_timeout_ticks);
 
-    if (flatbuf and size != -1)
+    if (flatbuf and size != std::numeric_limits<size_t>::max())
     {
       message = string_view{reinterpret_cast<char*>(flatbuf), size};
     }

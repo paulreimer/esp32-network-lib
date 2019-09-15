@@ -37,7 +37,7 @@ auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found* pf)
 {
   printf(
     "AvgTime:%.1fmS Sent:%d Rec:%d Err:%d min(mS):%d max(mS):%d ",
-    (float)pf->total_time/(float)pf->recv_count,
+    static_cast<float>(pf->total_time) / static_cast<float>(pf->recv_count),
     pf->send_count,
     pf->recv_count,
     pf->err_count,
@@ -94,8 +94,12 @@ auto network_check_actor_behaviour(
       if (network_details.gw.addr)
       {
         uint32_t _cnt = state.ping_count;
-        uint32_t _timeout = std::chrono::milliseconds(ping_timeout).count();
-        uint32_t _delay = std::chrono::milliseconds(ping_delay).count();
+        auto _timeout = static_cast<uint32_t>(
+          std::chrono::milliseconds(ping_timeout).count()
+        );
+        uint32_t _delay = static_cast<uint32_t>(
+          std::chrono::milliseconds(ping_delay).count()
+        );
         uint32_t _addr = network_details.gw.addr;
         void* _fn = (void*)&ping_result_callback;
 

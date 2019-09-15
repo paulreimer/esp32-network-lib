@@ -723,7 +723,7 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
     // Parse the PEM text
     auto ret = mbedtls_x509_crt_parse(
       _cacerts,
-      (unsigned char*)cacert_pem.data(),
+      reinterpret_cast<const unsigned char*>(cacert_pem.data()),
       cacert_pem.size()
     );
 
@@ -765,7 +765,7 @@ auto RequestManager::add_cacert_der(const string_view cacert_der)
   // Parse the DER content
   auto ret = mbedtls_x509_crt_parse_der(
     _cacerts,
-    (unsigned char*)cacert_der.data(),
+    reinterpret_cast<const unsigned char*>(cacert_der.data()),
     cacert_der.size()
   );
 
@@ -815,11 +815,11 @@ auto RequestManager::get_existing_request_handler(const UUID* request_intent_id)
 {
   auto handler_iter = std::find_if(requests.begin(), requests.end(),
     [&request_intent_id]
-    (const auto& handler_iter) -> bool
+    (const auto& check_iter) -> bool
     {
       return (
         compare_uuids(
-          *(handler_iter.second.request_intent->id()),
+          *(check_iter.second.request_intent->id()),
           *(request_intent_id)
         )
       );

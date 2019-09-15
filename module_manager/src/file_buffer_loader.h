@@ -12,8 +12,8 @@
 
 #include "elf/elf++.hh"
 
-#include <string_view>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace ModuleManager {
@@ -27,7 +27,7 @@ public:
   virtual ~FileBufferLoader();
 
   auto load(const off_t offset, const size_t size)
-    -> const void*;
+    -> const void* override;
   auto extract(const off_t offset, const size_t size)
     -> void*;
 

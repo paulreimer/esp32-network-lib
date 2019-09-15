@@ -64,7 +64,7 @@ auto FileBufferLoader::load(const off_t offset, const size_t size)
 
   if (file != nullptr)
   {
-    auto in_range = ((offset + size) <= file_len);
+    auto in_range = ((offset + static_cast<ssize_t>(size)) <= file_len);
     if (in_range)
     {
       const auto key = std::make_pair(offset, size);
@@ -88,7 +88,7 @@ auto FileBufferLoader::load(const off_t offset, const size_t size)
           file
         );
 
-        if (bytes_read == size)
+        if (bytes_read == static_cast<ssize_t>(size))
         {
           loaded_block = new_block.first;
         }

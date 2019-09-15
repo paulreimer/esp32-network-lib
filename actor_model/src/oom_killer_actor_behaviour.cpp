@@ -66,7 +66,7 @@ auto oom_killer_actor_behaviour(
 
     UBaseType_t tcb_sz;
 
-    auto _num_tasks = uxTaskGetSnapshotAll(
+    uxTaskGetSnapshotAll(
       &stack_task_totals[0],
       stack_task_totals.size(),
       &tcb_sz
@@ -74,7 +74,10 @@ auto oom_killer_actor_behaviour(
 
     for (auto& total : stack_task_totals)
     {
-      auto len = (uint32_t)total.pxEndOfStack - (uint32_t)total.pxTopOfStack;
+      auto len = (
+        reinterpret_cast<uint32_t>(total.pxEndOfStack)
+        - reinterpret_cast<uint32_t>(total.pxTopOfStack)
+      );
       tasks_mem_info[total.pxTCB].stack_usage_bytes = len;
     }
 

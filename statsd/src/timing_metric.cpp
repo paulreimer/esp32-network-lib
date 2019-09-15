@@ -38,7 +38,7 @@ TimingMetric::TimingMetric(const char* _name)
 
   auto name_len = strlen(_name);
   auto name_len_max = statsd_buffer_size_max + statsd_buffer_overhead_size;
-  if ((0 < name_len) && (name_len < name_len_max))
+  if ((0U < name_len) && (name_len < name_len_max))
   {
     name = _name;
     ccount_before = xthal_get_ccount();
@@ -65,14 +65,14 @@ TimingMetric::~TimingMetric()
     unsigned long long micros = cycles * cycles_to_microseconds;
 
     // statsd timer format
-    auto statsd_len = snprintf(
+    size_t statsd_len = snprintf(
       statsd_buffer,
       sizeof(statsd_buffer),
       "%s:%llu|ms\n",
       name, micros);
 
     // validate packet length
-    if ((statsd_len > 0) && (statsd_len < sizeof(statsd_buffer)))
+    if ((statsd_len > 0U) && (statsd_len < sizeof(statsd_buffer)))
     {
       if (statsd_len > sizeof(statsd_buffer))
       {

@@ -164,7 +164,6 @@ auto Loader::apply_relocs(const elf::elf& parsed_elf, Executable& executable)
     auto& rela_dyn = parsed_elf.get_section(".rela.dyn");
     auto& rela_plt = parsed_elf.get_section(".rela.plt");
 
-    auto& text = parsed_elf.get_section(".text");
 
     const auto& executable_segment = parsed_elf.get_segment(
       executable.executable_segment_idx
@@ -304,7 +303,7 @@ auto Loader::_apply_relocs_for_section(
         const auto& symtab = dynsym.as_symtab();
         auto symbol_index = reloc.info.symtab_index;
 
-        auto i = 0;
+        auto i = 0U;
         for (const auto& sym : symtab)
         {
           if (i++ == symbol_index)

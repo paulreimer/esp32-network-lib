@@ -47,7 +47,6 @@ auto ServerSentEventsEmitter::parse(
       bool event_valid = false;
       flatbuffers::Offset<flatbuffers::String> data_fbstr = 0;
       bool data_valid = false;
-      int32_t retry = 0;
 
       auto line_start = 0;
       // One leading U+FEFF BYTE ORDER MARK character must be ignored

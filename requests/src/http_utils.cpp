@@ -55,7 +55,7 @@ auto parse_http_status_line(const string_view chunk)
     // Decode the extracted HTTP response code as an unsigned int
     code = 0;
 
-    auto i = 0;
+    auto i = 0U;
     for (; i<remaining.size(); ++i)
     {
       auto num = remaining[i] - '0';
@@ -114,8 +114,11 @@ auto urlencode(const std::string_view raw_str)
     for (const auto& c : raw_str)
     {
       auto safe = is_char_url_safe(c);
-      auto tag = (safe? "%c" : "%%%02X");
-      auto written_count = sprintf(&encoded_str[write_offset], tag, c);
+      auto written_count = sprintf(
+        &encoded_str[write_offset],
+        safe? "%c" : "%%%02X",
+        c
+      );
       write_offset += written_count;
     }
   }

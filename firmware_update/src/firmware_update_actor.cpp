@@ -161,7 +161,12 @@ auto firmware_update_actor_behaviour(
         "Invalid FirmwareMetadata buffer received,  HTTP response code %d",
         response->code()
       );
-      ESP_LOG_BUFFER_HEXDUMP("response_finished", response->body()->data(), response->body()->size(), ESP_LOG_WARN);
+      ESP_LOG_BUFFER_HEXDUMP(
+        "response_finished",
+        response->body()->data(),
+        static_cast<uint16_t>(response->body()->size()),
+        ESP_LOG_WARN
+      );
     }
 
     state.firmware_update_check_request_in_progress = false;

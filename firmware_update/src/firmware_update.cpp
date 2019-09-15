@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "esp_system.h"
 #include "esp_partition.h"
+#include "esp_system.h"
 #include "mbedtls/md5.h"
 
 namespace FirmwareUpdate {
@@ -101,7 +101,7 @@ auto checksum_partition_md5(
   mbedtls_md5_init(&ctx);
   mbedtls_md5_starts(&ctx);
 
-  for (auto offset = 0; offset < partition_size; offset += buffer_size)
+  for (auto offset = 0U; offset < partition_size; offset += buffer_size)
   {
     auto bytes_to_read = (
       ((offset + buffer_size) <= partition_size)?
@@ -151,10 +151,10 @@ auto checksum_file_md5(
     mbedtls_md5_init(&ctx);
     mbedtls_md5_starts(&ctx);
 
-    for (auto offset = 0; offset < file_size; offset += buffer_size)
+    for (auto offset = 0L; offset < file_size; offset += buffer_size)
     {
       auto bytes_to_read = (
-        ((offset + buffer_size) <= file_size)?
+        (static_cast<ssize_t>(offset + buffer_size) <= file_size)?
         buffer_size : (file_size - offset)
       );
 
@@ -189,7 +189,7 @@ auto get_md5sum_hex_str(const MD5Sum& md5sum)
 {
   std::string md5sum_hex_str(md5sum.size() * 2, 0);
 
-  for (auto i = 0; i < md5sum.size(); i++)
+  for (auto i = 0U; i < md5sum.size(); i++)
   {
     sprintf(&md5sum_hex_str[i*2], "%02x", md5sum[i]);
   }

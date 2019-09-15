@@ -65,10 +65,8 @@ extern "C"
 auto _mqtt_event_handler(esp_mqtt_event_handle_t event)
   -> esp_err_t
 {
-  esp_mqtt_client_handle_t client = event->client;
   Pid& self = *(static_cast<Pid*>(event->user_context));
 
-  int msg_id;
   // your_context_t *context = event->context;
   switch (event->event_id) {
     case MQTT_EVENT_CONNECTED:
@@ -344,7 +342,6 @@ auto mqtt_client_actor_behaviour(
         const auto* nested_buf : *(mqtt_client_config->subscriptions())
       )
       {
-        const auto* s = nested_buf->subscription_nested_root();
         const auto* subscription = nested_buf->subscription();
         send(self, "subscribe", *(subscription));
       }

@@ -12,7 +12,7 @@
 
 #include "network_manager.h"
 
-#include "esp_event_loop.h"
+#include "esp_event.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
@@ -47,7 +47,7 @@ auto wifi_actor_behaviour(
     {
       // Check for existing config (e.g. stored in NVS)
       wifi_config_t existing_wifi_config = {};
-      auto ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &existing_wifi_config);
+      ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &existing_wifi_config);
 
       if (
         ret != ESP_OK
