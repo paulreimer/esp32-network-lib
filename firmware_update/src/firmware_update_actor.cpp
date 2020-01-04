@@ -41,8 +41,12 @@ using UUID = UUID::UUID;
 
 using MutableFileMetadataFlatbuffer = std::vector<uint8_t>;
 
+using utils::get_elapsed_microseconds;
+
 struct FirmwareUpdateActorState
 {
+  using TimeDuration = utils::TimeDuration;
+
   // Re-usable firmware update request
   MutableRequestIntentFlatbuffer firmware_update_check_request_intent_mutable_buf;
   // Metadata from most recent firmware update request

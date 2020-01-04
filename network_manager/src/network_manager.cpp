@@ -22,6 +22,8 @@ EventGroupHandle_t network_event_group;
 
 namespace NetworkManager {
 
+using utils::delay;
+
 // Use 'make menuconfig' to set WiFi settings
 NetworkInterfaceDetails wifi_network_details;
 

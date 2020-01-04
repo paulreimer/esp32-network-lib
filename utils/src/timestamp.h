@@ -14,6 +14,7 @@
 
 #include "esp_attr.h"
 
+namespace utils {
 using Timestamp = std::chrono::time_point<std::chrono::system_clock>;
 //using TimeDuration = std::chrono::duration<std::chrono::system_clock>;
 using TimeDuration = std::chrono::microseconds;
@@ -26,5 +27,6 @@ auto IRAM_ATTR get_elapsed_microseconds()
 auto get_interval_microseconds = [](const auto duration) IRAM_ATTR
   -> int64_t
 {
-  return std::chrono::microseconds(duration).count();
+  return TimeDuration(duration).count();
 };
+}

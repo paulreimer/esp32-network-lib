@@ -43,6 +43,9 @@ using string_view = std::string_view;
 using UUID::NullUUID;
 using UUID = UUID::UUID;
 
+using utils::filesystem_exists;
+using utils::filesystem_read;
+
 struct MQTTClientActorState
 {
   MutableMQTTClientConfigurationFlatbuffer mutable_mqtt_client_config;

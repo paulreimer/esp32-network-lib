@@ -12,6 +12,7 @@
 
 #include "freertos/FreeRTOS.h"
 
+namespace utils {
 auto get_free_heap_size()
   -> size_t
 {
@@ -27,4 +28,5 @@ auto heap_check(string_view msg)
     msg.data(),
     get_free_heap_size()
   );
+}
 }

@@ -19,6 +19,7 @@
 namespace ActorModel {
 
 using namespace std::chrono_literals;
+using utils::timeout;
 
 using UUID::uuidgen;
 

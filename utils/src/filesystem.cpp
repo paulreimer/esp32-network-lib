@@ -15,6 +15,7 @@
 
 #include "esp_log.h"
 
+namespace utils {
 constexpr char TAG[] = "filesystem";
 
 auto filesystem_exists(
@@ -121,4 +122,5 @@ auto filesystem_write(
   }
 
   return false;
+}
 }

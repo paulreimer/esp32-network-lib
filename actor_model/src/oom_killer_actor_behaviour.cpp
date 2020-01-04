@@ -51,7 +51,7 @@ auto oom_killer_actor_behaviour(
 
   if (matches(message, "heap_check"))
   {
-    heap_check("heap_check");
+    utils::heap_check("heap_check");
 
     std::unordered_map<TaskHandle_t, TaskMemoryInfo/*, std::hash<TaskHandle_t>*/> tasks_mem_info;
 

@@ -14,6 +14,7 @@
 
 #include <string_view>
 
+namespace utils {
 using string_view = std::string_view;
 
 auto get_free_heap_size()
@@ -21,3 +22,4 @@ auto get_free_heap_size()
 
 auto heap_check(string_view msg)
   -> void;
+}
