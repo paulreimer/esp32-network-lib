@@ -14,7 +14,7 @@ namespace ActorModel {
 
 ReceivedMessage::ReceivedMessage(
   Mailbox& _mailbox,
-  const ReceivedMessage::string_view& _message,
+  const BufferView& _message,
   const bool _verify
 )
 : mailbox(_mailbox)
@@ -23,10 +23,7 @@ ReceivedMessage::ReceivedMessage(
 {
   if (verify)
   {
-    flatbuffers::Verifier verifier(
-      reinterpret_cast<const uint8_t*>(message.data()),
-      message.size()
-    );
+    flatbuffers::Verifier verifier(message.data(), message.size());
     verified = VerifyMessageBuffer(verifier);
   }
 }
@@ -38,14 +35,14 @@ ReceivedMessage::~ReceivedMessage()
 }
 
 auto ReceivedMessage::ref()
-  -> ReceivedMessage::string_view
+  -> BufferView
 {
   if (verified or not verify)
   {
     return message;
   }
 
-  return "";
+  return {};
 }
 
 } // namespace ActorModel

@@ -25,7 +25,7 @@ extern "C" {
 }
 #endif // REQUESTS_USE_SH2LIB
 
-#include <string_view>
+#include "tcb/span.hpp"
 
 #include <memory>
 #include <string>
@@ -55,7 +55,7 @@ public:
 #endif // REQUESTS_USE_SH2LIB
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
-  using string_view = std::string_view;
+  using BufferView = tcb::span<const uint8_t>;
 
   RequestManager();
   ~RequestManager();
@@ -75,9 +75,9 @@ public:
   auto wait_all()
     -> size_t;
 
-  auto add_cacert_pem(const string_view cacert_pem)
+  auto add_cacert_pem(const BufferView cacert_pem)
     -> bool;
-  auto add_cacert_der(const string_view cacert_der)
+  auto add_cacert_der(const BufferView cacert_der)
     -> bool;
 
 #ifdef REQUESTS_USE_CURL

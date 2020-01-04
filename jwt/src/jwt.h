@@ -9,11 +9,16 @@
  */
 #pragma once
 
-#include <string_view>
+#include "tcb/span.hpp"
+
+#include <vector>
 
 #include "mbedtls/pk.h"
 
 namespace JWT {
+using Buffer = std::vector<uint8_t>;
+using BufferView = tcb::span<const uint8_t>;
+
 class JWTGenerator
 {
 public:
@@ -23,18 +28,18 @@ public:
     ES256, // Not supported
   };
 
-  JWTGenerator(std::string_view privkey_pem, Alg _alg=RS256);
+  JWTGenerator(BufferView privkey_pem, Alg _alg=RS256);
 
   ~JWTGenerator();
 
   Alg alg = RS256;
 
-  std::string mint(std::string_view payload);
-  std::string sign(std::string_view jwt_header_and_payload);
+  Buffer mint(BufferView payload);
+  Buffer sign(BufferView jwt_header_and_payload);
   bool verify();
 
 private:
-  std::string sign_RS256(std::string_view jwt_header_and_payload);
+  Buffer sign_RS256(BufferView jwt_header_and_payload);
 
   mbedtls_pk_context ctx;
   bool valid = false;

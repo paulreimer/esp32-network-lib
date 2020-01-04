@@ -20,8 +20,6 @@ namespace ActorModel {
 
 using namespace std::chrono_literals;
 
-using string_view = std::string_view;
-
 using UUID::uuidgen;
 
 Mailbox::AddressRegistry Mailbox::address_registry;
@@ -79,8 +77,8 @@ Mailbox::~Mailbox()
 }
 
 auto Mailbox::create_message(
-  const string_view type,
-  const string_view payload,
+  const MessageType type,
+  const BufferView payload,
   const size_t payload_alignment,
   const Pid* from_pid
 ) -> flatbuffers::DetachedBuffer
@@ -110,10 +108,7 @@ auto Mailbox::create_message(
     );
   }
 
-  auto payload_bytes = fbb.CreateVector(
-    reinterpret_cast<const unsigned char*>(payload.data()),
-    payload.size()
-  );
+  auto payload_bytes = fbb.CreateVector(payload.data(), payload.size());
 
   auto message_loc = CreateMessage(
     fbb,
@@ -135,8 +130,8 @@ auto Mailbox::send(const Message& message)
   {
     return send(
       message.type()->string_view(),
-      string_view{
-        reinterpret_cast<const char*>(message.payload()->data()),
+      BufferView{
+        message.payload()->data(),
         message.payload()->size()
       },
       message.payload_alignment(),
@@ -148,8 +143,8 @@ auto Mailbox::send(const Message& message)
 }
 
 auto Mailbox::send(
-  const string_view type,
-  const string_view payload,
+  const MessageType type,
+  const BufferView payload,
   const size_t payload_alignment,
   const Pid* from_pid
 )
@@ -197,7 +192,10 @@ auto Mailbox::receive(bool verify)
     {
       if (xSemaphoreTake(receive_semaphore, receive_lock_timeout_ticks) == pdTRUE)
       {
-        const auto message = string_view{reinterpret_cast<char*>(flatbuf), size};
+        const auto message = BufferView{
+          reinterpret_cast<const uint8_t*>(flatbuf),
+          size
+        };
         return std::make_unique<ReceivedMessage>(*this, message, verify);
       }
       else {
@@ -223,9 +221,9 @@ auto Mailbox::receive(bool verify)
 }
 
 auto Mailbox::receive_raw()
-  -> string_view
+  -> BufferView
 {
-  string_view message;
+  BufferView message;
 
   if (impl)
   {
@@ -235,14 +233,14 @@ auto Mailbox::receive_raw()
 
     if (flatbuf and size != std::numeric_limits<size_t>::max())
     {
-      message = string_view{reinterpret_cast<char*>(flatbuf), size};
+      message = BufferView{reinterpret_cast<const uint8_t*>(flatbuf), size};
     }
   }
 
   return message;
 }
 
-auto Mailbox::release(const string_view message)
+auto Mailbox::release(const BufferView message)
   -> bool
 {
   if (impl)
@@ -250,7 +248,10 @@ auto Mailbox::release(const string_view message)
     xSemaphoreGive(receive_semaphore);
 
     // Return the memory to the ringbuffer
-    vRingbufferReturnItem(impl, const_cast<char*>(message.data()));
+    vRingbufferReturnItem(
+      impl,
+      reinterpret_cast<char*>(const_cast<unsigned char*>(message.data()))
+    );
     return true;
   }
 

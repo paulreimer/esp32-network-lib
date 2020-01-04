@@ -21,7 +21,6 @@
 #include <chrono>
 #include <queue>
 #include <string>
-#include <string_view>
 
 namespace googleapis {
 namespace Sheets {
@@ -32,7 +31,6 @@ using namespace Requests;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using string_view = std::string_view;
 
 constexpr char TAG[] = "spreadsheet_insert_row_actor";
 
@@ -217,10 +215,12 @@ auto spreadsheet_insert_row_actor_behaviour(
               + ":append"
           );
 
-          set_request_body(
-            state.insert_row_request_intent_mutable_buf,
-            insert_row_intent->values_json()->string_view()
-          );
+          const auto body_str = insert_row_intent->values_json()->string_view();
+          const auto body = BufferView{
+            reinterpret_cast<const uint8_t*>(body_str.data()),
+            body_str.size()
+          };
+          set_request_body(state.insert_row_request_intent_mutable_buf, body);
 
           state.insert_row_request_in_progress = true;
           auto request_manager_actor_pid = *(whereis("request_manager"));

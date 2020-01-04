@@ -21,6 +21,11 @@
 #include <string_view>
 
 namespace googleapis {
+using MutableDatatableFlatbuffer = std::vector<uint8_t>;
+using MutableQueryIntentFlatbuffer = std::vector<uint8_t>;
+using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
+using string_view = std::string_view;
+using string = std::string;
 
 namespace Visualization {
 using DatatableColumns = flatbuffers::Vector<
@@ -31,18 +36,14 @@ using WhereClauses = flatbuffers::Vector<
   flatbuffers::Offset<WhereClause>
 >;
 
-using MutableDatatableFlatbuffer = std::vector<uint8_t>;
-using MutableQueryIntentFlatbuffer = std::vector<uint8_t>;
-using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
-
 auto get_column_from_label(
   const DatatableColumns* cols,
-  const std::string_view match_label,
-  const std::string_view prefix = ""
+  const string_view match_label,
+  const string_view prefix = ""
 ) -> const DatatableColumn*;
 
 auto mutate_value(
-  const std::string_view from_value,
+  const string_view from_value,
   flatbuffers::String* to_value
 ) -> bool;
 
@@ -63,15 +64,15 @@ auto update_query_intent_columns(
 
 auto build_column_list(
   const DatatableColumns* cols
-) -> std::string;
+) -> string;
 
 auto build_where_clauses(
   const WhereClauses* where
-) -> std::string;
+) -> string;
 
 auto build_query_string(
   const QueryIntent* query_intent
-) -> std::string;
+) -> string;
 
 auto update_request_intent_for_query_intent(
   MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
@@ -98,10 +99,10 @@ auto insert_row_intent_valid(const InsertRowIntent* insert_row_intent)
 
 namespace embedded_files {
   // spreadsheet_insert_row_request_intent.req.fb
-  DECLARE_STRING_VIEW_WRAPPER(spreadsheet_insert_row_request_intent_req_fb);
+  DECLARE_BUFFER_VIEW_WRAPPER(spreadsheet_insert_row_request_intent_req_fb);
 
   // visualization_query_request_intent.req.fb
-  DECLARE_STRING_VIEW_WRAPPER(visualization_query_request_intent_req_fb);
+  DECLARE_BUFFER_VIEW_WRAPPER(visualization_query_request_intent_req_fb);
 } // namespace embedded_files
 
 } // namespace googleapis

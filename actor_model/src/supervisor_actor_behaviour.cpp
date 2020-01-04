@@ -62,10 +62,7 @@ struct SupervisorActorState
               self,
               start->module_name()->string_view(),
               start->function_name()->string_view(),
-              string_view{
-                reinterpret_cast<const char*>(start->args()->data()),
-                start->args()->size()
-              }
+              BufferView{start->args()->data(), start->args()->size()}
             );
 
             if (result.type == Result::Ok)
@@ -131,7 +128,7 @@ auto supervisor_actor_behaviour(
   }
 
   if (
-    string_view reason;
+    Reason reason;
     matches(message, "kill", reason)
   )
   {

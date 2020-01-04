@@ -17,13 +17,14 @@
 #include <unordered_map>
 
 namespace ModuleManager {
+using string_view = std::string_view;
 
 class FileBufferLoader
 : public elf::loader
 {
   const std::string path;
 public:
-  explicit FileBufferLoader(const std::string_view _path);
+  explicit FileBufferLoader(const string_view _path);
   virtual ~FileBufferLoader();
 
   auto load(const off_t offset, const size_t size)

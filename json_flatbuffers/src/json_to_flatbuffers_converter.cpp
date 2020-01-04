@@ -11,8 +11,6 @@
 #include "json_to_flatbuffers_converter.h"
 
 namespace JsonFlatbuffers {
-
-using string_view = std::string_view;
 using string = std::string;
 
 JsonToFlatbuffersConverter::JsonToFlatbuffersConverter(
@@ -75,12 +73,12 @@ auto JsonToFlatbuffersConverter::parse(
 
         if (parsed_ok)
         {
-          callback(string_view(
-            reinterpret_cast<const char*>(
-              flatbuffers_parser.builder_.GetBufferPointer()
-            ),
-            flatbuffers_parser.builder_.GetSize()
-          ));
+          callback(
+            BufferView(
+              flatbuffers_parser.builder_.GetBufferPointer(),
+              flatbuffers_parser.builder_.GetSize()
+            )
+          );
         }
         else {
           ESP_LOGE(

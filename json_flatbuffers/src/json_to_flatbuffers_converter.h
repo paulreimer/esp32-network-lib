@@ -14,6 +14,8 @@
 
 #include "delegate.hpp"
 
+#include "tcb/span.hpp"
+
 #include <string_view>
 
 #include "flatbuffers/idl.h"
@@ -21,15 +23,15 @@
 #include "esp_log.h"
 
 namespace JsonFlatbuffers {
+using string_view = std::string_view;
+using BufferView = tcb::span<const uint8_t>;
 
 class JsonToFlatbuffersConverter
 {
 public:
-  using string_view = std::string_view;
-
   using PostCallbackAction = JsonStreaming::JsonEmitter::PostCallbackAction;
 
-  using Callback = delegate<PostCallbackAction(string_view)>;
+  using Callback = delegate<PostCallbackAction(BufferView)>;
   using Errback = delegate<PostCallbackAction(string_view)>;
 
   using JsonEmitter = JsonStreaming::JsonEmitter;

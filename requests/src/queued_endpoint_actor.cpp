@@ -100,8 +100,8 @@ struct QueuedEndpointActorState
         {
           set_request_body(
             request_intent_mutable_buf,
-            string_view{
-              reinterpret_cast<const char*>(request_payload->payload()->data()),
+            BufferView{
+              request_payload->payload()->data(),
               request_payload->payload()->size()
             }
           );
@@ -232,10 +232,7 @@ auto queued_endpoint_actor_behaviour(
           {
             const auto& response_payload = make_response_payload(
               *(request_payload->id()),
-              string_view{
-                reinterpret_cast<const char*>(response->body()->data()),
-                response->body()->size()
-              }
+              BufferView{response->body()->data(), response->body()->size()}
             );
 
             // Generate a response payload including the request payload id

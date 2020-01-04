@@ -15,9 +15,10 @@
 #include "delay.h"
 #include "uuid.h"
 
+#include "tcb/span.hpp"
+
 #include <chrono>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "lwip/netdb.h"
@@ -30,7 +31,7 @@
 namespace UDPServer {
 
 using string = std::string;
-using string_view = std::string_view;
+using BufferView = tcb::span<const uint8_t>;
 
 using namespace ActorModel;
 
@@ -54,7 +55,7 @@ struct UDPServerActorState
   int sockfd = -1;
   struct sockaddr_in sock_addr = {0};
 
-  char recv_buf[UDP_SERVER_RECV_BUF_LEN];
+  uint8_t recv_buf[UDP_SERVER_RECV_BUF_LEN];
   TRef tick_timer_ref = NullTRef;
 
   MutableUDPConfigurationFlatbuffer udp_server_config_mutable_buf;
@@ -185,7 +186,10 @@ auto udp_server_actor_behaviour(
                 and not compare_uuids(*(udp_server_config->to_pid()), NullUUID)
               )
               {
-                auto packet_bytes = string_view(state.recv_buf, bytes_read);
+                auto packet_bytes = BufferView{
+                  state.recv_buf,
+                  static_cast<size_t>(bytes_read)
+                };
                 send(*(udp_server_config->to_pid()), "packet", packet_bytes);
               }
             }

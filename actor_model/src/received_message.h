@@ -14,18 +14,19 @@
 
 #include "mailbox.h"
 
+#include "tcb/span.hpp"
+
 namespace ActorModel {
+using BufferView = tcb::span<const uint8_t>;
 
 class Mailbox;
 
 class ReceivedMessage
 {
 public:
-  using string_view = std::string_view;
-
   ReceivedMessage(
     Mailbox& _mailbox,
-    const string_view& _message,
+    const BufferView& _message,
     const bool verify = true
   );
 
@@ -35,11 +36,11 @@ public:
   ~ReceivedMessage();
 
   auto ref()
-    -> string_view;
+    -> BufferView;
 
 protected:
   Mailbox& mailbox;
-  const string_view message;
+  const BufferView message;
   const bool verify;
   bool verified = false;
 };

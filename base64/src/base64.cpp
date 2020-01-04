@@ -15,14 +15,11 @@ extern "C" {
   #include "b64/cencode.h"
 }
 
-using string = std::string;
-using string_view = std::string_view;
-
 namespace base64 {
-auto encode(string_view in)
-  -> string
+auto encode(BufferView in)
+  -> Buffer
 {
-  string out;
+  Buffer out;
 
   base64_encodestate state;
   base64_init_encodestate(&state);
@@ -32,12 +29,15 @@ auto encode(string_view in)
 
   // Do the encoding
   auto encoded_len = base64_encode_block(
-    in.data(), in.size(), &out[0], &state
+    reinterpret_cast<const char*>(in.data()),
+    in.size(),
+    reinterpret_cast<char*>(&out[0]),
+    &state
   );
 
   // Add trailing/padding '='s if necessary
   encoded_len += base64_encode_blockend(
-    &out[encoded_len], &state
+    reinterpret_cast<char*>(&out[encoded_len]), &state
   );
 
   // Resize to actual size
@@ -46,10 +46,10 @@ auto encode(string_view in)
   return out;
 }
 
-auto decode(string_view in)
-  -> string
+auto decode(BufferView in)
+  -> Buffer
 {
-  string out;
+  Buffer out;
 
   base64_decodestate state;
   base64_init_decodestate(&state);
@@ -59,7 +59,10 @@ auto decode(string_view in)
 
   // Do the decoding
   auto decoded_len = base64_decode_block(
-    in.data(), in.size(), &out[0], &state
+    reinterpret_cast<const char*>(in.data()),
+    in.size(),
+    reinterpret_cast<char*>(&out[0]),
+    &state
   );
 
   // Resize to actual size

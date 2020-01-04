@@ -34,6 +34,7 @@ using TRef = size_t;
 using SignalRef = size_t;
 using TTL = int;
 using Reason = std::string_view;
+using Name = std::string_view;
 
 using ModuleFlatbuffer = std::vector<uint8_t>;
 
@@ -73,7 +74,6 @@ class Node
 public:
   // type aliases:
   using string = std::string;
-  using string_view = std::string_view;
 
   using ProcessPtr = std::unique_ptr<Process>;
 
@@ -125,8 +125,8 @@ public:
 
   auto send(
     const Pid& pid,
-    const string_view type,
-    const string_view payload
+    const MessageType type,
+    const BufferView payload
   ) -> bool;
 
   auto send_after(
@@ -138,8 +138,8 @@ public:
   auto send_after(
     const Time time,
     const Pid& pid,
-    const string_view type,
-    const string_view payload
+    const MessageType type,
+    const BufferView payload
   ) -> TRef;
 
   auto send_interval(
@@ -151,8 +151,8 @@ public:
   auto send_interval(
     const Time time,
     const Pid& pid,
-    const string_view type,
-    const string_view payload
+    const MessageType type,
+    const BufferView payload
   ) -> TRef;
 
   auto cancel(const TRef tref)
@@ -164,32 +164,32 @@ public:
   auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
     -> bool;
 
-  auto register_name(const string_view name, const Pid& pid)
+  auto register_name(const Name name, const Pid& pid)
     -> bool;
 
-  auto unregister(const string_view name)
+  auto unregister(const Name name)
     -> bool;
 
   auto registered()
     -> const NamedProcessRegistry;
 
-  auto whereis(const string_view name)
+  auto whereis(const Name name)
     -> MaybePid;
 
-  auto module(const string_view module_flatbuffer)
+  auto module(const BufferView module_flatbuffer)
    -> bool;
 
   auto apply(
     const Pid& pid,
-    const string_view function_name,
-    const string_view args
+    const Name function_name,
+    const BufferView args
   ) -> ResultUnion;
 
   auto apply(
     const Pid& pid,
-    const string_view module_name,
-    const string_view function_name,
-    const string_view args
+    const Name module_name,
+    const Name function_name,
+    const BufferView args
   ) -> ResultUnion;
 
   auto timer_callback(const TRef tref)

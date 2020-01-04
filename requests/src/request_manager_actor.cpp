@@ -24,8 +24,7 @@ using namespace std::chrono_literals;
 
 using namespace ActorModel;
 
-using string_view = std::string_view;
-using string = std::string;
+using Reason = std::string;
 
 auto request_manager_actor_behaviour(
   const Pid& self,
@@ -41,21 +40,21 @@ auto request_manager_actor_behaviour(
   auto& requests = *(std::static_pointer_cast<RequestManager>(state));
 
   if (
-    string_view cacert_der_str;
-    matches(message, "add_cacert_der", cacert_der_str)
+    BufferView cacert_der;
+    matches(message, "add_cacert_der", cacert_der)
   )
   {
-    requests.add_cacert_der(cacert_der_str);
+    requests.add_cacert_der(cacert_der);
 
     return {Result::Ok};
   }
 
   if (
-    string_view cacert_pem_str;
-    matches(message, "add_cacert_pem", cacert_pem_str)
+    BufferView cacert_pem;
+    matches(message, "add_cacert_pem", cacert_pem)
   )
   {
-    requests.add_cacert_pem(cacert_pem_str);
+    requests.add_cacert_pem(cacert_pem);
 
     return {Result::Ok};
   }
@@ -75,7 +74,7 @@ auto request_manager_actor_behaviour(
         requests.fetch(request_intent_buf_ref);
 
         // Re-trigger ourselves immediately with an arbitrary message
-        send(self, "tick", "");
+        send(self, "tick");
       }
     }
 
@@ -89,14 +88,14 @@ auto request_manager_actor_behaviour(
     if (requests_remaining > 0)
     {
       // Re-trigger ourselves immediately with an arbitrary message
-      send(self, "tick", "");
+      send(self, "tick", BufferView{});
     }
 
     return {Result::Ok, EventTerminationAction::ContinueProcessing};
   }
 
   if (
-    string exit_reason;
+    Reason exit_reason;
     matches(message, "exit", exit_reason)
   )
   {

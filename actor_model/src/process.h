@@ -44,8 +44,6 @@ public:
   using LinkList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
   using MonitorList = std::unordered_set<Pid, UUID::UUIDHashFunc, UUID::UUIDEqualFunc>;
 
-  using string_view = std::string_view;
-
   struct ProcessFlagHashFunc
   {
     auto operator()(const ProcessFlag& flag) const
@@ -102,7 +100,7 @@ protected:
 
   auto send(const Message& message)
     -> bool;
-  auto send(const string_view type, const string_view payload)
+  auto send(const MessageType type, const BufferView payload)
     -> bool;
 
   const Pid pid;

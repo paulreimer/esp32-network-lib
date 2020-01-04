@@ -5,6 +5,8 @@ idf_component_register(
     "src/trace.cpp"
   INCLUDE_DIRS
     "src"
+  REQUIRES
+    "span"
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)

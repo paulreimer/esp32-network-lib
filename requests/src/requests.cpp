@@ -25,7 +25,6 @@ namespace Requests {
 using UUID::uuidgen;
 
 using string = std::string;
-using string_view = std::string_view;
 
 using UUID::compare_uuids;
 using UUID::update_uuid;
@@ -58,25 +57,21 @@ auto _parse_requests_schema(
 ) -> bool;
 
 auto make_request_payload(
-  const std::vector<uint8_t>& payload
+  const Buffer& payload
 ) -> RequestIntentFlatbuffer
 {
-  return make_request_payload(
-    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
-  );
+  return make_request_payload(BufferView{payload.data(), payload.size()});
 }
 
 auto make_request_payload(
   const flatbuffers::DetachedBuffer& payload
 ) -> RequestIntentFlatbuffer
 {
-  return make_request_payload(
-    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
-  );
+  return make_request_payload(BufferView{payload.data(), payload.size()});
 }
 
 auto make_request_payload(
-  const std::string_view payload
+  const BufferView payload
 ) -> RequestIntentFlatbuffer
 {
   flatbuffers::FlatBufferBuilder fbb;
@@ -89,10 +84,7 @@ auto make_request_payload(
     CreateRequestPayload(
       fbb,
       &request_payload_id,
-      fbb.CreateVector(
-        reinterpret_cast<const uint8_t*>(payload.data()),
-        payload.size()
-      )
+      fbb.CreateVector(payload.data(), payload.size())
     ),
     RequestIntentIdentifier()
   );
@@ -102,12 +94,12 @@ auto make_request_payload(
 
 auto make_response_payload(
   const UUID& request_id,
-  const std::vector<uint8_t>& payload
+  const Buffer& payload
 ) -> RequestIntentFlatbuffer
 {
   return make_response_payload(
     request_id,
-    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
+    BufferView{payload.data(), payload.size()}
   );
 }
 
@@ -118,13 +110,13 @@ auto make_response_payload(
 {
   return make_response_payload(
     request_id,
-    string_view{reinterpret_cast<const char*>(payload.data()), payload.size()}
+    BufferView{payload.data(), payload.size()}
   );
 }
 
 auto make_response_payload(
   const UUID& request_id,
-  const std::string_view payload
+  const BufferView payload
 ) -> RequestIntentFlatbuffer
 {
   flatbuffers::FlatBufferBuilder fbb;
@@ -138,10 +130,7 @@ auto make_response_payload(
       fbb,
       &response_payload_id,
       &request_id,
-      fbb.CreateVector(
-        reinterpret_cast<const uint8_t*>(payload.data()),
-        payload.size()
-      )
+      fbb.CreateVector(payload.data(), payload.size())
     ),
     RequestIntentIdentifier()
   );
@@ -154,7 +143,7 @@ auto make_request_intent(
   const string_view uri,
   const std::vector<std::pair<string_view, string_view>>& query,
   const std::vector<std::pair<string_view, string_view>>& headers,
-  const string_view body,
+  const BufferView body,
   const UUID& to_pid,
   const ResponseFilter desired_format,
   const string_view object_path,
@@ -207,7 +196,7 @@ auto make_request_intent(
     method.empty()? 0 : fbb.CreateString(method),
     uri.empty()? 0 : fbb.CreateString(uri),
     body.empty()? 0 : fbb.CreateVector(
-      reinterpret_cast<const uint8_t*>(body.data()),
+      body.data(),
       body.size()
     ),
     query.empty()? 0 : query_vec,
@@ -530,7 +519,7 @@ auto set_request_uri(
 
 auto set_request_body(
   MutableRequestIntentFlatbuffer& request_intent_mutable_buf,
-  const string_view body
+  const BufferView body
 ) -> bool
 {
   if (not state.request_intent_fields)
@@ -590,7 +579,7 @@ auto set_request_body(
 
 auto matches(
   const ActorModel::Message& message,
-  const std::string_view type,
+  const ActorModel::MessageType type,
   const Response*& response,
   const UUID& request_intent_id
 ) -> bool
@@ -624,7 +613,7 @@ auto update_request_intent_ids(
 }
 
 auto parse_request_intent(
-  const std::string_view req_fb,
+  const BufferView req_fb,
   const ActorModel::Pid& to_pid
 ) -> MutableRequestIntentFlatbuffer
 {

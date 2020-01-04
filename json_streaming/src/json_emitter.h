@@ -22,13 +22,12 @@
 #include "yajl/yajl_parse.h"
 
 namespace JsonStreaming {
+using string_view = std::string_view;
+using string = std::string;
 
 class JsonEmitter
 {
 public:
-  using string_view = std::string_view;
-  using string = std::string;
-
   using JsonPathComponent = std::variant<int, string>;
   using JsonPath = std::vector<JsonPathComponent>;
 

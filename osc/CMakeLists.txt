@@ -5,6 +5,8 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/tinyosc"
     "src"
+  REQUIRES
+    "span"
   PRIV_REQUIRES
     "flatbuffers"
     "uuid"

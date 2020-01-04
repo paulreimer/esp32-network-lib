@@ -15,19 +15,17 @@
 
 #include "esp_log.h"
 
-using string_view = std::string_view;
-
 constexpr char TAG[] = "filesystem";
 
 auto filesystem_exists(
-  std::string_view path
+  string_view path
 ) -> bool
 {
   return (access(path.data(), F_OK) != -1);
 }
 
 auto filesystem_read(string_view path)
-  -> std::vector<uint8_t>
+  -> Buffer
 {
   auto file = fopen(path.data(), "rb");
   if (file != nullptr)
@@ -37,7 +35,7 @@ auto filesystem_read(string_view path)
     ssize_t file_len = ftell(file);
     rewind(file);
 
-    std::vector<uint8_t> file_contents(file_len, 0x00);
+    Buffer file_contents(file_len, 0x00);
 
     ssize_t bytes_read = fread(
       const_cast<uint8_t*>(file_contents.data()),
@@ -76,18 +74,15 @@ auto filesystem_read(string_view path)
 
 auto filesystem_write(
   string_view path,
-  const std::vector<uint8_t>& contents
+  const Buffer& contents
 ) -> bool
 {
-  return filesystem_write(
-    path,
-    string_view(reinterpret_cast<const char*>(contents.data()), contents.size())
-  );
+  return filesystem_write(path, BufferView{contents});
 }
 
 auto filesystem_write(
   string_view path,
-  string_view contents
+  BufferView contents
 ) -> bool
 {
   auto file = fopen(path.data(), "wb");

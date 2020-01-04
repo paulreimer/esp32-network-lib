@@ -20,11 +20,9 @@ namespace googleapis {
 
 namespace Visualization {
 
-using string_view = std::string_view;
-using string = std::string;
-using MutableRequestIntentFlatbuffer = Requests::MutableRequestIntentFlatbuffer;
-
 using UUID::uuid_valid;
+using std::to_string;
+using std::min;
 
 using namespace Requests;
 
@@ -91,7 +89,7 @@ auto get_column_from_label(
 }
 
 auto mutate_value(
-  const std::string_view from_value,
+  const string_view from_value,
   flatbuffers::String* to_value
 ) -> bool
 {
@@ -108,7 +106,7 @@ auto mutate_value(
   strncpy(
     to_value->data(),
     from_value.data(),
-    std::min(from_value.size(), static_cast<size_t>(to_value->size()))
+    min(from_value.size(), static_cast<size_t>(to_value->size()))
   );
 
   did_update = true;
@@ -128,7 +126,7 @@ auto update_column(
     to_col
     and to_col->id()
     and to_col->id()->size() > 0
-    and to_col->id()->string_view().find_first_not_of('?') == std::string::npos
+    and to_col->id()->string_view().find_first_not_of('?') == string::npos
     and to_col->label()
   )
   {
@@ -434,12 +432,12 @@ auto build_query_string(
 
       if (query->limit())
       {
-        query_string_str += " limit " + std::to_string(query->limit());
+        query_string_str += " limit " + to_string(query->limit());
       }
 
       if (query->offset())
       {
-        query_string_str += " offset " + std::to_string(query->offset());
+        query_string_str += " offset " + to_string(query->offset());
       }
 
       if (query->options() != QueryOption::defaults)

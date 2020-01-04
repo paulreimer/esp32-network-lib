@@ -163,8 +163,8 @@ auto Node::send(
 
 auto Node::send(
   const Pid& pid,
-  const string_view type,
-  const string_view payload
+  const MessageType type,
+  const BufferView payload
 ) -> bool
 {
   const auto& process_iter = process_registry.find(pid);
@@ -193,10 +193,7 @@ auto Node::send_after(
     {
       auto&& message_buf = Mailbox::create_message(
         message.type()->string_view(),
-        string_view{
-          reinterpret_cast<const char*>(message.payload()->data()),
-          message.payload()->size()
-        },
+        BufferView{message.payload()->data(), message.payload()->size()},
         message.payload_alignment()
       );
       return start_timer(time, pid, std::move(message_buf), is_recurring);
@@ -209,8 +206,8 @@ auto Node::send_after(
 auto Node::send_after(
   const Time time,
   const Pid& pid,
-  const string_view type,
-  const string_view payload
+  const MessageType type,
+  const BufferView payload
 ) -> TRef
 {
   auto is_recurring = false;
@@ -241,10 +238,7 @@ auto Node::send_interval(
     {
       auto&& message_buf = Mailbox::create_message(
         message.type()->string_view(),
-        string_view{
-          reinterpret_cast<const char*>(message.payload()->data()),
-          message.payload()->size()
-        },
+        BufferView{message.payload()->data(), message.payload()->size()},
         message.payload_alignment()
       );
       return start_timer(time, pid, std::move(message_buf), is_recurring);
@@ -257,8 +251,8 @@ auto Node::send_interval(
 auto Node::send_interval(
   const Time time,
   const Pid& pid,
-  const string_view type,
-  const string_view payload
+  const MessageType type,
+  const BufferView payload
 ) -> TRef
 {
   auto is_recurring = true;
@@ -605,14 +599,14 @@ auto Node::process_signal(const Pid& pid, const Signal& sig)
   return false;
 }
 
-auto Node::register_name(const string_view name, const Pid& pid)
+auto Node::register_name(const Name name, const Pid& pid)
   -> bool
 {
   named_process_registry[string{name}] = pid;
   return true;
 }
 
-auto Node::unregister(const string_view name)
+auto Node::unregister(const Name name)
   -> bool
 {
   auto erased = named_process_registry.erase(string{name});
@@ -678,7 +672,7 @@ auto Node::registered()
   return named_process_registry;
 }
 
-auto Node::whereis(const string_view name)
+auto Node::whereis(const Name name)
   -> MaybePid
 {
   const auto& pid_iter = named_process_registry.find(string{name});
@@ -690,11 +684,11 @@ auto Node::whereis(const string_view name)
   return std::nullopt;
 }
 
-auto Node::module(const string_view module_flatbuffer)
+auto Node::module(const BufferView module_flatbuffer)
  -> bool
 {
   flatbuffers::Verifier verifier(
-    reinterpret_cast<const uint8_t*>(module_flatbuffer.data()),
+    module_flatbuffer.data(),
     module_flatbuffer.size()
   );
 
@@ -710,8 +704,8 @@ auto Node::module(const string_view module_flatbuffer)
     )
     {
       module_registry[module->name()->str()] = ModuleFlatbuffer{
-        module_flatbuffer.begin(),
-        module_flatbuffer.end()
+        std::begin(module_flatbuffer),
+        std::end(module_flatbuffer)
       };
 
       return true;
@@ -726,8 +720,8 @@ auto Node::module(const string_view module_flatbuffer)
 
 auto Node::apply(
   const Pid& pid,
-  const string_view function_name,
-  const string_view args
+  const Name function_name,
+  const BufferView args
 ) -> ResultUnion
 {
   return {Result::Error};
@@ -735,9 +729,9 @@ auto Node::apply(
 
 auto Node::apply(
   const Pid& pid,
-  const string_view module_name,
-  const string_view function_name,
-  const string_view args
+  const Name module_name,
+  const Name function_name,
+  const BufferView args
 ) -> ResultUnion
 {
   const auto& module_iter = module_registry.find(string{module_name});

@@ -15,9 +15,6 @@
 #include "esp_system.h"
 
 namespace JWT {
-using string = std::string;
-using string_view = std::string_view;
-
 constexpr char TAG[] = "JWT";
 
 auto esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
@@ -42,7 +39,7 @@ auto esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
   return 0;
 }
 
-JWTGenerator::JWTGenerator(string_view privkey_pem, Alg _alg)
+JWTGenerator::JWTGenerator(BufferView privkey_pem, Alg _alg)
 : alg(_alg)
 {
   mbedtls_pk_init(&ctx);
@@ -50,7 +47,7 @@ JWTGenerator::JWTGenerator(string_view privkey_pem, Alg _alg)
   // Parse the private key from a string buffer
   auto ret = mbedtls_pk_parse_key(
     &ctx,
-    reinterpret_cast<const uint8_t*>(privkey_pem.data()), privkey_pem.size(),
+    privkey_pem.data(), privkey_pem.size(),
     nullptr, 0
   );
 
@@ -87,12 +84,32 @@ JWTGenerator::~JWTGenerator()
   mbedtls_pk_free(&ctx);
 }
 
-string
-JWTGenerator::mint(string_view payload)
+template <typename T>
+typename std::vector<T>::iterator append(std::vector<T>&& src, std::vector<T>& dest)
 {
-  string jwt;
+  typename std::vector<T>::iterator result;
 
-  string header = (
+  if (dest.empty()) {
+    dest = std::move(src);
+    result = std::begin(dest);
+  } else {
+    result = dest.insert(
+      std::end(dest),
+      std::make_move_iterator(std::begin(src)),
+      std::make_move_iterator(std::end(src))
+    );
+  }
+
+
+  return result;
+}
+
+Buffer
+JWTGenerator::mint(BufferView payload)
+{
+  Buffer jwt;
+
+  constexpr char header[] = (
     "{"
       "\"typ\":\"" "JWT" "\","
       "\"alg\":\"" "RS256" "\""
@@ -100,22 +117,29 @@ JWTGenerator::mint(string_view payload)
   );
 
   // Start with base64-encoded header part
-  jwt += base64::encode(header);
+  append(
+    base64::encode(
+      BufferView{reinterpret_cast<const uint8_t*>(header), sizeof(header)}
+    ),
+    jwt
+  );
 
   // Append base64-encoded payload part
-  jwt += '.' + base64::encode(payload);
+  append({'.'}, jwt);
+  append(base64::encode(payload), jwt);
 
   // Sign the first two parts
-  string signature = sign(jwt);
+  Buffer signature = sign(jwt);
 
   // Append final base64-encoded signature part
-  jwt += '.' + base64::encode(signature);
+  append({'.'}, jwt);
+  append(base64::encode(payload), signature);
 
   return jwt;
 }
 
-string
-JWTGenerator::sign(string_view jwt_header_and_payload)
+Buffer
+JWTGenerator::sign(BufferView jwt_header_and_payload)
 {
   // Only supporting RS256 for now
   switch (alg)
@@ -136,13 +160,13 @@ JWTGenerator::sign(string_view jwt_header_and_payload)
     }
   }
 
-  return "";
+  return {};
 }
 
-string
-JWTGenerator::sign_RS256(string_view jwt_header_and_payload)
+Buffer
+JWTGenerator::sign_RS256(BufferView jwt_header_and_payload)
 {
-  string signature;
+  Buffer signature;
 
   if ((valid == true) && (alg == RS256))
   {
@@ -150,7 +174,7 @@ JWTGenerator::sign_RS256(string_view jwt_header_and_payload)
 
     auto ret = mbedtls_md(
       mbedtls_md_info_from_type(MBEDTLS_MD_SHA256),
-      reinterpret_cast<const uint8_t*>(jwt_header_and_payload.data()),
+      jwt_header_and_payload.data(),
       jwt_header_and_payload.size(),
       hash
     );
@@ -166,7 +190,7 @@ JWTGenerator::sign_RS256(string_view jwt_header_and_payload)
         MBEDTLS_MD_SHA256,
         hash,
         sizeof(hash),
-        reinterpret_cast<uint8_t*>(&signature[0]),
+        &signature[0],
         &len,
         esp32_gen_random_bytes,
         nullptr

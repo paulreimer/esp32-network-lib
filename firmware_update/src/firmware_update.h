@@ -10,8 +10,9 @@
 
 #pragma once
 
-#include <string_view>
 #include <array>
+#include <string>
+#include <string_view>
 
 #include "firmware_update_generated.h"
 
@@ -19,6 +20,8 @@
 #include "esp_ota_ops.h"
 
 namespace FirmwareUpdate {
+using string = std::string;
+using string_view = std::string_view;
 
 using MD5Sum = std::array<uint8_t, 16>;
 using FirmwareVersion = uint64_t;
@@ -50,10 +53,10 @@ auto checksum_partition_md5(
 ) -> MD5Sum;
 
 auto checksum_file_md5(
-  const std::string_view path
+  const string_view path
 ) -> MD5Sum;
 
 auto get_md5sum_hex_str(const MD5Sum& md5sum)
-  -> std::string;
+  -> string;
 
 } // namespace FirmwareUpdate

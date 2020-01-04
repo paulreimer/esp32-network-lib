@@ -16,12 +16,13 @@
 
 #include "delay.h"
 
+#include "tcb/span.hpp"
+
 #include "esp_log.h"
 
 #include <chrono>
 #include <deque>
 #include <string>
-#include <string_view>
 
 namespace googleapis {
 namespace Visualization {
@@ -32,7 +33,7 @@ using namespace Requests;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using string_view = std::string_view;
+using BufferView = tcb::span<const uint8_t>;
 
 using StringPair = std::pair<string, string>;
 
@@ -281,10 +282,7 @@ auto visualization_query_actor_behaviour(
       send(
         to_pid,
         "query_results",
-        string_view{
-          reinterpret_cast<const char*>(response->body()),
-          response->body()->size()
-        }
+        BufferView{response->body()->data(), response->body()->size()}
       );
     }
 

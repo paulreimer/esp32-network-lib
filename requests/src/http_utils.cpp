@@ -86,7 +86,7 @@ auto is_char_url_safe(const char c)
   );
 }
 
-auto urlencode(const std::string_view raw_str)
+auto urlencode(const string_view raw_str)
   -> std::string
 {
   string encoded_str;

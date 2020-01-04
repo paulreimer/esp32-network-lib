@@ -3,6 +3,8 @@ idf_component_register(
     "src/jwt.cpp"
   INCLUDE_DIRS
     "src"
+  REQUIRES
+    "span"
   PRIV_REQUIRES
     "base64"
     "mbedtls"

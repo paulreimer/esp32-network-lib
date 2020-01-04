@@ -21,9 +21,6 @@
 
 namespace ActorModel {
 
-using string = std::string;
-using string_view = std::string_view;
-
 constexpr char TAG[] = "oom_killer";
 
 struct TaskMemoryInfo

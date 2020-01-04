@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <string>
-#include <string_view>
 
 #include "driver/gpio.h"
 #include "esp_log.h"
@@ -36,7 +35,6 @@ using namespace Firmware;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using string_view = std::string_view;
 
 using UUID::NullUUID;
 using UUID = UUID::UUID;
@@ -523,8 +521,8 @@ auto firmware_update_actor_behaviour(
 
   if (matches(message, "check"))
   {
-    const auto firmware_update_check_request_intent = string_view{
-      reinterpret_cast<const char*>(message.payload()->data()),
+    const auto firmware_update_check_request_intent = BufferView{
+      message.payload()->data(),
       message.payload()->size()
     };
     if (not firmware_update_check_request_intent.empty())
@@ -636,7 +634,7 @@ auto firmware_update_actor_behaviour(
                   file->url()->string_view(),
                   {},
                   {{"Authorization", string{"Bearer "} + state.access_token}},
-                  "",
+                  {},
                   self,
                   ResponseFilter::PartialResponseChunks
                 );
@@ -684,7 +682,7 @@ auto firmware_update_actor_behaviour(
                 firmware_update_metadata->url()->string_view(),
                 {},
                 {{"Authorization", string{"Bearer "} + state.access_token}},
-                "",
+                {},
                 self,
                 ResponseFilter::PartialResponseChunks
               );

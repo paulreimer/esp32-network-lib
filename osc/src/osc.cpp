@@ -12,6 +12,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <string_view>
+
 #include "tinyosc.h"
 
 #include <stdio.h>
@@ -20,7 +22,6 @@ namespace OSC {
 
 using UUID::uuidgen;
 
-using string = std::string;
 using string_view = std::string_view;
 
 using UUID::compare_uuids;
@@ -32,8 +33,8 @@ using UUID = UUID::UUID;
 // Update flatbuffers field from osc message
 auto update_flatbuffer_from_osc_message(
   MutableGenericFlatbuffer& flatbuffer_mutable_buf,
-  const std::vector<uint8_t>& flatbuffer_bfbs,
-  const std::string_view osc_packet
+  const Buffer& flatbuffer_bfbs,
+  const BufferView osc_packet
 ) -> bool
 {
   auto did_update_flatbuffer = false;
@@ -61,7 +62,9 @@ auto update_flatbuffer_from_osc_message(
           if (
             tosc_parseMessage(
               &osc,
-              const_cast<char*>(osc_packet.data()),
+              reinterpret_cast<char*>(
+                const_cast<unsigned char*>(osc_packet.data())
+              ),
               osc_packet.size()
             ) == 0
           )

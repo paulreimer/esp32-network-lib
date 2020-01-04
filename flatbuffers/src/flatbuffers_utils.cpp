@@ -62,9 +62,7 @@ auto get_value_for_flatbuffer_field(
 
   // Verify that the flatbuffer bytes are a valid flatbuffer
   if (
-    const auto* root = flatbuffers::GetAnyRoot(
-      reinterpret_cast<const uint8_t*>(flatbuffer_buf.data())
-    );
+    const auto* root = flatbuffers::GetAnyRoot(flatbuffer_buf.data());
     root
   )
   {

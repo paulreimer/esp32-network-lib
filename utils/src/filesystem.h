@@ -10,23 +10,29 @@
 
 #pragma once
 
+#include "tcb/span.hpp"
+
 #include <string_view>
 #include <vector>
 
+using Buffer = std::vector<uint8_t>;
+using BufferView = tcb::span<const uint8_t>;
+using string_view = std::string_view;
+
 auto filesystem_exists(
-  std::string_view path
+  string_view path
 ) -> bool;
 
 auto filesystem_read(
-  std::string_view path
-) -> std::vector<uint8_t>;
+  string_view path
+) -> Buffer;
 
 auto filesystem_write(
-  std::string_view path,
-  const std::vector<uint8_t>& contents
+  string_view path,
+  const Buffer& contents
 ) -> bool;
 
 auto filesystem_write(
-  std::string_view path,
-  std::string_view contents
+  string_view path,
+  BufferView contents
 ) -> bool;

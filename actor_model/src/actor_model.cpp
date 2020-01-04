@@ -13,7 +13,6 @@
 
 namespace ActorModel {
 
-using string_view = std::string_view;
 using Reason = Process::Reason;
 
 // free functions bound to default node
@@ -66,8 +65,8 @@ auto send(
 
 auto send(
   const Pid& pid,
-  const string_view type,
-  const string_view payload
+  const MessageType type,
+  const BufferView payload
 ) -> bool
 {
   auto& node = Process::get_default_node();
@@ -76,14 +75,26 @@ auto send(
 
 auto send(
   const Pid& pid,
-  const string_view type,
-  const std::vector<uint8_t>& payload_vec
+  const MessageType type,
+  const Buffer& payload_buf
 ) -> bool
 {
   auto& node = Process::get_default_node();
-  const auto payload = string_view{
-    reinterpret_cast<const char*>(payload_vec.data()),
-    payload_vec.size()
+  const auto payload = BufferView{payload_buf.data(), payload_buf.size()};
+
+  return node.send(pid, type, payload);
+}
+
+auto send(
+  const Pid& pid,
+  const MessageType type,
+  const string_view payload_str
+) -> bool
+{
+  auto& node = Process::get_default_node();
+  const auto payload = BufferView{
+    reinterpret_cast<const uint8_t*>(payload_str.data()),
+    payload_str.size()
   };
 
   return node.send(pid, type, payload);
@@ -91,13 +102,29 @@ auto send(
 
 auto send(
   const Pid& pid,
-  const string_view type,
+  const MessageType type,
+  const string& payload_str
+) -> bool
+{
+  auto& node = Process::get_default_node();
+  const auto payload = BufferView{
+    reinterpret_cast<const uint8_t*>(payload_str.data()),
+    payload_str.size()
+  };
+
+  return node.send(pid, type, payload);
+}
+
+
+auto send(
+  const Pid& pid,
+  const MessageType type,
   const flatbuffers::Vector<uint8_t>& payload_fbvec
 ) -> bool
 {
   auto& node = Process::get_default_node();
-  const auto payload = string_view{
-    reinterpret_cast<const char*>(payload_fbvec.data()),
+  const auto payload = BufferView{
+    payload_fbvec.data(),
     payload_fbvec.size()
   };
 
@@ -106,15 +133,16 @@ auto send(
 
 auto send(
   const Pid& pid,
-  const string_view type,
+  const MessageType type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool
 {
   auto& node = Process::get_default_node();
-  auto payload = string_view(
-    reinterpret_cast<const char*>(payload_flatbuffer.data()),
+  auto payload = BufferView{
+    payload_flatbuffer.data(),
     payload_flatbuffer.size()
-  );
+  };
+
   return node.send(pid, type, payload);
 }
 
@@ -131,8 +159,8 @@ auto send_after(
 auto send_after(
   const Time time,
   const Pid& pid,
-  const string_view type,
-  const string_view payload
+  const MessageType type,
+  const BufferView payload
 ) -> TRef
 {
   auto& node = Process::get_default_node();
@@ -142,14 +170,14 @@ auto send_after(
 auto send_after(
   const Time time,
   const Pid& pid,
-  const string_view type,
-  const std::vector<uint8_t>& payload_vec
+  const MessageType type,
+  const Buffer& payload_buf
 ) -> TRef
 {
   auto& node = Process::get_default_node();
-  const auto payload = string_view{
-    reinterpret_cast<const char*>(payload_vec.data()),
-    payload_vec.size()
+  const auto payload = BufferView{
+    reinterpret_cast<const uint8_t*>(payload_buf.data()),
+    payload_buf.size()
   };
 
   return node.send_after(time, pid, type, payload);
@@ -158,15 +186,48 @@ auto send_after(
 auto send_after(
   const Time time,
   const Pid& pid,
-  const string_view type,
+  const MessageType type,
+  const string_view payload_str
+) -> TRef
+{
+  auto& node = Process::get_default_node();
+  const auto payload = BufferView{
+    reinterpret_cast<const uint8_t*>(payload_str.data()),
+    payload_str.size()
+  };
+
+  return node.send_after(time, pid, type, payload);
+}
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
+  const string& payload_str
+) -> TRef
+{
+  auto& node = Process::get_default_node();
+  const auto payload = BufferView{
+    reinterpret_cast<const uint8_t*>(payload_str.data()),
+    payload_str.size()
+  };
+
+  return node.send_after(time, pid, type, payload);
+}
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef
 {
   auto& node = Process::get_default_node();
-  auto payload = string_view(
-    reinterpret_cast<const char*>(payload_flatbuffer.data()),
+  auto payload = BufferView{
+    payload_flatbuffer.data(),
     payload_flatbuffer.size()
-  );
+  };
+
   return node.send_after(time, pid, type, payload);
 }
 
@@ -183,8 +244,8 @@ auto send_interval(
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const string_view type,
-  const string_view payload
+  const MessageType type,
+  const BufferView payload
 ) -> TRef
 {
   auto& node = Process::get_default_node();
@@ -194,14 +255,14 @@ auto send_interval(
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const string_view type,
-  const std::vector<uint8_t>& payload_vec
+  const MessageType type,
+  const Buffer& payload_buf
 ) -> TRef
 {
   auto& node = Process::get_default_node();
-  const auto payload = string_view{
-    reinterpret_cast<const char*>(payload_vec.data()),
-    payload_vec.size()
+  const auto payload = BufferView{
+    payload_buf.data(),
+    payload_buf.size()
   };
 
   return node.send_interval(time, pid, type, payload);
@@ -210,15 +271,32 @@ auto send_interval(
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const string_view type,
+  const MessageType type,
+  const string_view payload_str
+) -> TRef
+{
+  auto& node = Process::get_default_node();
+  const auto payload = BufferView{
+    reinterpret_cast<const uint8_t*>(payload_str.data()),
+    payload_str.size()
+  };
+
+  return node.send_interval(time, pid, type, payload);
+}
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef
 {
   auto& node = Process::get_default_node();
-  auto payload = string_view(
-    reinterpret_cast<const char*>(payload_flatbuffer.data()),
+  auto payload = BufferView{
+    payload_flatbuffer.data(),
     payload_flatbuffer.size()
-  );
+  };
+
   return node.send_interval(time, pid, type, payload);
 }
 
@@ -229,14 +307,14 @@ auto cancel(const TRef tref)
   return node.cancel(tref);
 }
 
-auto register_name(const string_view name, const Pid& pid)
+auto register_name(const Name name, const Pid& pid)
   -> bool
 {
   auto& node = Process::get_default_node();
   return node.register_name(name, pid);
 }
 
-auto unregister(const string_view name)
+auto unregister(const Name name)
   -> bool
 {
   auto& node = Process::get_default_node();
@@ -250,7 +328,7 @@ auto registered()
   return node.registered();
 }
 
-auto whereis(const string_view name)
+auto whereis(const Name name)
   -> MaybePid
 {
   auto& node = Process::get_default_node();
@@ -264,7 +342,7 @@ auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   return node.exit(pid, pid2, exit_reason);
 }
 
-auto module(const std::string_view module_flatbuffer)
+auto module(const BufferView module_flatbuffer)
  -> bool
 {
   auto& node = Process::get_default_node();
@@ -273,8 +351,8 @@ auto module(const std::string_view module_flatbuffer)
 
 auto apply(
   const Pid& pid,
-  const std::string_view function_name,
-  const std::string_view args
+  const Name function_name,
+  const BufferView args
 ) -> ResultUnion
 {
   auto& node = Process::get_default_node();
@@ -283,9 +361,9 @@ auto apply(
 
 auto apply(
   const Pid& pid,
-  const std::string_view module_name,
-  const std::string_view function_name,
-  const std::string_view args
+  const Name module_name,
+  const Name function_name,
+  const BufferView args
 ) -> ResultUnion
 {
   auto& node = Process::get_default_node();

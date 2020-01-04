@@ -27,9 +27,6 @@ static Node default_node;
 flatbuffers::FlatBufferBuilder Process::_default_execution_config_fbb;
 const ProcessExecutionConfig* Process::_default_execution_config = nullptr;
 
-using string = std::string;
-using string_view = std::string_view;
-
 void process_task(void* user_data = nullptr);
 
 // Multiple chained behaviours
@@ -133,7 +130,7 @@ auto Process::send(const Message& message)
   return did_send;
 }
 
-auto Process::send(const string_view type, const string_view payload)
+auto Process::send(const MessageType type, const BufferView payload)
   -> bool
 {
   auto did_send = mailbox.send(type, payload);

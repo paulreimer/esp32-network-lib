@@ -13,6 +13,7 @@
 #include "http_utils.h"
 
 #include <algorithm>
+#include <string_view>
 #include <vector>
 
 #include <cstdio>
@@ -700,14 +701,14 @@ auto RequestManager::wait_all()
   return requests.size();
 }
 
-auto RequestManager::add_cacert_pem(const string_view cacert_pem)
+auto RequestManager::add_cacert_pem(const BufferView cacert_pem)
   -> bool
 {
   // TODO(@paulreimer): this is possibly not request-safe and should be avoided
   // during requests or rewritten with a CA object per request
 
   // Check for null-terminating byte
-  if (cacert_pem.back() == '\0')
+  if (not cacert_pem.empty() and (*cacert_pem.end()) == '\0')
   {
 #ifdef REQUESTS_USE_CURL
     mbedtls_x509_crt* _cacerts = &curl_cacerts;
@@ -723,7 +724,7 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
     // Parse the PEM text
     auto ret = mbedtls_x509_crt_parse(
       _cacerts,
-      reinterpret_cast<const unsigned char*>(cacert_pem.data()),
+      cacert_pem.data(),
       cacert_pem.size()
     );
 
@@ -745,7 +746,7 @@ auto RequestManager::add_cacert_pem(const string_view cacert_pem)
   return false;
 }
 
-auto RequestManager::add_cacert_der(const string_view cacert_der)
+auto RequestManager::add_cacert_der(const BufferView cacert_der)
   -> bool
 {
   // TODO(@paulreimer): this is possibly not request-safe and should be avoided
@@ -765,7 +766,7 @@ auto RequestManager::add_cacert_der(const string_view cacert_der)
   // Parse the DER content
   auto ret = mbedtls_x509_crt_parse_der(
     _cacerts,
-    reinterpret_cast<const unsigned char*>(cacert_der.data()),
+    cacert_der.data(),
     cacert_der.size()
   );
 

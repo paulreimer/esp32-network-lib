@@ -12,6 +12,8 @@ idf_component_register(
     "lib/cpp17_headers/include"
     "src"
     "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
+  REQUIRES
+    "span"
   PRIV_INCLUDE_DIRS
     "lib"
   PRIV_REQUIRES

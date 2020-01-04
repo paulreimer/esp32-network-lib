@@ -23,11 +23,11 @@
 
 namespace ModuleManager {
 using BufferView = tcb::span<const uint8_t>;
+using string_view = std::string_view;
 
 class Loader
 {
 public:
-  using string_view = std::string_view;
 
   auto load(const BufferView elf_bin)
     -> Executable;

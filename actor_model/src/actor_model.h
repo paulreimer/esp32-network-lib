@@ -16,12 +16,15 @@
 
 #include "actor_model_generated.h"
 
+#include <string>
 #include <string_view>
 
 namespace ActorModel {
+using Buffer = std::vector<uint8_t>;
+using string_view = std::string_view;
+using string = std::string;
 
 using MessageFlatbuffer = flatbuffers::DetachedBuffer;
-using MutableFlatbuffer = std::vector<uint8_t>;
 
 // free functions bound to default node
 
@@ -50,25 +53,37 @@ auto send(
 
 auto send(
   const Pid& pid,
-  const std::string_view type,
-  const std::string_view payload = ""
+  const MessageType type,
+  const BufferView payload = {}
 ) -> bool;
 
 auto send(
   const Pid& pid,
-  const std::string_view type,
-  const std::vector<uint8_t>& payload_vec
+  const MessageType type,
+  const Buffer& payload_buf
 ) -> bool;
 
 auto send(
   const Pid& pid,
-  const std::string_view type,
+  const MessageType type,
+  const string_view payload_str
+) -> bool;
+
+auto send(
+  const Pid& pid,
+  const MessageType type,
+  const string& payload_str
+) -> bool;
+
+auto send(
+  const Pid& pid,
+  const MessageType type,
   const flatbuffers::Vector<uint8_t>& payload_fbvec
 ) -> bool;
 
 auto send(
   const Pid& pid,
-  const std::string_view type,
+  const MessageType type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> bool;
 
@@ -81,21 +96,35 @@ auto send_after(
 auto send_after(
   const Time time,
   const Pid& pid,
-  const std::string_view type,
-  const std::string_view payload = ""
+  const MessageType type,
+  const BufferView payload = {}
 ) -> TRef;
 
 auto send_after(
   const Time time,
   const Pid& pid,
-  const std::string_view type,
-  const std::vector<uint8_t>& payload_vec
+  const MessageType type,
+  const Buffer& payload_buf
 ) -> TRef;
 
 auto send_after(
   const Time time,
   const Pid& pid,
-  const std::string_view type,
+  const MessageType type,
+  const string_view payload_str
+) -> TRef;
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
+  const string& payload_str
+) -> TRef;
+
+auto send_after(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef;
 
@@ -108,61 +137,75 @@ auto send_interval(
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const std::string_view type,
-  const std::string_view payload = ""
+  const MessageType type,
+  const BufferView payload = {}
 ) -> TRef;
 
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const std::string_view type,
-  const std::vector<uint8_t>& payload_vec
+  const MessageType type,
+  const Buffer& payload_buf
 ) -> TRef;
 
 auto send_interval(
   const Time time,
   const Pid& pid,
-  const std::string_view type,
+  const MessageType type,
+  const string_view payload_str
+) -> TRef;
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
+  const string& payload_str
+) -> TRef;
+
+auto send_interval(
+  const Time time,
+  const Pid& pid,
+  const MessageType type,
   const MessageFlatbuffer& payload_flatbuffer
 ) -> TRef;
 
 auto cancel(const TRef tref)
   -> bool;
 
-auto exit(const Pid& pid, const Pid& pid2, const Process::Reason exit_reason)
+auto exit(const Pid& pid, const Pid& pid2, const Reason exit_reason)
   -> bool;
 
-auto register_name(const std::string_view name, const Pid& pid)
+auto register_name(const Name name, const Pid& pid)
   -> bool;
 
-auto unregister(const std::string_view name)
+auto unregister(const Name name)
   -> bool;
 
 auto registered()
   -> const Node::NamedProcessRegistry;
 
-auto whereis(const std::string_view name)
+auto whereis(const Name name)
   -> MaybePid;
 
-auto module(const std::string_view module_flatbuffer)
+auto module(const BufferView module_flatbuffer)
  -> bool;
 
 auto apply(
   const Pid& pid,
-  const std::string_view function_name,
-  const std::string_view args
+  const Name function_name,
+  const BufferView args
 ) -> ResultUnion;
 
 auto apply(
   const Pid& pid,
-  const std::string_view module_name,
-  const std::string_view function_name,
-  const std::string_view args
+  const Name module_name,
+  const Name function_name,
+  const BufferView args
 ) -> ResultUnion;
 
 inline
 auto matches(
-  const ActorModel::Message& message
+  const Message& message
 ) -> bool
 {
   return true;
@@ -170,8 +213,8 @@ auto matches(
 
 inline
 auto matches(
-  const ActorModel::Message& message,
-  const std::string_view type
+  const Message& message,
+  const MessageType type
 ) -> bool
 {
   return (message.type() and message.type()->string_view() == type);
@@ -179,14 +222,71 @@ auto matches(
 
 inline
 auto matches(
-  const ActorModel::Message& message,
-  const std::string_view type,
-  std::string_view& payload
+  const Message& message,
+  const MessageType type,
+  BufferView& payload
 ) -> bool
 {
   if (matches(message, type) and (message.payload()->size() > 0))
   {
-    payload = std::string_view{
+    payload = BufferView{message.payload()->data(), message.payload()->size()};
+
+    return true;
+  }
+
+  return false;
+}
+
+inline
+auto matches(
+  const Message& message,
+  const MessageType type,
+  Buffer& payload_buf
+) -> bool
+{
+  if (matches(message, type) and (message.payload()->size() > 0))
+  {
+    payload_buf.assign(
+      message.payload()->data(),
+      message.payload()->data() + message.payload()->size()
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
+inline
+auto matches(
+  const Message& message,
+  const MessageType type,
+  string& payload
+) -> bool
+{
+  if (matches(message, type) and (message.payload()->size() > 0))
+  {
+    payload.assign(
+      message.payload()->data(),
+      message.payload()->data() + message.payload()->size()
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
+inline
+auto matches(
+  const Message& message,
+  const MessageType type,
+  string_view& payload
+) -> bool
+{
+  if (matches(message, type) and (message.payload()->size() > 0))
+  {
+    payload = string_view{
       reinterpret_cast<const char*>(message.payload()->data()),
       message.payload()->size()
     };
@@ -197,51 +297,11 @@ auto matches(
   return false;
 }
 
-inline
-auto matches(
-  const ActorModel::Message& message,
-  const std::string_view type,
-  std::string& payload
-) -> bool
-{
-  if (matches(message, type) and (message.payload()->size() > 0))
-  {
-    payload.assign(
-      reinterpret_cast<const char*>(message.payload()->data()),
-      message.payload()->size()
-    );
-
-    return true;
-  }
-
-  return false;
-}
-
-inline
-auto matches(
-  const ActorModel::Message& message,
-  const std::string_view type,
-  MutableFlatbuffer& payload
-) -> bool
-{
-  if (matches(message, type) and (message.payload()->size() > 0))
-  {
-    payload.assign(
-      message.payload()->data(),
-      (message.payload()->data() + message.payload()->size())
-    );
-
-    return true;
-  }
-
-  return false;
-}
-
 template<typename TableT>
 inline
 auto matches(
-  const ActorModel::Message& message,
-  const std::string_view type,
+  const Message& message,
+  const MessageType type,
   const TableT*& payload_ptr
 ) -> bool
 {
@@ -273,8 +333,8 @@ auto matches(
 template<typename TableObjT, class /* SFINAE */ = typename TableObjT::TableType>
 inline
 auto matches(
-  const ActorModel::Message& message,
-  const std::string_view type,
+  const Message& message,
+  const MessageType type,
   TableObjT& obj
 ) -> bool
 {

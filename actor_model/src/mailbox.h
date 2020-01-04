@@ -16,7 +16,8 @@
 
 #include "actor_model_generated.h"
 
-#include <string>
+#include "tcb/span.hpp"
+
 #include <string_view>
 #include <unordered_map>
 
@@ -25,6 +26,8 @@
 #include "freertos/semphr.h"
 
 namespace ActorModel {
+using MessageType = std::string_view;
+using BufferView = tcb::span<const uint8_t>;
 
 class ReceivedMessage;
 
@@ -32,9 +35,6 @@ class Mailbox
 {
   friend class ReceivedMessage;
 public:
-  using string = std::string;
-  using string_view = std::string_view;
-
   using ReceivedMessagePtr = std::unique_ptr<ReceivedMessage>;
 
   using Address = UUID::UUID;
@@ -55,8 +55,8 @@ public:
   ~Mailbox();
 
   static auto create_message(
-    const string_view type,
-    const string_view payload,
+    const MessageType type,
+    const BufferView payload,
     const size_t payload_alignment = sizeof(uint64_t),
     const Pid* from_pid = nullptr
   ) -> flatbuffers::DetachedBuffer;
@@ -65,8 +65,8 @@ public:
     -> bool;
 
   auto send(
-    const string_view type,
-    const string_view payload,
+    const MessageType type,
+    const BufferView payload,
     const size_t payload_alignment = sizeof(uint64_t),
     const Pid* from_pid = nullptr
   ) -> bool;
@@ -86,12 +86,12 @@ private:
   portMUX_TYPE receive_multicore_mutex;
 
 protected:
-  auto release(const string_view message)
+  auto release(const BufferView message)
     -> bool;
 
 private:
   auto receive_raw()
-    -> string_view;
+    -> BufferView;
 
 //static methods:
   static auto send(const Address& address, const Message& message)
@@ -99,8 +99,8 @@ private:
 
   static auto send(
     const Address& address,
-    const string_view type,
-    const string_view payload
+    const MessageType type,
+    const BufferView payload
   ) -> bool;
 
   static AddressRegistry address_registry;

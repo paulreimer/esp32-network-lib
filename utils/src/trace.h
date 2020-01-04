@@ -14,8 +14,10 @@
 
 #include <string_view>
 
+using string_view = std::string_view;
+
 auto get_free_heap_size()
   -> size_t;
 
-auto heap_check(const std::string_view msg)
+auto heap_check(string_view msg)
   -> void;
