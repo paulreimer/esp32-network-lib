@@ -19,9 +19,9 @@ namespace ActorModel {
 using string = std::string;
 using string_view = std::string_view;
 
-constexpr char TAG[] = "supervisor";
-
 using MutableSupervisorArgsFlatbuffer = std::vector<uint8_t>;
+
+constexpr char TAG[] = "supervisor";
 
 struct SupervisorActorState
 {

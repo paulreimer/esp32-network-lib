@@ -16,8 +16,8 @@
 
 #include "firmware_update_generated.h"
 
-#include "esp_partition.h"
 #include "esp_ota_ops.h"
+#include "esp_partition.h"
 
 namespace FirmwareUpdate {
 using string = std::string;

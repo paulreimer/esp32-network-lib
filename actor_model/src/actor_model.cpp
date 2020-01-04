@@ -8,8 +8,8 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 
-#include "actor.h"
 #include "actor_model.h"
+#include "actor.h"
 
 namespace ActorModel {
 

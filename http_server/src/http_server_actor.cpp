@@ -29,6 +29,8 @@ namespace HTTPServer {
 
 using string = std::string;
 
+using MutableHTTPConfigurationFlatbuffer = std::vector<uint8_t>;
+
 using namespace ActorModel;
 
 using namespace std::chrono_literals;
@@ -49,8 +51,6 @@ static constexpr size_t HTTP_SERVER_RECV_BUF_LEN = 1024;
   "\r\n"
 
 constexpr char TAG[] = "http_server";
-
-using MutableHTTPConfigurationFlatbuffer = std::vector<uint8_t>;
 
 struct HTTPServerActorState
 {
