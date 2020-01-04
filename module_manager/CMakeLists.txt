@@ -8,17 +8,18 @@ idf_component_register(
     "src/executable.cpp"
     "src/file_buffer_loader.cpp"
     "src/loader.cpp"
-    "src/string_view_buffer_loader.cpp"
+    "src/buffer_view_loader.cpp"
   INCLUDE_DIRS
     "lib/libelfin"
     "src"
     "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_INCLUDE_DIRS
     "lib/libelfin/elf"
+  REQUIRES
+    "span"
   PRIV_REQUIRES
     "actor_model"
     "embedded_files"
-    "gsl"
     "requests"
     "utils"
 )
@@ -60,7 +61,7 @@ set_source_files_properties(
     "src/file_buffer_loader.cpp"
     "src/executable.cpp"
     "src/loader.cpp"
-    "src/string_view_buffer_loader.cpp"
+    "src/buffer_view_loader.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
     "-Wno-old-style-cast;"

@@ -1,5 +1,5 @@
 /*
- * Copyright Paul Reimer, 2018
+ * Copyright Paul Reimer, 2020
  *
  * This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License.
  * To view a copy of this license, visit
@@ -10,18 +10,20 @@
 
 #pragma once
 
-#include <string_view>
+#include "tcb/span.hpp"
 
 #include "elf/elf++.hh"
 
 namespace ModuleManager {
 
-class StringViewBufferLoader
+class BufferViewLoader
 : public elf::loader
 {
-  const std::string_view buffer;
+  using BufferView = tcb::span<const uint8_t>;
+  const BufferView buffer;
 public:
-  explicit StringViewBufferLoader(const std::string_view _buffer);
+
+  explicit BufferViewLoader(const BufferView _buffer);
   auto load(const off_t offset, const size_t size)
     -> const void* override;
 };

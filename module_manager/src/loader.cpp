@@ -14,7 +14,7 @@
 
 #include "xtensa_elf.h"
 
-#include "gsl/span"
+#include "tcb/span.hpp"
 
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -25,15 +25,16 @@ namespace ModuleManager {
 
 using namespace std::chrono_literals;
 
+using BufferView = tcb::span<const uint8_t>;
 using string_view = std::string_view;
 using XtensaElf32::RelocType;
 
 constexpr char TAG[] = "Loader";
 
-auto Loader::load(const string_view elf_bin)
+auto Loader::load(const BufferView elf_bin)
   -> Executable
 {
-  auto loader = std::make_shared<StringViewBufferLoader>(elf_bin);
+  auto loader = std::make_shared<BufferViewLoader>(elf_bin);
   elf::elf parsed_elf(loader);
 
   return load(parsed_elf);
@@ -253,7 +254,7 @@ auto Loader::_apply_relocs_for_section(
   // List of relocations
   const auto &reloc_hdr = reloc_section.get_hdr();
   auto reloc_count = (reloc_section.size() / reloc_hdr.entsize);
-  gsl::span<XtensaElf32::Rela> relocs(
+  tcb::span<XtensaElf32::Rela> relocs(
     const_cast<XtensaElf32::Rela*>(
       static_cast<const XtensaElf32::Rela*>(reloc_section.data())
     ),

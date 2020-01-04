@@ -14,19 +14,22 @@
 
 #include "sym.h"
 
+#include "buffer_view_loader.h"
 #include "file_buffer_loader.h"
-#include "string_view_buffer_loader.h"
 
 #include "elf/elf++.hh"
 
+#include "tcb/span.hpp"
+
 namespace ModuleManager {
+using BufferView = tcb::span<const uint8_t>;
 
 class Loader
 {
 public:
   using string_view = std::string_view;
 
-  auto load(const string_view elf_bin)
+  auto load(const BufferView elf_bin)
     -> Executable;
   auto load_from_path(const string_view path)
     -> Executable;
