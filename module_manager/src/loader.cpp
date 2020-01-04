@@ -312,12 +312,6 @@ auto Loader::_apply_relocs_for_section(
             const auto addr = resolve(sym.get_name());
             if (addr)
             {
-              const auto segment_idx = _segment_idx_for_reloc_offset(
-                parsed_elf,
-                reloc.offset
-              );
-              const auto& reloc_segment = parsed_elf.get_segment(segment_idx);
-
               const auto adjusted_offset = (
                 reloc.offset
                 - reloc_segment_base_offset
