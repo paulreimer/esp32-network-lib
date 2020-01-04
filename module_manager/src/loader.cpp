@@ -378,14 +378,18 @@ auto Loader::extract_symbols(const elf::elf& parsed_elf, Executable& executable)
         case elf::stt::func:
         {
           auto func_addr = sym.get_data().value - reloc_segment_base_offset;
-          executable.symbols[sym.get_name()] = func_addr;
+          executable.symbols[sym.get_name()] = static_cast<ptrdiff_t>(
+            func_addr
+          );
           break;
         }
 
         case elf::stt::object:
         {
           auto object_addr = sym.get_data().value - reloc_segment_base_offset;
-          executable.symbols[sym.get_name()] = object_addr;
+          executable.symbols[sym.get_name()] = static_cast<ptrdiff_t>(
+            object_addr
+          );
           break;
         }
 
