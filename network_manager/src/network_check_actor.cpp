@@ -16,8 +16,9 @@
 
 #include <chrono>
 
-#include "esp_ping.h"
-#include "ping/ping.h"
+#include "lwip/inet.h"
+
+#include "ping/ping_sock.h"
 
 #include "esp_log.h"
 
@@ -29,30 +30,79 @@ using namespace std::chrono_literals;
 
 constexpr char TAG[] = "network_check";
 
-auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found* pf)
-  -> esp_err_t;
+auto ping_success_callback(esp_ping_handle_t hdl, void *args)
+  -> void;
 
-auto ping_result_callback(ping_target_id_t msg_type, esp_ping_found* pf)
-  -> esp_err_t
+auto ping_timeout_callback(esp_ping_handle_t hdl, void *args)
+  -> void;
+
+auto ping_end_callback(esp_ping_handle_t hdl, void *args)
+  -> void;
+
+auto ping_success_callback(esp_ping_handle_t hdl, void *args)
+  -> void
 {
-  printf(
-    "AvgTime:%.1fmS Sent:%d Rec:%d Err:%d min(mS):%d max(mS):%d ",
-    static_cast<float>(pf->total_time) / static_cast<float>(pf->recv_count),
-    pf->send_count,
-    pf->recv_count,
-    pf->err_count,
-    pf->min_time,
-    pf->max_time
+  uint8_t ttl;
+  uint16_t seqno;
+  uint32_t elapsed_time, recv_len;
+  ip_addr_t target_addr;
+  esp_ping_get_profile(hdl, ESP_PING_PROF_SEQNO, &seqno, sizeof(seqno));
+  esp_ping_get_profile(hdl, ESP_PING_PROF_TTL, &ttl, sizeof(ttl));
+  esp_ping_get_profile(
+    hdl,
+    ESP_PING_PROF_IPADDR,
+    &target_addr,
+    sizeof(target_addr)
   );
-
-  printf(
-    "Resp(mS):%d Timeouts:%d Total Time:%d\n",
-    pf->resp_time,
-    pf->timeout_count,
-    pf->total_time
+  esp_ping_get_profile(hdl, ESP_PING_PROF_SIZE, &recv_len, sizeof(recv_len));
+  esp_ping_get_profile(
+    hdl,
+    ESP_PING_PROF_TIMEGAP,
+    &elapsed_time,
+    sizeof(elapsed_time)
   );
+  printf(
+    "%d bytes from %s icmp_seq=%d ttl=%d time=%d ms\n",
+    recv_len,
+    inet_ntoa(target_addr.u_addr.ip4),
+    seqno,
+    ttl,
+    elapsed_time
+  );
+}
 
-  return ESP_OK;
+auto ping_timeout_callback(esp_ping_handle_t hdl, void *args)
+  -> void
+{
+  uint16_t seqno;
+  ip_addr_t target_addr;
+  esp_ping_get_profile(hdl, ESP_PING_PROF_SEQNO, &seqno, sizeof(seqno));
+  esp_ping_get_profile(hdl, ESP_PING_PROF_IPADDR, &target_addr, sizeof(target_addr));
+  printf("From %s icmp_seq=%d timeout\n", inet_ntoa(target_addr.u_addr.ip4), seqno);
+}
+
+auto ping_end_callback(esp_ping_handle_t hdl, void *args)
+  -> void
+{
+  ip_addr_t target_addr;
+  uint32_t transmitted;
+  uint32_t received;
+  uint32_t total_time_ms;
+  esp_ping_get_profile(hdl, ESP_PING_PROF_REQUEST, &transmitted, sizeof(transmitted));
+  esp_ping_get_profile(hdl, ESP_PING_PROF_REPLY, &received, sizeof(received));
+  esp_ping_get_profile(hdl, ESP_PING_PROF_IPADDR, &target_addr, sizeof(target_addr));
+  esp_ping_get_profile(hdl, ESP_PING_PROF_DURATION, &total_time_ms, sizeof(total_time_ms));
+  uint32_t loss = (uint32_t)((1 - ((float)received) / transmitted) * 100);
+  if (IP_IS_V4(&target_addr)) {
+      printf("\n--- %s ping statistics ---\n", inet_ntoa(*ip_2_ip4(&target_addr)));
+  } else {
+      printf("\n--- %s ping statistics ---\n", inet6_ntoa(*ip_2_ip6(&target_addr)));
+  }
+  printf("%d packets transmitted, %d received, %d%% packet loss, time %dms\n",
+          transmitted, received, loss, total_time_ms);
+  // delete the ping sessions, so that we clean up all resources and can create a new ping session
+  // we don't have to call delete function in the callback, instead we can call delete function from other tasks
+  esp_ping_delete_session(hdl);
 }
 
 struct NetworkCheckActorState
@@ -78,37 +128,31 @@ auto network_check_actor_behaviour(
 
   if (matches(message, "ping"))
   {
-    if (not state.ping_init_done)
-    {
-      const auto& network_details = get_network_details();
-      if (network_details.gw.addr)
-      {
-        ping_init();
-        state.ping_init_done = true;
-      }
-    }
 
-    if (state.ping_init_done)
+    const auto& network_details = get_network_details();
+    if (network_details.gw.addr)
     {
-      const auto& network_details = get_network_details();
-      if (network_details.gw.addr)
-      {
-        uint32_t _cnt = state.ping_count;
-        auto _timeout = static_cast<uint32_t>(
-          std::chrono::milliseconds(ping_timeout).count()
-        );
-        uint32_t _delay = static_cast<uint32_t>(
-          std::chrono::milliseconds(ping_delay).count()
-        );
-        uint32_t _addr = network_details.gw.addr;
-        void* _fn = (void*)&ping_result_callback;
+      esp_ping_config_t config = ESP_PING_DEFAULT_CONFIG();
+      config.timeout_ms = static_cast<uint32_t>(
+        std::chrono::milliseconds(ping_timeout).count()
+      );
+      config.interval_ms = static_cast<uint32_t>(
+        std::chrono::milliseconds(ping_delay).count()
+      );
+      config.count = static_cast<uint32_t>(state.ping_count);
+      ip_addr_set_ip4_u32(&(config.target_addr), network_details.gw.addr);
 
-        esp_ping_set_target(PING_TARGET_IP_ADDRESS_COUNT, &_cnt, sizeof(_cnt));
-        esp_ping_set_target(PING_TARGET_RCV_TIMEO, &_timeout, sizeof(_timeout));
-        esp_ping_set_target(PING_TARGET_DELAY_TIME, &_delay, sizeof(_delay));
-        esp_ping_set_target(PING_TARGET_IP_ADDRESS, &_addr, sizeof(_addr));
-        esp_ping_set_target(PING_TARGET_RES_FN, _fn, sizeof(_fn));
-      }
+      esp_ping_callbacks_t callbacks = {
+        .cb_args = NULL,
+        .on_ping_success = ping_success_callback,
+        .on_ping_timeout = ping_timeout_callback,
+        .on_ping_end = ping_end_callback,
+      };
+      esp_ping_handle_t ping_handle;
+      esp_ping_new_session(&config, &callbacks, &ping_handle);
+      esp_ping_start(ping_handle);
+
+      state.ping_init_done = true;
     }
 
     return {Result::Ok};

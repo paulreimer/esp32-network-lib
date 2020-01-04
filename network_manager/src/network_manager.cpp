@@ -85,37 +85,50 @@ auto get_wifi_connection_rssi(const size_t samples)
   return average_rssi;
 }
 
-auto event_handler(void* ctx,  system_event_t* event)
-  -> esp_err_t
+auto event_handler(
+  void* arg,
+  esp_event_base_t
+  event_base,
+  int32_t event_id,
+  void* event_data
+) -> void
 {
-  switch(event->event_id)
+  switch(event_id)
   {
-    case SYSTEM_EVENT_STA_START:
+    case WIFI_EVENT_STA_START:
       esp_wifi_connect();
       break;
 
-    case SYSTEM_EVENT_STA_CONNECTED:
+    case WIFI_EVENT_STA_CONNECTED:
+    {
       // Enable IPv6 link-local interface
-      tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);
+      auto netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+      esp_netif_create_ip6_linklocal(netif);
       break;
+    }
 
-    case SYSTEM_EVENT_STA_GOT_IP:
-      wifi_network_details = {
-        event->event_info.got_ip.ip_info.ip,
-        event->event_info.got_ip.ip_info.gw,
-        event->event_info.got_ip.ip_info.netmask,
+    case IP_EVENT_STA_GOT_IP:
+    {
+      auto* event = reinterpret_cast<ip_event_got_ip_t*>(event_data);
+      wifi_network_details = NetworkInterfaceDetails{
+        event->ip_info.ip,
+        event->ip_info.gw,
+        event->ip_info.netmask,
       };
 
       set_network(NETWORK_IS_CONNECTED_IPV4);
       set_network(NETWORK_IS_CONNECTED);
       break;
+    }
 
-    case SYSTEM_EVENT_AP_STA_GOT_IP6:
+    case IP_EVENT_GOT_IP6:
+    {
       set_network(NETWORK_IS_CONNECTED_IPV6);
       set_network(NETWORK_IS_CONNECTED);
       break;
+    }
 
-    case SYSTEM_EVENT_STA_DISCONNECTED:
+    case WIFI_EVENT_STA_DISCONNECTED:
       // This is a workaround as ESP32 WiFi libs don't currently
       // auto-reassociate.
       esp_wifi_connect();
@@ -125,10 +138,6 @@ auto event_handler(void* ctx,  system_event_t* event)
     default:
       break;
   }
-
-  mdns_handle_system_event(ctx, event);
-
-  return ESP_OK;
 }
 
 } // namespace NetworkManager

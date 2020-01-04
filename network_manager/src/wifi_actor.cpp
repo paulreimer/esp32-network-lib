@@ -15,7 +15,9 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_system.h"
+extern "C" {
 #include "esp_wifi.h"
+}
 
 namespace NetworkManager {
 
@@ -41,6 +43,10 @@ auto wifi_actor_behaviour(
 
   if (matches(message, "connect_wifi_sta"))
   {
+    // Create wifi netif for station mode
+    esp_netif_create_default_wifi_sta();
+
+    // Initialize wifi to default configuration
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     auto ret = esp_wifi_init(&cfg);
     if (ret == ESP_OK)

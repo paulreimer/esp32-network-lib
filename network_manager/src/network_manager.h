@@ -23,9 +23,9 @@ namespace NetworkManager {
 
 struct NetworkInterfaceDetails
 {
-  ip4_addr_t ip;
-  ip4_addr_t gw;
-  ip4_addr_t netmask;
+  esp_ip4_addr_t ip;
+  esp_ip4_addr_t gw;
+  esp_ip4_addr_t netmask;
 };
 
 auto wait_for_network(const EventBits_t bits, const TickType_t ticks_to_wait)
@@ -43,8 +43,13 @@ auto get_network_details()
 auto get_wifi_connection_rssi(const size_t samples)
   -> int;
 
-auto event_handler(void* ctx, system_event_t* event)
-  -> esp_err_t;
+auto event_handler(
+  void* arg,
+  esp_event_base_t
+  event_base,
+  int32_t event_id,
+  void* event_data
+) -> void;
 
 // The event group allows multiple bits for each event,
 // but we only care about one event - are we connected

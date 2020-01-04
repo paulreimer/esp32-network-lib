@@ -66,7 +66,7 @@ set_source_files_properties(
     "src/wifi_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-conversion;-Wno-old-style-cast"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(network_manager_generated_h network_manager.fbs)
