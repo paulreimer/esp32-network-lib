@@ -9,6 +9,7 @@ idf_component_register(
     "app_update"
   PRIV_REQUIRES
     "actor_model"
+    "driver"
     "flatbuffers"
     "mbedtls"
     "requests"

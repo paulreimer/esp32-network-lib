@@ -5,6 +5,8 @@ idf_component_register(
     "src/trace.cpp"
   INCLUDE_DIRS
     "src"
+  PRIV_REQUIRES
+    "esp_timer"
 )
 
 target_compile_options(

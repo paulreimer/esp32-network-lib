@@ -12,10 +12,11 @@ idf_component_register(
     "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_REQUIRES
     "actor_model"
+    "esp_netif"
+    "esp_wifi"
     "flatbuffers"
     "lwip"
     "mdns"
-    "tcpip_adapter"
     "utils"
 )
 

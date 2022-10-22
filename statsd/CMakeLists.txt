@@ -3,6 +3,8 @@ idf_component_register(
     "src/timing_metric.cpp"
   INCLUDE_DIRS
     "src"
+  PRIV_REQUIRES
+    "esp_hw_support"
 )
 
 target_compile_options(
