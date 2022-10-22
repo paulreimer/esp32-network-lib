@@ -1,3 +1,5 @@
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/gen")
+
 idf_component_register(
   SRCS
     "src/udp_server_actor.cpp"

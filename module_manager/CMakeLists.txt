@@ -1,4 +1,9 @@
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/gen")
+
 idf_build_get_property(build_dir BUILD_DIR)
+
+file(MAKE_DIRECTORY "${build_dir}/src/gen")
+file(TOUCH "${build_dir}/src/gen/symbols.c")
 
 idf_component_register(
   SRCS
@@ -72,6 +77,8 @@ set_source_files_properties(
 )
 
 if(CONFIG_MODULE_MANAGER_GENERATE_SYMBOLS_C)
+file(TOUCH "${build_dir}/src/gen/symbols.c")
+
 add_custom_command(
   OUTPUT "${build_dir}/src/gen/symbols.c"
   COMMAND sh -c "\
