@@ -46,7 +46,7 @@ set_source_files_properties(
     "src/ntp.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-conversion;-Wno-shadow=local;-Wno-format-nonliteral"
+    "-Wno-conversion;-Wno-shadow=local;-Wno-format-nonliteral;"
 )
 
 set_source_files_properties(

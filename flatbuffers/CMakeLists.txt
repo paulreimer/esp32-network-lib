@@ -25,7 +25,7 @@ set_source_files_properties(
     "lib/flatbuffers/src/reflection.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-missing-declarations;-Wno-float-conversion;-Wno-conversion;-Wno-format-nonliteral"
+    "-Wno-missing-declarations;-Wno-float-conversion;-Wno-conversion;-Wno-format-nonliteral;"
 )
 
 set_source_files_properties(
@@ -34,5 +34,5 @@ set_source_files_properties(
     "src/flatbuffers_utils.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-missing-declarations;-Wno-float-conversion;-Wno-format-nonliteral"
+    "-Wno-missing-declarations;-Wno-float-conversion;-Wno-format-nonliteral;"
 )
