@@ -30,11 +30,26 @@ target_compile_options(
 
 set_source_files_properties(
   SOURCE
-    "src/spreadsheet_insert_row_actor.cpp"
     "src/visualization_query_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-old-style-cast;-Wno-sign-compare;-Wno-format;-Wno-format-nonliteral;"
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/spreadsheet_insert_row_actor.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-sign-compare;-Wno-format;-Wno-format-nonliteral;"
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/googleapis.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(sheets_generated_h sheets.fbs)

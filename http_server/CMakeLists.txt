@@ -21,7 +21,7 @@ set_source_files_properties(
     "src/http_server_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-old-style-cast;-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(http_server_generated_h http_server.fbs)

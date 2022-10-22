@@ -12,3 +12,12 @@ target_compile_options(
   PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${EXTRA_CXX_WARNING_FLAGS}>
 )
+
+set_source_files_properties(
+  SOURCE
+    "src/delay.cpp"
+    "src/trace.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-sign-compare;"
+)

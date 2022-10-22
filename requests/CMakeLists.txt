@@ -44,11 +44,29 @@ set_property(
 
 set_source_files_properties(
   SOURCE
+    "src/curl_library_info.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-sign-compare;"
+)
+
+set_source_files_properties(
+  SOURCE
     "src/queued_endpoint_actor.cpp"
+    "src/request_manager.cpp"
     "src/request_manager_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-old-style-cast;-Wno-sign-compare;"
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/request_handler.cpp"
+    "src/requests.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(requests_generated_h requests.fbs)

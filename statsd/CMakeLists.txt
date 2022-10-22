@@ -16,5 +16,5 @@ set_source_files_properties(
     "src/timing_metric.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-old-style-cast;-Wno-sign-compare;"
 )

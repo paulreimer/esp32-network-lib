@@ -38,12 +38,23 @@ set_property(
 set_source_files_properties(
   SOURCE
     "src/actor.cpp"
-    "src/node.cpp"
     "src/mailbox.cpp"
+    "src/node.cpp"
     "src/process.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-old-style-cast;-Wno-sign-compare;"
+)
+
+set_source_files_properties(
+  SOURCE
+    "src/actor_model.cpp"
+    "src/oom_killer_actor_behaviour.cpp"
+    "src/received_message.cpp"
+    "src/supervisor_actor_behaviour.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(actor_model_generated_h actor_model.fbs)

@@ -29,7 +29,7 @@ set_source_files_properties(
     "src/firmware_update_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-old-style-cast;"
+    "-Wno-old-style-cast;-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(firmware_update_generated_h firmware_update.fbs)

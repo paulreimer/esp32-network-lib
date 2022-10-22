@@ -54,7 +54,7 @@ set_source_files_properties(
     "src/ntp_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-conversion;-Wno-shadow=local;-Wno-old-style-cast"
+    "-Wno-conversion;-Wno-shadow=local;-Wno-old-style-cast;-Wno-sign-compare;"
 )
 
 set_source_files_properties(
@@ -65,7 +65,7 @@ set_source_files_properties(
     "src/wifi_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-conversion;-Wno-old-style-cast"
+    "-Wno-conversion;-Wno-old-style-cast;-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(network_manager_generated_h network_manager.fbs)

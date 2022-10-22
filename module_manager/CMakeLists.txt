@@ -55,9 +55,16 @@ set_source_files_properties(
 
 set_source_files_properties(
   SOURCE
+    "src/loader.cpp"
+  APPEND PROPERTIES
+  COMPILE_OPTIONS
+    "-Wno-conversion;-Wno-old-style-cast;-Wno-pointer-arith;-Wno-sign-compare;"
+)
+
+set_source_files_properties(
+  SOURCE
     "src/file_buffer_loader.cpp"
     "src/executable.cpp"
-    "src/loader.cpp"
     "src/buffer_view_loader.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS

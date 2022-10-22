@@ -31,5 +31,5 @@ set_source_files_properties(
     "src/uuid.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-conversion;-Wno-old-style-cast"
+    "-Wno-conversion;-Wno-old-style-cast;-Wno-sign-compare;"
 )

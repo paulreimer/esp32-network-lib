@@ -35,7 +35,7 @@ set_source_files_properties(
     "src/mqtt_client_actor.cpp"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-Wno-suggest-override;"
+    "-Wno-conversion;-Wno-suggest-override;-Wno-sign-compare;"
 )
 
 FLATBUFFERS_GENERATE_GENERATED_H(mqtt_generated_h mqtt.fbs)

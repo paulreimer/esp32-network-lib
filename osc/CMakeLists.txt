@@ -21,5 +21,5 @@ set_source_files_properties(
     "lib/tinyosc/tinyosc.c"
   APPEND PROPERTIES
   COMPILE_OPTIONS
-    "-include;${COMPONENT_PATH}/src/htonll_ntohll.h;-Wno-overflow;-Wno-sign-conversion;-Wno-sign-compare;-Wno-double-promotion;-Wno-conversion;"
+    "-include;${COMPONENT_PATH}/src/htonll_ntohll.h;-Wno-overflow;-Wno-sign-conversion;-Wno-sign-compare;-Wno-double-promotion;-Wno-conversion;-Wno-format;"
 )
