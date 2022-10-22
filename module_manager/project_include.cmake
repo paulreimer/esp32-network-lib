@@ -11,8 +11,6 @@ function(MODULE_GENERATE_ELF target_prefix mod_name)
 
   add_library(${mod_name}_LIBRARY OBJECT "${ARGN}")
 
-target_compile_features(${mod_name}_LIBRARY PUBLIC cxx_std_17)
-
   target_compile_options(
     ${mod_name}_LIBRARY
     PRIVATE

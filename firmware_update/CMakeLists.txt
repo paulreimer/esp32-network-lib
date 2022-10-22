@@ -18,7 +18,6 @@ idf_component_register(
 
 idf_build_get_property(build_dir BUILD_DIR)
 
-target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 target_compile_options(
   ${COMPONENT_LIB}
   PRIVATE
