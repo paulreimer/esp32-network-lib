@@ -14,7 +14,6 @@ idf_component_register(
     "src"
     "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   REQUIRES
-    "span"
     "uuid"
   PRIV_REQUIRES
     "esp_ringbuf"

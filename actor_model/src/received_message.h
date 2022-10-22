@@ -14,10 +14,10 @@
 
 #include "mailbox.h"
 
-#include "tcb/span.hpp"
+#include <span>
 
 namespace ActorModel {
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 class Mailbox;
 

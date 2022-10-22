@@ -9,11 +9,10 @@
  */
 #pragma once
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <string_view>
 
-using GenericFlatbuffer = tcb::span<const uint8_t>;
+using GenericFlatbuffer = std::span<const uint8_t>;
 using FlatbufferSchema = std::string_view;
 
 struct Bounds

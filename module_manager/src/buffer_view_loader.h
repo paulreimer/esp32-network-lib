@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "tcb/span.hpp"
+#include <span>
 
 #include "elf/elf++.hh"
 
@@ -19,7 +19,7 @@ namespace ModuleManager {
 class BufferViewLoader
 : public elf::loader
 {
-  using BufferView = tcb::span<const uint8_t>;
+  using BufferView = std::span<const uint8_t>;
   const BufferView buffer;
 public:
 

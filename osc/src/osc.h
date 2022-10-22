@@ -13,13 +13,13 @@
 #include "uuid.h"
 
 #include "flatbuffers/flatbuffers.h"
-#include "tcb/span.hpp"
 
+#include <span>
 #include <vector>
 
 namespace OSC {
 using Buffer = std::vector<uint8_t>;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 using MutableGenericFlatbuffer = std::vector<uint8_t>;
 

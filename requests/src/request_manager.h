@@ -25,9 +25,8 @@ extern "C" {
 }
 #endif // REQUESTS_USE_SH2LIB
 
-#include "tcb/span.hpp"
-
 #include <memory>
+#include <span>
 #include <string>
 #include <unordered_map>
 
@@ -55,7 +54,7 @@ public:
 #endif // REQUESTS_USE_SH2LIB
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
-  using BufferView = tcb::span<const uint8_t>;
+  using BufferView = std::span<const uint8_t>;
 
   RequestManager();
   ~RequestManager();

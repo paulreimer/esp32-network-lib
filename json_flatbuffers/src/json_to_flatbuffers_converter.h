@@ -14,8 +14,7 @@
 
 #include "delegate.hpp"
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <string_view>
 
 #include "flatbuffers/idl.h"
@@ -24,7 +23,7 @@
 
 namespace JsonFlatbuffers {
 using string_view = std::string_view;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 class JsonToFlatbuffersConverter
 {

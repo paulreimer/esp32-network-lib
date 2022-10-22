@@ -16,8 +16,7 @@
 
 #include "actor_model_generated.h"
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <string_view>
 #include <unordered_map>
 
@@ -27,7 +26,7 @@
 
 namespace ActorModel {
 using MessageType = std::string_view;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 class ReceivedMessage;
 

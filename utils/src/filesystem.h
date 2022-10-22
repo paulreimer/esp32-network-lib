@@ -10,14 +10,13 @@
 
 #pragma once
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <string_view>
 #include <vector>
 
 namespace utils {
 using Buffer = std::vector<uint8_t>;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 using string_view = std::string_view;
 
 auto filesystem_exists(

@@ -16,15 +16,14 @@
 
 #include "requests_generated.h"
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <string_view>
 #include <utility>
 #include <vector>
 
 namespace Requests {
 using Buffer = std::vector<uint8_t>;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 using string_view = std::string_view;
 
 using RequestPayloadFlatbuffer = flatbuffers::DetachedBuffer;

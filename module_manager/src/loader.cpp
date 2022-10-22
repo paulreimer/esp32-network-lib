@@ -14,18 +14,17 @@
 
 #include "xtensa_elf.h"
 
-#include "tcb/span.hpp"
-
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 
 #include <chrono>
+#include <span>
 
 namespace ModuleManager {
 
 using namespace std::chrono_literals;
 
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 using string_view = std::string_view;
 using XtensaElf32::RelocType;
 
@@ -254,7 +253,7 @@ auto Loader::_apply_relocs_for_section(
   // List of relocations
   const auto &reloc_hdr = reloc_section.get_hdr();
   auto reloc_count = (reloc_section.size() / reloc_hdr.entsize);
-  tcb::span<XtensaElf32::Rela> relocs(
+  std::span<XtensaElf32::Rela> relocs(
     const_cast<XtensaElf32::Rela*>(
       static_cast<const XtensaElf32::Rela*>(reloc_section.data())
     ),

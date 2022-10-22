@@ -9,15 +9,14 @@
  */
 #pragma once
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <vector>
 
 #include "mbedtls/pk.h"
 
 namespace JWT {
 using Buffer = std::vector<uint8_t>;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 class JWTGenerator
 {

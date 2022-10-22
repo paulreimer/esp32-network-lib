@@ -15,9 +15,8 @@
 #include "delay.h"
 #include "uuid.h"
 
-#include "tcb/span.hpp"
-
 #include <chrono>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -31,7 +30,7 @@
 namespace UDPServer {
 
 using string = std::string;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 using namespace ActorModel;
 

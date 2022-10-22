@@ -15,8 +15,6 @@ idf_component_register(
     "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
   PRIV_INCLUDE_DIRS
     "lib/libelfin/elf"
-  REQUIRES
-    "span"
   PRIV_REQUIRES
     "actor_model"
     "embedded_files"

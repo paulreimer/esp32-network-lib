@@ -4,8 +4,6 @@ idf_component_register(
   INCLUDE_DIRS
     "src"
     "${CMAKE_CURRENT_BINARY_DIR}/src/gen"
-  REQUIRES
-    "span"
   PRIV_REQUIRES
     "actor_model"
     "lwip"

@@ -6,8 +6,6 @@ idf_component_register(
   INCLUDE_DIRS
     "lib/libb64/include"
     "src"
-  PRIV_REQUIRES
-    "span"
 )
 
 

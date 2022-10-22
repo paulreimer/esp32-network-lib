@@ -4,8 +4,6 @@ idf_component_register(
     "src/json_to_flatbuffers_converter.cpp"
   INCLUDE_DIRS
     "src"
-  REQUIRES
-    "span"
   PRIV_REQUIRES
     "flatbuffers"
     "json_streaming"

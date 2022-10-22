@@ -5,8 +5,6 @@ idf_component_register(
     "src/trace.cpp"
   INCLUDE_DIRS
     "src"
-  REQUIRES
-    "span"
 )
 
 target_compile_options(

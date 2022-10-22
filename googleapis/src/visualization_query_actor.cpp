@@ -16,12 +16,11 @@
 
 #include "delay.h"
 
-#include "tcb/span.hpp"
-
 #include "esp_log.h"
 
 #include <chrono>
 #include <deque>
+#include <span>
 #include <string>
 
 namespace googleapis {
@@ -33,7 +32,7 @@ using namespace Requests;
 using namespace std::chrono_literals;
 
 using string = std::string;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 using StringPair = std::pair<string, string>;
 

@@ -9,15 +9,14 @@
  */
 #pragma once
 
-#include "tcb/span.hpp"
-
+#include <span>
 #include <vector>
 
 #include <stdio.h>
 
 namespace base64 {
 using Buffer = std::vector<uint8_t>;
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 
 auto encode(BufferView in)
   -> Buffer;

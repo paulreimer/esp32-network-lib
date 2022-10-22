@@ -19,10 +19,10 @@
 
 #include "elf/elf++.hh"
 
-#include "tcb/span.hpp"
+#include <span>
 
 namespace ModuleManager {
-using BufferView = tcb::span<const uint8_t>;
+using BufferView = std::span<const uint8_t>;
 using string_view = std::string_view;
 
 class Loader
