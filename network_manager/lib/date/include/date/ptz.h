@@ -76,8 +76,8 @@ class rule
 {
     enum {off, J, M, N};
 
-    date::month m_;
-    date::weekday wd_;
+    std::chrono::month m_;
+    std::chrono::weekday wd_;
     unsigned short n_    : 14;
     unsigned short mode_ : 2;
     std::chrono::duration<std::int32_t> time_ = std::chrono::hours{2};
@@ -86,60 +86,11 @@ public:
     rule() : mode_(off) {}
 
     bool ok() const {return mode_ != off;}
-    date::local_seconds operator()(date::year y) const;
+    std::chrono::local_seconds operator()(std::chrono::year y) const;
 
     friend std::ostream& operator<<(std::ostream& os, const rule& r);
     friend unsigned read_date(const string_t& s, unsigned i, rule& r);
 };
-
-inline
-date::local_seconds
-rule::operator()(date::year y) const
-{
-    using namespace date;
-    using sec = std::chrono::seconds;
-    date::local_seconds t;
-    switch (mode_)
-    {
-    case J:
-        t = local_days{y/jan/0} + days{n_ + (y.is_leap() && n_ > 59)} + sec{time_};
-        break;
-    case M:
-        t = (n_ == 5 ? local_days{y/m_/wd_[last]} : local_days{y/m_/wd_[n_]}) + sec{time_};
-        break;
-    case N:
-        t = local_days{y/jan/1} + days{n_} + sec{time_};
-        break;
-    default:
-        assert(!"rule called with bad mode");
-    }
-    return t;
-}
-
-inline
-std::ostream&
-operator<<(std::ostream& os, const rule& r)
-{
-    switch (r.mode_)
-    {
-    case rule::J:
-        os << 'J' << r.n_ << date::format(" %T", r.time_);
-        break;
-    case rule::M:
-        if (r.n_ == 5)
-            os << r.m_/r.wd_[date::last];
-        else
-            os << r.m_/r.wd_[r.n_];
-        os <<  date::format(" %T", r.time_);
-        break;
-    case rule::N:
-        os << r.n_ << date::format(" %T", r.time_);
-        break;
-    default:
-        break;
-    }
-    return os;
-}
 
 }  // namespace detail
 
@@ -156,21 +107,21 @@ public:
     explicit time_zone(const detail::string_t& name);
 
     template <class Duration>
-        date::sys_info   get_info(date::sys_time<Duration> st) const;
+        date::sys_info   get_info(std::chrono::sys_time<Duration> st) const;
     template <class Duration>
-        date::local_info get_info(date::local_time<Duration> tp) const;
+        date::local_info get_info(std::chrono::local_time<Duration> tp) const;
 
     template <class Duration>
-        date::sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-        to_sys(date::local_time<Duration> tp) const;
+        std::chrono::sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
+        to_sys(std::chrono::local_time<Duration> tp) const;
 
     template <class Duration>
-        date::sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-        to_sys(date::local_time<Duration> tp, date::choose z) const;
+        std::chrono::sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
+        to_sys(std::chrono::local_time<Duration> tp, date::choose z) const;
 
     template <class Duration>
-        date::local_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-        to_local(date::sys_time<Duration> tp) const;
+        std::chrono::local_time<typename std::common_type<Duration, std::chrono::seconds>::type>
+        to_local(std::chrono::sys_time<Duration> tp) const;
 
     friend std::ostream& operator<<(std::ostream& os, const time_zone& z);
 
@@ -208,184 +159,10 @@ time_zone::time_zone(const detail::string_t& s)
     }
 }
 
-template <class Duration>
-date::sys_info
-time_zone::get_info(date::sys_time<Duration> st) const
-{
-    using namespace date;
-    using namespace std::chrono;
-    sys_info r{};
-    r.offset = offset_;
-    if (start_rule_.ok())
-    {
-        auto y = year_month_day{floor<days>(st)}.year();
-        auto start = sys_seconds{(start_rule_(y) - offset_).time_since_epoch()};
-        auto end   = sys_seconds{(end_rule_(y) - (offset_ + save_)).time_since_epoch()};
-        if (start <= st && st < end)
-        {
-            r.begin = start;
-            r.end = end;
-            r.offset += save_;
-            r.save = ceil<minutes>(save_);
-            r.abbrev = dst_abbrev_;
-        }
-        else if (st < start)
-        {
-            r.begin = sys_seconds{(end_rule_(y-years{1}) -
-                                   (offset_ + save_)).time_since_epoch()};
-            r.end = start;
-            r.abbrev = std_abbrev_;
-        }
-        else  // st >= end
-        {
-            r.begin = end;
-            r.end = sys_seconds{(start_rule_(y+years{1}) - offset_).time_since_epoch()};
-            r.abbrev = std_abbrev_;
-        }
-    }
-    else  //  constant offset
-    {
-        r.begin = sys_days{year::min()/jan/1};
-        r.end   = sys_days{year::max()/dec/last};
-        r.abbrev = std_abbrev_;
-    }
-    return r;
-}
-
-template <class Duration>
-date::local_info
-time_zone::get_info(date::local_time<Duration> tp) const
-{
-    using namespace date;
-    using namespace std::chrono;
-    local_info r{};
-    if (start_rule_.ok())
-    {
-        auto y = year_month_day{floor<days>(tp)}.year();
-        auto start = sys_seconds{(start_rule_(y) - offset_).time_since_epoch()};
-        auto end   = sys_seconds{(end_rule_(y) - (offset_ + save_)).time_since_epoch()};
-        auto utcs = sys_seconds{floor<seconds>(tp - offset_).time_since_epoch()};
-        auto utcd = sys_seconds{floor<seconds>(tp - (offset_ + save_)).time_since_epoch()};
-        if ((utcs < start) != (utcd < start))
-        {
-            r.first.begin = sys_seconds{(end_rule_(y-years{1}) -
-                                         (offset_ + save_)).time_since_epoch()};
-            r.first.end = start;
-            r.first.offset = offset_;
-            r.first.abbrev = std_abbrev_;
-            r.second.begin = start;
-            r.second.end = end;
-            r.second.abbrev = dst_abbrev_;
-            r.second.offset = offset_ + save_;
-            r.second.save = ceil<minutes>(save_);
-            r.result = save_ > seconds{0} ? local_info::nonexistent
-                                          : local_info::ambiguous;
-        }
-        else if ((utcs < end) != (utcd < end))
-        {
-            r.first.begin = start;
-            r.first.end = end;
-            r.first.offset = offset_ + save_;
-            r.first.save = ceil<minutes>(save_);
-            r.first.abbrev = dst_abbrev_;
-            r.second.begin = end;
-            r.second.end = sys_seconds{(start_rule_(y+years{1}) -
-                                        offset_).time_since_epoch()};
-            r.second.abbrev = std_abbrev_;
-            r.second.offset = offset_;
-            r.result = save_ > seconds{0} ? local_info::ambiguous
-                                          : local_info::nonexistent;
-        }
-        else if (utcs < start)
-        {
-            r.first.begin = sys_seconds{(end_rule_(y-years{1}) -
-                                   (offset_ + save_)).time_since_epoch()};
-            r.first.end = start;
-            r.first.offset = offset_;
-            r.first.abbrev = std_abbrev_;
-        }
-        else if (utcs < end)
-        {
-            r.first.begin = start;
-            r.first.end = end;
-            r.first.offset = offset_ + save_;
-            r.first.save = ceil<minutes>(save_);
-            r.first.abbrev = dst_abbrev_;
-        }
-        else
-        {
-            r.first.begin = end;
-            r.first.end = sys_seconds{(start_rule_(y+years{1}) -
-                                       offset_).time_since_epoch()};
-            r.first.abbrev = std_abbrev_;
-            r.first.offset = offset_;
-        }
-    }
-    else  //  constant offset
-    {
-        r.first.begin = sys_days{year::min()/jan/1};
-        r.first.end   = sys_days{year::max()/dec/last};
-        r.first.abbrev = std_abbrev_;
-        r.first.offset = offset_;
-    }
-    return r;
-}
-
-template <class Duration>
-date::sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-time_zone::to_sys(date::local_time<Duration> tp) const
-{
-    using namespace date;
-    auto i = get_info(tp);
-    if (i.result == local_info::nonexistent)
-        throw nonexistent_local_time(tp, i);
-    else if (i.result == local_info::ambiguous)
-        throw ambiguous_local_time(tp, i);
-    return sys_time<Duration>{tp.time_since_epoch()} - i.first.offset;
-}
-
-template <class Duration>
-date::sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-time_zone::to_sys(date::local_time<Duration> tp, date::choose z) const
-{
-    using namespace date;
-    auto i = get_info(tp);
-    if (i.result == local_info::nonexistent)
-    {
-        return i.first.end;
-    }
-    else if (i.result == local_info::ambiguous)
-    {
-        if (z == choose::latest)
-            return sys_time<Duration>{tp.time_since_epoch()} - i.second.offset;
-    }
-    return sys_time<Duration>{tp.time_since_epoch()} - i.first.offset;
-}
-
-template <class Duration>
-date::local_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-time_zone::to_local(date::sys_time<Duration> tp) const
-{
-    using namespace date;
-    using namespace std::chrono;
-    using LT = local_time<typename std::common_type<Duration, seconds>::type>;
-    auto i = get_info(tp);
-    return LT{(tp + i.offset).time_since_epoch()};
-}
-
-inline
-std::ostream&
-operator<<(std::ostream& os, const time_zone& z)
-{
-    using date::operator<<;
-    os << '{';
-    os << z.std_abbrev_ << ", " << z.dst_abbrev_ << date::format(", %T, ", z.offset_)
-       << date::format("%T, [", z.save_) << z.start_rule_ << ", " << z.end_rule_ << ")}";
-    return os;
-}
-
 namespace detail
 {
+using month = std::chrono::month;
+using weekday = std::chrono::weekday;
 
 inline
 void
@@ -550,43 +327,5 @@ read_unsigned(const string_t& s, unsigned i, unsigned limit, unsigned& u)
 }  // namespace detail
 
 }  // namespace Posix
-
-namespace date
-{
-
-template <>
-struct zoned_traits<Posix::time_zone>
-{
-
-#if HAS_STRING_VIEW
-
-    static
-    Posix::time_zone
-    locate_zone(std::string_view name)
-    {
-        return Posix::time_zone{name};
-    }
-
-#else  // !HAS_STRING_VIEW
-
-    static
-    Posix::time_zone
-    locate_zone(const std::string& name)
-    {
-        return Posix::time_zone{name};
-    }
-
-    static
-    Posix::time_zone
-    locate_zone(const char* name)
-    {
-        return Posix::time_zone{name};
-    }
-
-#endif  // !HAS_STRING_VIEW
-
-};
-
-}  // namespace date
 
 #endif  // PTZ_H

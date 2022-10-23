@@ -42,8 +42,8 @@ auto to_tm(const TimeZone tp)
   t.tm_mday = unsigned(ymd.day());
   t.tm_mon  = unsigned(ymd.month()) - 1;
   t.tm_year = int(ymd.year()) - 1900;
-  t.tm_wday = unsigned(weekday{ld});
-  t.tm_yday = (ld - local_days{ymd.year()/jan/1}).count();
+  t.tm_wday = weekday{ld}.c_encoding();
+  t.tm_yday = (ld - local_days{ymd.year()/January/1}).count();
   t.tm_isdst = tp.get_info().save != minutes{0};
   return t;
 }
