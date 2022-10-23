@@ -12,6 +12,7 @@
 #include "base64.h"
 
 #include "esp_log.h"
+#include "esp_random.h"
 #include "esp_system.h"
 
 namespace JWT {
@@ -43,12 +44,17 @@ JWTGenerator::JWTGenerator(BufferView privkey_pem, Alg _alg)
 : alg(_alg)
 {
   mbedtls_pk_init(&ctx);
+  mbedtls_ctr_drbg_init(&ctr_drbg);
 
   // Parse the private key from a string buffer
   auto ret = mbedtls_pk_parse_key(
     &ctx,
-    privkey_pem.data(), privkey_pem.size(),
-    nullptr, 0
+    privkey_pem.data(),
+    privkey_pem.size(),
+    nullptr,
+    0,
+    mbedtls_ctr_drbg_random,
+    &ctr_drbg
   );
 
   if (ret == 0)
@@ -191,6 +197,7 @@ JWTGenerator::sign_RS256(BufferView jwt_header_and_payload)
         hash,
         sizeof(hash),
         &signature[0],
+        len,
         &len,
         esp32_gen_random_bytes,
         nullptr

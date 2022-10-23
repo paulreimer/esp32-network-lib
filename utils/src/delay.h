@@ -18,7 +18,7 @@
 namespace utils {
 auto timeout = [](
   const auto duration,
-  const TickType_t time_base = portTICK_RATE_MS
+  const TickType_t time_base = portTICK_PERIOD_MS
 ) -> TickType_t
 {
   return (

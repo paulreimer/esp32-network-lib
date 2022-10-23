@@ -21,7 +21,7 @@ public:
   TimingMetric(const char* _name);
   ~TimingMetric();
 
-  static xQueueHandle statsd_queue;
+  static QueueHandle_t statsd_queue;
 
   static constexpr auto statsd_buffer_size_max = 64U;
   static constexpr auto statsd_buffer_max_wait_millis = 10U;

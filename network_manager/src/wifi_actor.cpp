@@ -53,7 +53,7 @@ auto wifi_actor_behaviour(
     {
       // Check for existing config (e.g. stored in NVS)
       wifi_config_t existing_wifi_config = {};
-      ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &existing_wifi_config);
+      ret = esp_wifi_get_config(WIFI_IF_STA, &existing_wifi_config);
 
       if (
         ret != ESP_OK
@@ -73,7 +73,7 @@ auto wifi_actor_behaviour(
         ret = esp_wifi_set_mode(WIFI_MODE_STA);
         if (ret == ESP_OK)
         {
-          ret = esp_wifi_set_config(ESP_IF_WIFI_STA, &default_wifi_config);
+          ret = esp_wifi_set_config(WIFI_IF_STA, &default_wifi_config);
           if (ret == ESP_OK)
           {
             ESP_LOGI(

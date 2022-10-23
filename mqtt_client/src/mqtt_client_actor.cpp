@@ -61,17 +61,26 @@ struct MQTTClientActorState
 constexpr char TAG[] = "mqtt_client";
 
 extern "C"
-auto _mqtt_event_handler(esp_mqtt_event_handle_t event)
-  -> esp_err_t;
+auto _mqtt_event_handler(
+  void* handler_args,
+  esp_event_base_t base,
+  int32_t event_id,
+  void* event_data
+);
 
 extern "C"
-auto _mqtt_event_handler(esp_mqtt_event_handle_t event)
-  -> esp_err_t
+auto _mqtt_event_handler(
+  void* handler_args,
+  esp_event_base_t base,
+  int32_t event_id,
+  void* event_data
+)
 {
-  Pid& self = *(static_cast<Pid*>(event->user_context));
+  Pid& self = *(static_cast<Pid*>(handler_args));
+  auto event = static_cast<esp_mqtt_event_handle_t>(event_data);
 
   // your_context_t *context = event->context;
-  switch (event->event_id) {
+  switch (event_id) {
     case MQTT_EVENT_CONNECTED:
     {
       send(self, "connected");
@@ -122,8 +131,6 @@ auto _mqtt_event_handler(esp_mqtt_event_handle_t event)
       break;
     }
   }
-
-  return ESP_OK;
 }
 
 auto mqtt_client_actor_behaviour(
@@ -155,12 +162,10 @@ auto mqtt_client_actor_behaviour(
       state.mutable_mqtt_client_config.data()
     );
 
-    state.mqtt_client_config.host = (
+    state.mqtt_client_config.broker.address.hostname = (
       mqtt_client_config->host()->c_str()
     );
-    state.mqtt_client_config.port = mqtt_client_config->port();
-
-
+    state.mqtt_client_config.broker.address.port = mqtt_client_config->port();
 
     // Set the root certificate path
     if (
@@ -170,14 +175,15 @@ auto mqtt_client_actor_behaviour(
       )
     )
     {
-      state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
+      state.mqtt_client_config.broker.address.transport = MQTT_TRANSPORT_OVER_SSL;
 
       state.root_certificate_pem = filesystem_read(
         mqtt_client_config->root_certificate_path()->c_str()
       );
-      state.mqtt_client_config.cert_pem = reinterpret_cast<const char*>(
+      state.mqtt_client_config.broker.verification.certificate = reinterpret_cast<const char*>(
         state.root_certificate_pem.data()
       );
+      state.mqtt_client_config.broker.verification.certificate_len = state.root_certificate_pem.size();
     }
     // Set the client certificate path
     if (
@@ -187,14 +193,15 @@ auto mqtt_client_actor_behaviour(
       )
     )
     {
-      state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
+      state.mqtt_client_config.broker.address.transport = MQTT_TRANSPORT_OVER_SSL;
 
       state.client_certificate_pem = filesystem_read(
         mqtt_client_config->client_certificate_path()->string_view()
       );
-      state.mqtt_client_config.client_cert_pem = reinterpret_cast<const char*>(
+      state.mqtt_client_config.credentials.authentication.certificate = reinterpret_cast<const char*>(
         state.client_certificate_pem.data()
       );
+      state.mqtt_client_config.credentials.authentication.certificate_len = state.client_certificate_pem.size();
     }
     // Set the client private key path
     if (
@@ -204,43 +211,42 @@ auto mqtt_client_actor_behaviour(
       )
     )
     {
-      state.mqtt_client_config.transport = MQTT_TRANSPORT_OVER_SSL;
+      state.mqtt_client_config.broker.address.transport = MQTT_TRANSPORT_OVER_SSL;
 
       state.client_private_key_pem = filesystem_read(
         mqtt_client_config->client_private_key_path()->string_view()
       );
-      state.mqtt_client_config.client_key_pem = reinterpret_cast<const char*>(
+      state.mqtt_client_config.credentials.authentication.key = reinterpret_cast<const char*>(
         state.client_private_key_pem.data()
       );
+      state.mqtt_client_config.credentials.authentication.key_len = state.client_private_key_pem.size();
     }
     // Set the client ID
     if (mqtt_client_config->client_id())
     {
-      state.mqtt_client_config.client_id = (
+      state.mqtt_client_config.credentials.client_id = (
         mqtt_client_config->client_id()->c_str()
       );
     }
     // Set the username
     if (mqtt_client_config->client_username())
     {
-      state.mqtt_client_config.username = (
+      state.mqtt_client_config.credentials.username = (
         mqtt_client_config->client_username()->c_str()
       );
     }
     // Set the password
     if (mqtt_client_config->client_password())
     {
-      state.mqtt_client_config.password = (
+      state.mqtt_client_config.credentials.authentication.password = (
         mqtt_client_config->client_password()->c_str()
       );
     }
 
-    state.mqtt_client_config.event_handle = _mqtt_event_handler;
-    state.mqtt_client_config.user_context = const_cast<void*>(
-      static_cast<const void*>(&self)
-    );
-
     state.mqtt_client = esp_mqtt_client_init(&state.mqtt_client_config);
+
+    auto userdata = const_cast<void*>( static_cast<const void*>(&self));
+    esp_mqtt_client_register_event(state.mqtt_client, MQTT_EVENT_ANY, _mqtt_event_handler, userdata);
     auto ret = esp_mqtt_client_start(state.mqtt_client);
 
     if (ret == ESP_OK)

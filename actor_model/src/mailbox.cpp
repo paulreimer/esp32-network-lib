@@ -46,7 +46,7 @@ Mailbox::Mailbox(
   }
 
   // Create extra mutex for SMP safety
-  vPortCPUInitializeMutex(&receive_multicore_mutex);
+  spinlock_initialize(&receive_multicore_mutex);
 
   address_registry.insert({address, this});
 }

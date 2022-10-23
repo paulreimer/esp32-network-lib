@@ -16,6 +16,7 @@
 #include "freertos/event_groups.h"
 
 #include "lwip/ip4_addr.h"
+#include "esp_netif_ip_addr.h"
 
 #include "esp_event.h"
 

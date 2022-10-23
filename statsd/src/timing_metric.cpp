@@ -13,7 +13,7 @@
 #include "freertos/FreeRTOSConfig.h"
 #include "xtensa/hal.h"
 
-#include "esp32/clk.h"
+#include "esp_private/esp_clk.h"
 #include "esp_log.h"
 
 #include <cstdio>
@@ -23,7 +23,7 @@ namespace statsd {
 
 constexpr char TAG[] = "TimingMetric";
 
-xQueueHandle TimingMetric::statsd_queue = nullptr;
+QueueHandle_t TimingMetric::statsd_queue = nullptr;
 
 TimingMetric::TimingMetric(const char* _name)
 {
@@ -81,7 +81,7 @@ TimingMetric::~TimingMetric()
 
       if (statsd_queue != nullptr)
       {
-        auto timeout = statsd_buffer_max_wait_millis / portTICK_RATE_MS;
+        auto timeout = statsd_buffer_max_wait_millis / portTICK_PERIOD_MS;
         if ((xQueueSend(statsd_queue, statsd_buffer, timeout) == pdTRUE))
         {
           ESP_LOGD(

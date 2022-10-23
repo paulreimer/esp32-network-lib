@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "mbedtls/pk.h"
+#include "mbedtls/ctr_drbg.h"
 
 namespace JWT {
 using Buffer = std::vector<uint8_t>;
@@ -41,6 +42,7 @@ private:
   Buffer sign_RS256(BufferView jwt_header_and_payload);
 
   mbedtls_pk_context ctx;
+  mbedtls_ctr_drbg_context ctr_drbg;
   bool valid = false;
 };
 } // namespace JWT

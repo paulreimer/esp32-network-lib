@@ -108,9 +108,10 @@ auto checksum_partition_md5(
       buffer_size : (partition_size - offset)
     );
 
-    auto ret = spi_flash_read(
-      reinterpret_cast<size_t>(&partition_address[offset]),
+    auto ret = esp_flash_read(
+      nullptr,
       buffer,
+      reinterpret_cast<size_t>(&partition_address[offset]),
       bytes_to_read
     );
 

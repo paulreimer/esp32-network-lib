@@ -18,6 +18,8 @@
 
 #include "esp_debug_helpers.h"
 #include "esp_heap_task_info.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task_snapshot.h"
 
 namespace ActorModel {
 
@@ -71,11 +73,12 @@ auto oom_killer_actor_behaviour(
 
     for (auto& total : stack_task_totals)
     {
+      auto task_handle = static_cast<TaskHandle_t>(total.pxTCB);
       auto len = (
         reinterpret_cast<uint32_t>(total.pxEndOfStack)
         - reinterpret_cast<uint32_t>(total.pxTopOfStack)
       );
-      tasks_mem_info[total.pxTCB].stack_usage_bytes = len;
+      tasks_mem_info[task_handle].stack_usage_bytes = len;
     }
 
     // Check heap usage
@@ -111,7 +114,7 @@ auto oom_killer_actor_behaviour(
 
     for (const auto& task_iter : tasks_mem_info)
     {
-      const char* task_name = pcTaskGetTaskName(const_cast<TaskHandle_t>(task_iter.first));
+      const char* task_name = pcTaskGetName(const_cast<TaskHandle_t>(task_iter.first));
       printf(
         "task '%s', heap_usage_bytes=%u, heap_alloc_count=%u, stack_usage_bytes=%u\n",
         task_name,
