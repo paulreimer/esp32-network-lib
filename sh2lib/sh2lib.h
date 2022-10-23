@@ -1,21 +1,17 @@
-// Copyright 2017 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-#ifndef __ESP_EXAMPLE_SH2_LIB_H_
-#define __ESP_EXAMPLE_SH2_LIB_H_
+/*
+ * SPDX-FileCopyrightText: 2027-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#pragma once
 
 #include "esp_tls.h"
 #include <nghttp2/nghttp2.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * This is a thin API wrapper over nghttp2 that offers simplified APIs for usage
@@ -37,6 +33,18 @@ struct sh2lib_handle {
     char            *hostname;     /*!< The hostname we are connected to */
     struct esp_tls  *http2_tls;    /*!< Pointer to the TLS session handle */
     void            *userdata;
+};
+
+/**
+ * @brief sh2lib configuration structure
+ */
+struct sh2lib_config_t {
+    const char *uri;                    /*!< Pointer to the URI that should be connected to */
+    const unsigned char *cacert_buf;    /*!< Pointer to the buffer containing CA certificate */
+    unsigned int cacert_bytes;          /*!< Size of the CA certifiacte pointed by cacert_buf */
+    esp_err_t (*crt_bundle_attach)(void *conf);
+    /*!< Function pointer to esp_crt_bundle_attach. Enables the use of certification
+         bundle for server verification, must be enabled in menuconfig */
 };
 
 /** Flag indicating receive stream is reset */
@@ -61,7 +69,6 @@ struct sh2lib_handle {
  *
  * @return The function should return 0
  */
-typedef int (*sh2lib_frame_data_header_cb_t)(struct sh2lib_handle *handle, const char *name, size_t namelen, const char *value, size_t valuelen, int flags);
 typedef int (*sh2lib_frame_data_recv_cb_t)(struct sh2lib_handle *handle, const char *data, size_t len, int flags);
 
 /**
@@ -82,12 +89,6 @@ typedef int (*sh2lib_frame_data_recv_cb_t)(struct sh2lib_handle *handle, const c
  */
 typedef int (*sh2lib_putpost_data_cb_t)(struct sh2lib_handle *handle, char *data, size_t len, uint32_t *data_flags);
 
-typedef struct {
-  sh2lib_putpost_data_cb_t send_cb;
-  sh2lib_frame_data_header_cb_t header_recv_cb;
-  sh2lib_frame_data_recv_cb_t data_recv_cb;
-} sh2lib_callbacks;
-
 /**
  * @brief Connect to a URI using HTTP/2
  *
@@ -96,14 +97,13 @@ typedef struct {
  *
  * Only 'https' URIs are supported.
  *
+ * @param[in]  cfg     Pointer to the sh2lib configurations of the type 'struct sh2lib_config_t'.
  * @param[out] hd      Pointer to a variable of the type 'struct sh2lib_handle'.
- * @param[in]  uri      Pointer to the URI that should be connected to.
- *
  * @return
  *             - ESP_OK if the connection was successful
  *             - ESP_FAIL if the connection fails
  */
-int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, mbedtls_x509_crt* cacerts);
+int sh2lib_connect(struct sh2lib_config_t *cfg, struct sh2lib_handle *hd);
 
 /**
  * @brief Free a sh2lib handle
@@ -134,7 +134,7 @@ void sh2lib_free(struct sh2lib_handle *hd);
  *             - ESP_OK if request setup is successful
  *             - ESP_FAIL if the request setup fails
  */
-int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_callbacks* callbacks);
+int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_frame_data_recv_cb_t recv_cb);
 
 /**
  * @brief Setup an HTTP POST request stream
@@ -157,7 +157,8 @@ int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_callbacks* 
  *             - ESP_FAIL if the request setup fails
  */
 int sh2lib_do_post(struct sh2lib_handle *hd, const char *path,
-                   sh2lib_callbacks* callbacks);
+                   sh2lib_putpost_data_cb_t send_cb,
+                   sh2lib_frame_data_recv_cb_t recv_cb);
 
 /**
  * @brief Setup an HTTP PUT request stream
@@ -180,7 +181,8 @@ int sh2lib_do_post(struct sh2lib_handle *hd, const char *path,
  *             - ESP_FAIL if the request setup fails
  */
 int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
-                  sh2lib_callbacks* callbacks);
+                  sh2lib_putpost_data_cb_t send_cb,
+                  sh2lib_frame_data_recv_cb_t recv_cb);
 
 /**
  * @brief Execute send/receive on an HTTP/2 connection
@@ -198,9 +200,10 @@ int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
  */
 int sh2lib_execute(struct sh2lib_handle *hd);
 
-#define SH2LIB_MAKE_NV(NAME, VALUE, FLAGS)                                    \
-  {                                                                           \
-    (uint8_t *)NAME, (uint8_t *)VALUE, strlen(NAME), strlen(VALUE), FLAGS     \
+#define SH2LIB_MAKE_NV(NAME, VALUE)                                    \
+  {                                                                    \
+    (uint8_t *)NAME, (uint8_t *)VALUE, strlen(NAME), strlen(VALUE),    \
+        NGHTTP2_NV_FLAG_NONE                                           \
   }
 
 /**
@@ -229,7 +232,7 @@ int sh2lib_execute(struct sh2lib_handle *hd);
  *             - ESP_OK if request setup is successful
  *             - ESP_FAIL if the request setup fails
  */
-int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen, sh2lib_callbacks* callbacks);
+int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen, sh2lib_frame_data_recv_cb_t recv_cb);
 
 /**
  * @brief Setup an HTTP PUT/POST request stream with custom name-value pairs
@@ -261,6 +264,9 @@ int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_
  *             - ESP_FAIL if the request setup fails
  */
 int sh2lib_do_putpost_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen,
-                              sh2lib_callbacks* callbacks);
+                              sh2lib_putpost_data_cb_t send_cb,
+                              sh2lib_frame_data_recv_cb_t recv_cb);
 
-#endif /* ! __ESP_EXAMPLE_SH2_LIB_H_ */
+#ifdef __cplusplus
+}
+#endif

@@ -1,16 +1,9 @@
-// Copyright 2017 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -39,7 +32,7 @@ static ssize_t callback_send_inner(struct sh2lib_handle *hd, const uint8_t *data
 {
     int rv = esp_tls_conn_write(hd->http2_tls, data, length);
     if (rv <= 0) {
-        if (rv == MBEDTLS_ERR_SSL_WANT_READ || rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
+        if (rv == ESP_TLS_ERR_SSL_WANT_READ || rv == ESP_TLS_ERR_SSL_WANT_WRITE) {
             rv = NGHTTP2_ERR_WOULDBLOCK;
         } else {
             rv = NGHTTP2_ERR_CALLBACK_FAILURE;
@@ -58,22 +51,19 @@ static ssize_t callback_send(nghttp2_session *session, const uint8_t *data,
     int pending_data = length;
 
     /* Send data in 1000 byte chunks */
-    while (copy_offset != (length - 1)) {
+    while (copy_offset != length) {
         int chunk_len = pending_data > 1000 ? 1000 : pending_data;
         int subrv = callback_send_inner(hd, data + copy_offset, chunk_len);
         if (subrv <= 0) {
-            if (copy_offset) {
-                /* If some data was xferred, send the number of bytes
-                 * xferred */
-                rv = copy_offset;
-            } else {
-                /* If not, send the error code */
+            if (copy_offset == 0) {
+                /* If no data is transferred, send the error code */
                 rv = subrv;
             }
             break;
         }
-        copy_offset += chunk_len;
-        pending_data -= chunk_len;
+        copy_offset += subrv;
+        pending_data -= subrv;
+        rv += subrv;
     }
     return rv;
 }
@@ -91,7 +81,7 @@ static ssize_t callback_recv(nghttp2_session *session, uint8_t *buf,
     int rv;
     rv = esp_tls_conn_read(hd->http2_tls, (char *)buf, (int)length);
     if (rv < 0) {
-        if (rv == MBEDTLS_ERR_SSL_WANT_READ || rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
+        if (rv == ESP_TLS_ERR_SSL_WANT_READ || rv == ESP_TLS_ERR_SSL_WANT_WRITE) {
             rv = NGHTTP2_ERR_WOULDBLOCK;
         } else {
             rv = NGHTTP2_ERR_CALLBACK_FAILURE;
@@ -162,10 +152,10 @@ static int callback_on_frame_recv(nghttp2_session *session,
         return 0;
     }
     /* Subsequent processing only for data frame */
-    sh2lib_callbacks* callbacks = nghttp2_session_get_stream_user_data(session, frame->hd.stream_id);
-    if (callbacks && callbacks->data_recv_cb) {
+    sh2lib_frame_data_recv_cb_t data_recv_cb = nghttp2_session_get_stream_user_data(session, frame->hd.stream_id);
+    if (data_recv_cb) {
         struct sh2lib_handle *h2 = user_data;
-        (*(callbacks->data_recv_cb))(h2, NULL, 0, DATA_RECV_FRAME_COMPLETE);
+        (*data_recv_cb)(h2, NULL, 0, DATA_RECV_FRAME_COMPLETE);
     }
     return 0;
 }
@@ -175,10 +165,10 @@ static int callback_on_stream_close(nghttp2_session *session, int32_t stream_id,
 {
 
     ESP_LOGD(TAG, "[stream-close][sid %d]", stream_id);
-    sh2lib_callbacks* callbacks = nghttp2_session_get_stream_user_data(session, stream_id);
-    if (callbacks && callbacks->data_recv_cb) {
+    sh2lib_frame_data_recv_cb_t data_recv_cb = nghttp2_session_get_stream_user_data(session, stream_id);
+    if (data_recv_cb) {
         struct sh2lib_handle *h2 = user_data;
-        (*(callbacks->data_recv_cb))(h2, NULL, 0, DATA_RECV_RST_STREAM);
+        (*data_recv_cb)(h2, NULL, 0, DATA_RECV_RST_STREAM);
     }
     return 0;
 }
@@ -187,14 +177,15 @@ static int callback_on_data_chunk_recv(nghttp2_session *session, uint8_t flags,
                                        int32_t stream_id, const uint8_t *data,
                                        size_t len, void *user_data)
 {
+    sh2lib_frame_data_recv_cb_t data_recv_cb;
     ESP_LOGD(TAG, "[data-chunk][sid:%d]", stream_id);
-    sh2lib_callbacks* callbacks = nghttp2_session_get_stream_user_data(session, stream_id);
-    if (callbacks && callbacks->data_recv_cb) {
+    data_recv_cb = nghttp2_session_get_stream_user_data(session, stream_id);
+    if (data_recv_cb) {
         ESP_LOGD(TAG, "[data-chunk] C <---------------------------- S (DATA chunk)"
-                "%lu bytes",
-                (unsigned long int)len);
+                 "%lu bytes",
+                 (unsigned long int)len);
         struct sh2lib_handle *h2 = user_data;
-        (*(callbacks->data_recv_cb))(h2, (char *)data, len, 0);
+        (*data_recv_cb)(h2, (char *)data, len, 0);
         /* TODO: What to do with the return value: look for pause/abort */
     }
     return 0;
@@ -205,11 +196,6 @@ static int callback_on_header(nghttp2_session *session, const nghttp2_frame *fra
                               size_t valuelen, uint8_t flags, void *user_data)
 {
     ESP_LOGD(TAG, "[hdr-recv][sid:%d] %s : %s", frame->hd.stream_id, name, value);
-    sh2lib_callbacks* callbacks = nghttp2_session_get_stream_user_data(session, frame->hd.stream_id);
-    if (callbacks && callbacks->header_recv_cb) {
-        struct sh2lib_handle *h2 = user_data;
-        (*(callbacks->header_recv_cb))(h2, (char *)name, namelen, (char *)value, valuelen, 0);
-    }
     return 0;
 }
 
@@ -242,36 +228,49 @@ static int do_http2_connect(struct sh2lib_handle *hd)
     return 0;
 }
 
-int sh2lib_connect(struct sh2lib_handle *hd, const char *uri, mbedtls_x509_crt* cacerts)
+int sh2lib_connect(struct sh2lib_config_t *cfg, struct sh2lib_handle *hd)
 {
     memset(hd, 0, sizeof(*hd));
+
+    if (cfg == NULL) {
+        ESP_LOGE(TAG, "[sh2-connect] pointer to sh2lib configurations cannot be NULL");
+        goto error;
+    }
 
     const char *proto[] = {"h2", NULL};
     esp_tls_cfg_t tls_cfg = {
         .alpn_protos = proto,
+        .cacert_buf = cfg->cacert_buf,
+        .cacert_bytes = cfg->cacert_bytes,
+        .crt_bundle_attach = cfg->crt_bundle_attach,
         .non_block = true,
+        .timeout_ms = 10 * 1000,
     };
-    if ((hd->http2_tls = esp_tls_conn_http_new(uri, &tls_cfg)) == NULL) {
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    hd->http2_tls = esp_tls_init();
+    if (!hd->http2_tls) {
+        ESP_LOGE(TAG, "Failed to allocate esp_tls handle!");
+        goto error;
+    }
+
+    // NOTE: This API is an alternative to previous `esp_tls_conn_http_new` from ESP-IDF v5.0 onwards.
+    if (esp_tls_conn_http_new_sync(cfg->uri, &tls_cfg, hd->http2_tls) != 1) {
+#else
+    if ((hd->http2_tls = esp_tls_conn_http_new(cfg->uri, &tls_cfg)) == NULL) {
+#endif
         ESP_LOGE(TAG, "[sh2-connect] esp-tls connection failed");
         goto error;
     }
 
-    // Always verify
-    mbedtls_ssl_conf_authmode(&hd->http2_tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-
-    if (cacerts)
-    {
-      mbedtls_ssl_conf_ca_chain(&hd->http2_tls->conf, cacerts, NULL);
-    }
-
     struct http_parser_url u;
     http_parser_url_init(&u);
-    http_parser_parse_url(uri, strlen(uri), 0, &u);
-    hd->hostname = strndup(&uri[u.field_data[UF_HOST].off], u.field_data[UF_HOST].len);
+    http_parser_parse_url(cfg->uri, strlen(cfg->uri), 0, &u);
+    hd->hostname = strndup(&cfg->uri[u.field_data[UF_HOST].off], u.field_data[UF_HOST].len);
 
     /* HTTP/2 Connection */
     if (do_http2_connect(hd) != 0) {
-        ESP_LOGE(TAG, "[sh2-connect] HTTP2 Connection failed with %s", uri);
+        ESP_LOGE(TAG, "[sh2-connect] HTTP2 Connection failed with %s", cfg->uri);
         goto error;
     }
 
@@ -288,7 +287,7 @@ void sh2lib_free(struct sh2lib_handle *hd)
         hd->http2_sess = NULL;
     }
     if (hd->http2_tls) {
-        esp_tls_conn_delete(hd->http2_tls);
+        esp_tls_conn_destroy(hd->http2_tls);
         hd->http2_tls = NULL;
     }
     if (hd->hostname) {
@@ -315,9 +314,9 @@ int sh2lib_execute(struct sh2lib_handle *hd)
     return 0;
 }
 
-int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen, sh2lib_callbacks* callbacks)
+int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen, sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    int ret = nghttp2_submit_request(hd->http2_sess, NULL, nva, nvlen, NULL, callbacks);
+    int ret = nghttp2_submit_request(hd->http2_sess, NULL, nva, nvlen, NULL, recv_cb);
     if (ret < 0) {
         ESP_LOGE(TAG, "[sh2-do-get] HEADERS call failed");
         return -1;
@@ -325,15 +324,14 @@ int sh2lib_do_get_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_
     return ret;
 }
 
-int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_callbacks* callbacks)
+int sh2lib_do_get(struct sh2lib_handle *hd, const char *path, sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    const nghttp2_nv nva[] = {
-      SH2LIB_MAKE_NV(":method", "GET", NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":scheme", "https", NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":authority", hd->hostname, NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":path", path, NGHTTP2_NV_FLAG_NONE),
-    };
-    return sh2lib_do_get_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), callbacks);
+    const nghttp2_nv nva[] = { SH2LIB_MAKE_NV(":method", "GET"),
+                               SH2LIB_MAKE_NV(":scheme", "https"),
+                               SH2LIB_MAKE_NV(":authority", hd->hostname),
+                               SH2LIB_MAKE_NV(":path", path),
+                             };
+    return sh2lib_do_get_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), recv_cb);
 }
 
 ssize_t sh2lib_data_provider_cb(nghttp2_session *session, int32_t stream_id, uint8_t *buf,
@@ -346,13 +344,14 @@ ssize_t sh2lib_data_provider_cb(nghttp2_session *session, int32_t stream_id, uin
 }
 
 int sh2lib_do_putpost_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, size_t nvlen,
-                              sh2lib_callbacks* callbacks)
+                              sh2lib_putpost_data_cb_t send_cb,
+                              sh2lib_frame_data_recv_cb_t recv_cb)
 {
 
     nghttp2_data_provider sh2lib_data_provider;
     sh2lib_data_provider.read_callback = sh2lib_data_provider_cb;
-    sh2lib_data_provider.source.ptr = callbacks->send_cb;
-    int ret = nghttp2_submit_request(hd->http2_sess, NULL, nva, nvlen, &sh2lib_data_provider, callbacks);
+    sh2lib_data_provider.source.ptr = send_cb;
+    int ret = nghttp2_submit_request(hd->http2_sess, NULL, nva, nvlen, &sh2lib_data_provider, recv_cb);
     if (ret < 0) {
         ESP_LOGE(TAG, "[sh2-do-putpost] HEADERS call failed");
         return -1;
@@ -361,25 +360,25 @@ int sh2lib_do_putpost_with_nv(struct sh2lib_handle *hd, const nghttp2_nv *nva, s
 }
 
 int sh2lib_do_post(struct sh2lib_handle *hd, const char *path,
-                   sh2lib_callbacks* callbacks)
+                   sh2lib_putpost_data_cb_t send_cb,
+                   sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    const nghttp2_nv nva[] = {
-      SH2LIB_MAKE_NV(":method", "POST", NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":scheme", "https", NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":authority", hd->hostname, NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":path", path, NGHTTP2_NV_FLAG_NONE),
-    };
-    return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), callbacks);
+    const nghttp2_nv nva[] = { SH2LIB_MAKE_NV(":method", "POST"),
+                               SH2LIB_MAKE_NV(":scheme", "https"),
+                               SH2LIB_MAKE_NV(":authority", hd->hostname),
+                               SH2LIB_MAKE_NV(":path", path),
+                             };
+    return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), send_cb, recv_cb);
 }
 
 int sh2lib_do_put(struct sh2lib_handle *hd, const char *path,
-                  sh2lib_callbacks* callbacks)
+                  sh2lib_putpost_data_cb_t send_cb,
+                  sh2lib_frame_data_recv_cb_t recv_cb)
 {
-    const nghttp2_nv nva[] = {
-      SH2LIB_MAKE_NV(":method", "PUT", NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":scheme", "https", NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":authority", hd->hostname, NGHTTP2_NV_FLAG_NONE),
-      SH2LIB_MAKE_NV(":path", path, NGHTTP2_NV_FLAG_NONE),
-    };
-    return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), callbacks);
+    const nghttp2_nv nva[] = { SH2LIB_MAKE_NV(":method", "PUT"),
+                               SH2LIB_MAKE_NV(":scheme", "https"),
+                               SH2LIB_MAKE_NV(":authority", hd->hostname),
+                               SH2LIB_MAKE_NV(":path", path),
+                             };
+    return sh2lib_do_putpost_with_nv(hd, nva, sizeof(nva) / sizeof(nva[0]), send_cb, recv_cb);
 }

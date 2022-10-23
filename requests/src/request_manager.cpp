@@ -20,7 +20,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifdef REQUESTS_USE_SH2LIB
 #include <http_parser.h>
+#endif // REQUESTS_USE_SH2LIB
 
 #include "esp_log.h"
 
@@ -85,8 +87,6 @@ auto data_recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags
 auto data_send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_flags)
   -> int;
 
-sh2lib_callbacks callbacks{data_send_cb, header_recv_cb, data_recv_cb};
-
 // Implementation:
 auto data_recv_cb(sh2lib_handle *handle, const char* data, size_t len, int flags)
   -> int
@@ -112,8 +112,6 @@ auto data_send_cb(sh2lib_handle* handle, char* buf, size_t len, uint32_t* data_f
   -> int
 {
   auto* userdata = handle->userdata;
-
-  int retval = 0;
 
   auto send_chunk = static_cast<RequestHandler*>(userdata)->read_callback(len);
   if (not send_chunk.empty())
@@ -211,6 +209,10 @@ auto RequestManager::fetch(
   // Only create a new request intent if an old one is not found
   if (existing_handler == requests.end())
   {
+#ifdef REQUESTS_USE_SH2LIB
+    HandleImpl* _handle = new HandleImpl;
+    _handle->hd = static_cast<sh2lib_handle*>(malloc(sizeof(sh2lib_handle)));
+#endif
     const auto& inserted = requests.emplace(
       std::move(HandleImplPtr{
 #ifdef REQUESTS_USE_CURL
@@ -218,8 +220,12 @@ auto RequestManager::fetch(
         curl_easy_cleanup
 #endif // REQUESTS_USE_CURL
 #ifdef REQUESTS_USE_SH2LIB
-        new sh2lib_handle,
-        sh2lib_free
+        _handle,
+        [](HandleImpl* handle)
+        {
+          sh2lib_free(handle->hd);
+          delete handle;
+        }
 #endif // REQUESTS_USE_SH2LIB
       }),
       std::move(RequestHandler{
@@ -395,7 +401,8 @@ auto RequestManager::send(
 #endif // REQUESTS_USE_CURL
 
 #ifdef REQUESTS_USE_SH2LIB
-    auto* hd = handle;
+    auto* cfg = &(handle->cfg);
+    auto* hd = handle->hd;
 
     handler.body_sent_byte_count = 0;
 
@@ -440,18 +447,20 @@ auto RequestManager::send(
       mbedtls_x509_crt* _cacerts = esp_tls_get_global_ca_store();
       if (_cacerts != nullptr)
       {
+        cfg->uri = req->uri()->c_str();
+        cfg->cacert_buf = _cacerts->raw.p;
+        cfg->cacert_bytes = static_cast<unsigned int>(_cacerts->raw.len);
         handler.connected = (
           sh2lib_connect(
-            hd,
-            req->uri()->c_str(),
-            _cacerts
+            cfg,
+            hd
           ) == 0
         );
 
         if (handler.connected)
         {
           // Create pointer so handle callback can access handler methods
-          handle->userdata = &handler;
+          handle->hd->userdata = &handler;
 
           // Set the cached connected hostname
           handler.connected_hostname.assign(
@@ -474,7 +483,7 @@ auto RequestManager::send(
       };
 
       std::vector<nghttp2_nv> nva_vec = {
-        SH2LIB_MAKE_NV(":method", req->method()->c_str(), flags),
+        SH2LIB_MAKE_NV(":method", req->method()->c_str()),
         {
           (uint8_t*)(":path"),
           (uint8_t*)(handler._path.data()),
@@ -482,8 +491,8 @@ auto RequestManager::send(
           handler._path.size(),
           flags
         },
-        SH2LIB_MAKE_NV(":scheme", "https", flags),
-        SH2LIB_MAKE_NV(":authority", handler.connected_hostname.c_str(), flags),
+        SH2LIB_MAKE_NV(":scheme", "https"),
+        SH2LIB_MAKE_NV(":authority", handler.connected_hostname.c_str()),
       };
 
       for (const auto* hdr : *(req->headers()))
@@ -498,15 +507,17 @@ auto RequestManager::send(
       }
 
       // Make the request
+      auto retval = false;
       if (req->method()->string_view() == "GET")
       {
         // Use GET (default)
-        auto retval = sh2lib_do_get_with_nv(
+        retval = sh2lib_do_get_with_nv(
           hd,
           nva_vec.data(),
           nva_vec.size(),
-          &callbacks
+          data_recv_cb
         );
+        return retval;
       }
       else {
         // Add content length header with request body size
@@ -521,13 +532,16 @@ auto RequestManager::send(
         });
 
         // Use a custom (user-supplied) HTTP method (e.g. PATCH)
-        auto retval = sh2lib_do_putpost_with_nv(
+        retval = sh2lib_do_putpost_with_nv(
           hd,
           nva_vec.data(),
           nva_vec.size(),
-          &callbacks
+          data_send_cb,
+          data_recv_cb
         );
       }
+
+      return retval;
     }
     else {
       ESP_LOGE(TAG, "%s %s: not connected", req->method()->c_str(), req->uri()->c_str());
@@ -673,7 +687,7 @@ auto RequestManager::wait_any()
 
     if (handle)
     {
-      auto* hd = handle.get();
+      auto* hd = handle.get()->hd;
       auto ok = (sh2lib_execute(hd) >= 0);
 
       if (handler.finished)

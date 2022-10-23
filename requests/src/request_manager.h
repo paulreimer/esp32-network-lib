@@ -50,7 +50,10 @@ public:
   using HandleImpl = CURL;
 #endif // REQUESTS_USE_CURL
 #ifdef REQUESTS_USE_SH2LIB
-  using HandleImpl = sh2lib_handle;
+  struct HandleImpl{
+    sh2lib_config_t cfg;
+    sh2lib_handle* hd;
+  };
 #endif // REQUESTS_USE_SH2LIB
   using HandleImplPtr = std::unique_ptr<HandleImpl, void(*)(HandleImpl*)>;
 
