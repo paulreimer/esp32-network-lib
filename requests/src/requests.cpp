@@ -261,7 +261,7 @@ auto set_request_header(
 
   auto resizing_root = flatbuffers::piv(
     flatbuffers::GetAnyRoot(
-      flatbuffers::vector_data(request_intent_mutable_buf)
+      request_intent_mutable_buf.data()
     ),
     request_intent_mutable_buf
   );
@@ -360,7 +360,7 @@ auto set_request_query_arg(
 
   auto resizing_root = flatbuffers::piv(
     flatbuffers::GetAnyRoot(
-      flatbuffers::vector_data(request_intent_mutable_buf)
+      request_intent_mutable_buf.data()
     ),
     request_intent_mutable_buf
   );
@@ -458,7 +458,7 @@ auto _set_request_field_by_name(
 
   auto resizing_root = flatbuffers::piv(
     flatbuffers::GetAnyRoot(
-      flatbuffers::vector_data(request_intent_mutable_buf)
+      request_intent_mutable_buf.data()
     ),
     request_intent_mutable_buf
   );
@@ -541,7 +541,7 @@ auto set_request_body(
 
   auto resizing_root = flatbuffers::piv(
     flatbuffers::GetAnyRoot(
-      flatbuffers::vector_data(request_intent_mutable_buf)
+      request_intent_mutable_buf.data()
     ),
     request_intent_mutable_buf
   );

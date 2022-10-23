@@ -101,7 +101,7 @@ auto _set_mqtt_client_config_field_by_name(
 
   auto resizing_root = flatbuffers::piv(
     flatbuffers::GetAnyRoot(
-      flatbuffers::vector_data(mqtt_client_config_mutable_buf)
+      mqtt_client_config_mutable_buf.data()
     ),
     mqtt_client_config_mutable_buf
   );
@@ -136,7 +136,7 @@ auto _set_mqtt_client_config_field_by_name(
 
   flatbuffers::Verifier verifier(
     reinterpret_cast<const uint8_t *>(
-      flatbuffers::vector_data(mqtt_client_config_mutable_buf)
+      mqtt_client_config_mutable_buf.data()
     ),
     mqtt_client_config_mutable_buf.size()
   );
