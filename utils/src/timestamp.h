@@ -24,7 +24,7 @@ using TimeDuration = std::chrono::microseconds;
 auto IRAM_ATTR get_elapsed_microseconds()
   -> TimeDuration;
 
-auto get_interval_microseconds = [](const auto duration) IRAM_ATTR
+auto IRAM_ATTR get_interval_microseconds(const auto duration)
   -> int64_t
 {
   return TimeDuration(duration).count();

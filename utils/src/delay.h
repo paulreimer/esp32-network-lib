@@ -16,7 +16,7 @@
 #include "freertos/task.h"
 
 namespace utils {
-auto timeout = [](
+auto timeout(
   const auto duration,
   const TickType_t time_base = portTICK_PERIOD_MS
 ) -> TickType_t
@@ -27,7 +27,7 @@ auto timeout = [](
   );
 };
 
-auto delay = [](const auto duration)
+auto delay(const auto duration)
 {
   vTaskDelay(timeout(duration));
 };
