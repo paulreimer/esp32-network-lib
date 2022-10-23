@@ -124,7 +124,7 @@ auto Process::send(const Message& message)
     ESP_LOGE(
       get_uuid_str(pid).c_str(),
       "Unable to send message (payload size %zu)",
-      message.payload()->size()
+      static_cast<size_t>(message.payload()->size())
     );
   }
   return did_send;

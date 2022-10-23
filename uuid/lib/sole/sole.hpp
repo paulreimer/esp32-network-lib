@@ -176,27 +176,27 @@ namespace sole {
         auto i = 0;
 
         // Include 1 byte for -, and 1 for null (ignored)
-        snprintf(&s[i], 8 + 1 + 1, "%08x-", (a));
+        snprintf(&s[i], 8 + 1 + 1, "%08lx-", (a));
         i += 8 + 1;
 
         // Include 1 byte for -, and 1 for null (ignored)
-        snprintf(&s[i], 4 + 1 + 1, "%04x-", (b >> 16));
+        snprintf(&s[i], 4 + 1 + 1, "%04lx-", (b >> 16));
         i += 4 + 1;
 
         // Include 1 byte for -, and 1 for null (ignored)
-        snprintf(&s[i], 4 + 1 + 1, "%04x-", (b & 0xFFFF));
+        snprintf(&s[i], 4 + 1 + 1, "%04lx-", (b & 0xFFFF));
         i += 4 + 1;
 
         // Include 1 byte for -, and 1 for null (ignored)
-        snprintf(&s[i], 4 + 1 + 1, "%04x-", (c >> 16 ));
+        snprintf(&s[i], 4 + 1 + 1, "%04lx-", (c >> 16 ));
         i += 4 + 1;
 
         // Include 1 byte for null (ignored)
-        snprintf(&s[i], 4 + 1, "%04x", (c & 0xFFFF));
+        snprintf(&s[i], 4 + 1, "%04lx", (c & 0xFFFF));
         i += 4;
 
         // Include 1 byte for null (ignored)
-        snprintf(&s[i], 8 + 1, "%08x", (d));
+        snprintf(&s[i], 8 + 1, "%08lx", (d));
         i += 8;
 
         // Strip the trailing null that snprintf adds

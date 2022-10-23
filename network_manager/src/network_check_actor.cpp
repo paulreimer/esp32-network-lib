@@ -62,7 +62,7 @@ auto ping_success_callback(esp_ping_handle_t hdl, void *args)
     sizeof(elapsed_time)
   );
   printf(
-    "%d bytes from %s icmp_seq=%d ttl=%d time=%d ms\n",
+    "%lu bytes from %s icmp_seq=%d ttl=%d time=%lu ms\n",
     recv_len,
     inet_ntoa(target_addr.u_addr.ip4),
     seqno,
@@ -98,7 +98,7 @@ auto ping_end_callback(esp_ping_handle_t hdl, void *args)
   } else {
       printf("\n--- %s ping statistics ---\n", inet6_ntoa(*ip_2_ip6(&target_addr)));
   }
-  printf("%d packets transmitted, %d received, %d%% packet loss, time %dms\n",
+  printf("%lu packets transmitted, %lu received, %lu%% packet loss, time %lums\n",
           transmitted, received, loss, total_time_ms);
   // delete the ping sessions, so that we clean up all resources and can create a new ping session
   // we don't have to call delete function in the callback, instead we can call delete function from other tasks

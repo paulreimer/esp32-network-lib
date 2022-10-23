@@ -250,7 +250,7 @@ auto queued_endpoint_actor_behaviour(
           TAG,
           "Response error (%d), resending: '%.*s'\n",
           response->code(),
-          response->body()->size(),
+          static_cast<int>(response->body()->size()),
           response->body()->data()
         );
 

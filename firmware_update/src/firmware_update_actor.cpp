@@ -667,7 +667,7 @@ auto firmware_update_actor_behaviour(
 
           if (all_files_valid and (new_version > current_version))
           {
-            printf("Newer firmware update version %d available, downloading\n", new_version);
+            printf("Newer firmware update version %lu available, downloading\n", new_version);
 
             if (firmware_update_metadata->checksum())
             {
